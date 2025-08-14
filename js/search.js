@@ -1,366 +1,186 @@
-// search.js - Suchfunktion für TuningHub mit Button
+import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.esm.min.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// Debug-Funktion
-function log(message, data = null) {
-    console.log(`[TuningHub Search] ${message}`, data || '');
-}
+// Supabase-Verbindung
+const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Suchverlauf-Speicher (In-Memory statt localStorage)
-let searchHistory = [];
-const MAX_HISTORY_ITEMS = 5;
+// Fuse.js Instanz
+let fuse;
+let allParts = [];
 
-// Suchverlauf-Funktionen (vereinfacht für In-Memory)
-function loadSearchHistory() {
-    return searchHistory;
-}
+// Teile aus Supabase laden
+async function loadParts() {
+  try {
+    const { data, error } = await supabase
+      .from('parts')
+      .select('id, title, description, image_url, price, condition, contact_number, type');
 
-function saveSearchHistory(history) {
-    searchHistory = history;
-}
+    if (error) throw error;
 
-function addToSearchHistory(query) {
-    if (!query || query.trim() === '') return;
-    
-    const history = loadSearchHistory();
-    const normalizedQuery = query.trim().toLowerCase();
-    const filteredHistory = history.filter(item => item.toLowerCase() !== normalizedQuery);
-    filteredHistory.unshift(query.trim());
-    saveSearchHistory(filteredHistory.slice(0, MAX_HISTORY_ITEMS));
-}
+    allParts = data.map(part => ({
+      id: part.id,
+      name: part.title,
+      description: part.description,
+      image_url: part.image_url,
+      price: part.price,
+      condition: part.condition,
+      contact_number: part.contact_number,
+      type: part.type || 'angebot'
+    }));
 
-// Such-UI erstellen
-function createSearchUI() {
-    const searchWrapper = document.querySelector('.searchbar-wrapper');
-    if (!searchWrapper || searchWrapper.querySelector('.search-button')) return;
-
-    // Suchbutton erstellen
-    const searchButton = document.createElement('button');
-    searchButton.className = 'search-button';
-    searchButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>';
-    
-    // Suchleiste referenzieren
-    const searchInput = searchWrapper.querySelector('.searchbar');
-    
-    // Button einfügen
-    searchWrapper.style.position = 'relative';
-    searchButton.style.position = 'absolute';
-    searchButton.style.right = '10px';
-    searchButton.style.top = '50%';
-    searchButton.style.transform = 'translateY(-50%)';
-    searchButton.style.background = 'none';
-    searchButton.style.border = 'none';
-    searchButton.style.cursor = 'pointer';
-    searchButton.style.padding = '8px';
-    searchWrapper.appendChild(searchButton);
-
-    // Event-Listener für Button
-    searchButton.addEventListener('click', () => performSearch(searchInput.value));
-}
-
-// Tracking-Funktion für Suchanfragen (verbessert)
-async function trackSearchEvent(query) {
-    log(`Tracking Search Event: "${query}"`);
-    
-    try {
-        // Prüfen ob supabase verfügbar ist
-        if (typeof supabase === 'undefined') {
-            log('Supabase ist nicht verfügbar');
-            return;
-        }
-
-        // User abrufen (mit besserer Fehlerbehandlung)
-        let userId = null;
-        try {
-            if (supabase.auth && supabase.auth.getUser) {
-                const { data: { user }, error } = await supabase.auth.getUser();
-                if (error) {
-                    log('Fehler beim Abrufen des Users:', error);
-                } else {
-                    userId = user?.id || null;
-                }
-            }
-        } catch (authError) {
-            log('Auth-Fehler:', authError);
-            // Weiter ohne User-ID
-        }
-
-        log(`Tracking mit User-ID: ${userId}`);
-
-        // Tracking-Event senden
-        const trackingData = {
-            event_type: 'search',
-            user_id: userId,
-            metadata: {
-                query: query || '',
-                timestamp: new Date().toISOString(),
-                url: window.location.href,
-                userAgent: navigator.userAgent
-            }
-        };
-
-        log('Sende Tracking-Daten:', trackingData);
-
-        // Methode 1: Über Supabase Client (empfohlen)
-        if (supabase.from) {
-            try {
-                const { data, error } = await supabase
-                    .from('tracking_events')
-                    .insert([trackingData]);
-
-                if (error) {
-                    log('Supabase Insert Fehler:', error);
-                    throw error;
-                } else {
-                    log('Such-Tracking erfolgreich über Supabase Client', data);
-                    return;
-                }
-            } catch (supabaseError) {
-                log('Supabase Client Fehler, verwende Fetch:', supabaseError);
-            }
-        }
-
-        // Methode 2: Direkte Fetch-Anfrage (Fallback)
-        const response = await fetch('https://lhxcnrogjjskgaclqxtm.supabase.co/rest/v1/tracking_events', {
-            method: 'POST',
-            headers: {
-                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww',
-                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww',
-                'Content-Type': 'application/json',
-                'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify(trackingData)
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            log('HTTP Fehler:', {
-                status: response.status,
-                statusText: response.statusText,
-                body: errorText
-            });
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        log('Such-Tracking erfolgreich über Fetch');
-
-    } catch (error) {
-        log('Fehler beim Such-Tracking:', error);
-        // Optional: Fallback-Tracking (z.B. in lokalen Storage)
-        try {
-            const fallbackData = {
-                query,
-                timestamp: new Date().toISOString(),
-                error: error.message
-            };
-            console.log('Fallback Tracking:', fallbackData);
-        } catch (fallbackError) {
-            log('Auch Fallback-Tracking fehlgeschlagen:', fallbackError);
-        }
-    }
-}
-
-// Suche durchführen
-async function performSearch(query) {
-    query = query?.trim() || '';
-    log(`Suche nach: "${query}"`);
-    
-    // Tracking VOR der Suche aufrufen
-    await trackSearchEvent(query);
-    
-    addToSearchHistory(query);
-
-    const container = document.getElementById('angebot-container');
-    if (!container) return;
-
-    container.innerHTML = '<div class="loading">🔍 Suche läuft...</div>';
-
-    try {
-        if (typeof supabase === 'undefined') {
-            throw new Error('Supabase ist nicht verfügbar');
-        }
-
-        const { data, error } = await supabase
-            .from('parts')
-            .select('*')
-            .or(`title.ilike.%${query}%,description.ilike.%${query}%,condition.ilike.%${query}%`)
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        displaySearchResults(data, query);
-    } catch (error) {
-        log('Fehler bei der Suche:', error);
-        container.innerHTML = `
-            <div class="error">
-                <p>Fehler bei der Suche: ${error.message}</p>
-                <button id="retry-search" class="action-button">Erneut versuchen</button>
-            </div>
-        `;
-        document.getElementById('retry-search')?.addEventListener('click', () => performSearch(query));
-    }
-}
-
-// Suchergebnisse anzeigen
-function displaySearchResults(results, query) {
-    const container = document.getElementById('angebot-container');
-    if (!results || results.length === 0) {
-        container.innerHTML = `
-            <div class="empty-search">
-                <p>Keine Ergebnisse für "${query}" gefunden</p>
-                <button id="reset-search" class="action-button">Alle Teile anzeigen</button>
-            </div>
-        `;
-        document.getElementById('reset-search')?.addEventListener('click', () => window.ladeAngebote?.());
-        return;
-    }
-
-    container.innerHTML = '';
-    results.forEach(teil => {
-        const card = createResultCard(teil, query);
-        container.appendChild(card);
+    // Fuse.js für Fuzzy-Suche initialisieren
+    fuse = new Fuse(allParts, {
+      keys: ['name', 'description'],
+      threshold: 0.3,
+      ignoreLocation: true,
+      minMatchCharLength: 2,
+      includeScore: true
     });
+
+    console.log(`🔹 ${allParts.length} Teile geladen`);
+  } catch (error) {
+    console.error("Fehler beim Laden der Teile:", error);
+    // Fallback-Daten bei Fehler
+    allParts = [
+      {
+        id: "1",
+        name: "CNC Bremshebel S51",
+        description: "Hochwertiger CNC Bremshebel",
+        price: 89.99,
+        condition: "Neu",
+        type: "angebot"
+      },
+      {
+        id: "2",
+        name: "S51 Tank",
+        description: "Original Tank für Simson S51",
+        price: 120.00,
+        condition: "Gebraucht",
+        type: "angebot"
+      }
+    ];
+    
+    fuse = new Fuse(allParts, {
+      keys: ['name', 'description'],
+      threshold: 0.3,
+      ignoreLocation: true,
+      minMatchCharLength: 2
+    });
+    
+    console.warn("⚠️ Verwendung von Fallback-Daten");
+  }
 }
 
-// Ergebnis-Karte erstellen
-function createResultCard(teil, query) {
-    const { name, preis, beschreibung, bild } = window.extractData?.(teil) || {
-        name: teil.title || 'Unbekanntes Teil',
-        preis: teil.price || 'Preis auf Anfrage',
-        beschreibung: teil.description || '',
-        bild: teil.image_url || null
-    };
+// Suchergebnisse rendern
+function renderResults(results) {
+  const container = document.getElementById('results-container');
+  if (!container) return;
 
-    const card = document.createElement('div');
-    card.className = 'card';
+  if (results.length === 0) {
+    container.innerHTML = `<div class="empty">🔍 Keine Ergebnisse gefunden</div>`;
+    return;
+  }
 
-    const imageUrl = bild || 'https://via.placeholder.com/300x200/e9ecef/666?text=Kein+Bild';
-    const fallbackUrl = 'https://via.placeholder.com/300x200/f8f9fa/adb5bd?text=Bild+nicht+verfügbar';
+  container.innerHTML = results.map(part => `
+    <div class="card ${part.type === 'teilesuche' ? 'search-card' : ''}" data-id="${part.id}">
+      ${part.type === 'teilesuche' ? 
+        '<span class="search-badge">🔍 SUCHE</span>' : ''}
+      
+      <img src="${part.image_url || 'https://via.placeholder.com/300x200/e9ecef/666?text=Kein+Bild'}" 
+           alt="${part.name}" 
+           onerror="this.src='https://via.placeholder.com/300x200/f8f9fa/adb5bd?text=Bild+nicht+verfügbar'"
+           loading="lazy" />
+      
+      <div class="card-content">
+        <h3>${part.name}</h3>
+        <p>${part.description || 'Keine Beschreibung verfügbar'}</p>
+        <div class="card-footer">
+          <span class="price">${part.price?.toLocaleString('de-DE', {style: 'currency', currency: 'EUR'}) || 'Preis auf Anfrage'}</span>
+          <span class="condition">${part.condition}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
 
-    let preisText = preis;
-    if (typeof preis === 'number') {
-        preisText = `${preis.toLocaleString('de-DE')}€`;
-    } else if (typeof preis === 'string' && !isNaN(parseFloat(preis))) {
-        preisText = `${parseFloat(preis).toLocaleString('de-DE')}€`;
-    }
-
-    // Highlight-Funktion
-    const highlight = (text) => {
-        if (!text || !query) return text || '';
-        return text.toString().replace(
-            new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), 
-            match => `<span class="highlight">${match}</span>`
-        );
-    };
-
-    card.innerHTML = `
-        <img src="${imageUrl}" 
-             alt="${name}" 
-             onerror="this.src='${fallbackUrl}'" 
-             loading="lazy" />
-        <h2>${highlight(name)}</h2>
-        ${beschreibung ? `<p>${highlight(beschreibung)}</p>` : ''}
-        <p><strong>${preisText}</strong></p>
-    `;
-
-    card.addEventListener('click', () => window.openDetailView?.(teil));
-    return card;
+  // Event-Listener für Karten hinzufügen
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => {
+      const partId = card.dataset.id;
+      const part = allParts.find(p => p.id === partId);
+      openDetailView(part);
+    });
+  });
 }
 
-// Debug-Funktion zum Testen des Trackings
-window.testTracking = async function(testQuery = 'test-suche') {
-    log('Starte Tracking-Test...');
-    await trackSearchEvent(testQuery);
-    log('Tracking-Test abgeschlossen');
-};
+// Detailansicht öffnen
+function openDetailView(part) {
+  console.log("Detailansicht für:", part);
+  // Hier würde die Logik für die Detailansicht implementiert werden
+  // Beispiel: window.location.href = `detail.html?id=${part.id}`;
+  alert(`Detailansicht für: ${part.name}\nID: ${part.id}`);
+}
+
+// Suchfunktion
+function performSearch(query) {
+  if (!fuse) return;
+
+  let results = [];
+  
+  if (query.trim() === '') {
+    // Leere Suche zeigt alle Teile
+    results = allParts;
+  } else {
+    // Fuse.js-Suche durchführen
+    const fuseResults = fuse.search(query);
+    results = fuseResults.map(result => result.item);
+  }
+
+  renderResults(results);
+}
 
 // Initialisierung
-document.addEventListener('DOMContentLoaded', function() {
-    log('Search.js initialisiert');
-    createSearchUI();
-    
-    const searchInput = document.querySelector('.searchbar');
-    if (!searchInput) return;
+document.addEventListener("DOMContentLoaded", async () => {
+  // Elemente aus dem DOM holen
+  const searchInput = document.getElementById('search-input');
+  const resultsContainer = document.createElement('div');
+  resultsContainer.id = 'results-container';
+  resultsContainer.className = 'grid-container';
+  
+  // Container in den Hauptinhalt einfügen
+  const main = document.querySelector('main');
+  if (main) {
+    main.appendChild(resultsContainer);
+  } else {
+    document.body.appendChild(resultsContainer);
+  }
 
-    // Enter-Taste für Suche
-    searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            performSearch(e.target.value);
-        }
+  // Teile laden
+  await loadParts();
+  
+  // Initial alle Teile anzeigen
+  renderResults(allParts);
+
+  // Event-Listener für Suchfeld
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      performSearch(e.target.value);
     });
-
-    // Event-Listener für Suchbutton
-    const searchButton = document.querySelector('.search-button');
-    if (searchButton) {
-        searchButton.addEventListener('click', () => {
-            performSearch(searchInput.value);
-        });
-    }
-
-    // Debug: Tracking-Test nach 2 Sekunden (optional)
-    // setTimeout(() => window.testTracking?.(), 2000);
+    
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        performSearch(e.target.value);
+      }
+    });
+  }
 });
 
-// CSS für Suchkomponenten
-const style = document.createElement('style');
-style.textContent = `
-    .searchbar-wrapper {
-        position: relative;
-        max-width: 500px;
-        margin: 12px auto;
-    }
-    
-    .searchbar {
-        width: 100%;
-        padding: 12px 40px 12px 16px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        font-size: 15px;
-    }
-    
-    .search-button {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 8px;
-    }
-    
-    .search-button svg {
-        width: 18px;
-        height: 18px;
-        color: #666;
-    }
-    
-    .search-button:hover svg {
-        color: #007bff;
-    }
-    
-    .highlight {
-        background-color: #fff3cd;
-        padding: 0 2px;
-        border-radius: 2px;
-    }
-    
-    .empty-search, .error {
-        text-align: center;
-        padding: 40px 20px;
-        color: #666;
-    }
-    
-    .action-button {
-        background: #007bff;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        margin-top: 10px;
-        cursor: pointer;
-    }
-    
-    .action-button:hover {
-        background: #0069d9;
-    }
-`;
+// Fehlerbehandlung
+window.addEventListener('error', (e) => {
+  console.error('Globaler Fehler:', e.error);
+  const container = document.getElementById('results-container');
+  if (container) {
+    container.innerHTML = `<div class="error">⚠️ Ein Fehler ist aufgetreten: ${e.message}</div>`;
+  }
+});

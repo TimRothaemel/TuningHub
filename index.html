@@ -301,10 +301,15 @@
             container.innerHTML = '<div class="empty">📦 Keine Angebote vorhanden</div>';
         }
 
-        // Supabase Setup
+      // Supabase Setup
+        const trackingUrl = 'https://lhxcnrogjjskgaclqxtm.supabase.co';
+        const trackingKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww';
+
         const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
         
+        // Tracking Client hinzufügen
+        let trackingClient;
         let supabase;
         
         try {
@@ -779,6 +784,136 @@
         // Fehler-Handler für unbehandelte Fehler
         window.addEventListener('error', function(e) {
             log('Globaler Fehler:', e.error);
+        });
+         
+    </script>
+    </script>
+<script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // Korrekte Supabase-Konfiguration
+        const supabaseUrl = 'https://lhxcnrogjjskgaclqxtm.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww';
+
+        let supabase;
+        let statusDiv = null;
+
+        function updateStatus(message, isError = false) {
+            // Versuche das Status-Element zu finden, falls noch nicht verfügbar
+            if (!statusDiv) {
+                statusDiv = document.getElementById('status');
+            }
+            
+            // Nur DOM-Update wenn Element verfügbar ist
+            if (statusDiv) {
+                statusDiv.textContent = message;
+                statusDiv.style.color = isError ? 'red' : 'green';
+            }
+            
+            // Immer in Konsole loggen
+            console.log(`[TuningHub] ${message}`);
+        }
+
+        async function initializeSupabase() {
+            try {
+                supabase = createClient(supabaseUrl, supabaseAnonKey);
+                updateStatus('Supabase Client erfolgreich initialisiert');
+                return true;
+            } catch (error) {
+                updateStatus(`Fehler bei Supabase-Initialisierung: ${error.message}`, true);
+                return false;
+            }
+        }
+
+        async function trackPageview() {
+            if (!supabase) {
+                updateStatus('Supabase Client nicht verfügbar', true);
+                return;
+            }
+
+            try {
+                // Sichere User-ID-Abfrage mit Fallback
+                let userId = null;
+                try {
+                    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                    if (session?.user?.id) {
+                        userId = session.user.id;
+                    }
+                } catch (authError) {
+                    console.warn('[TuningHub] Auth nicht verfügbar:', authError.message);
+                }
+
+                // Tracking-Daten vorbereiten
+                const trackingData = {
+                    event_type: 'pageview',
+                    user_id: userId,
+                    metadata: {
+                        path: window.location.pathname || '/',
+                        referrer: document.referrer || '',
+                        userAgent: navigator.userAgent || '',
+                        screen: `${window.screen.width}x${window.screen.height}`,
+                        timestamp: new Date().toISOString()
+                    }
+                };
+
+                // Pageview in Supabase einfügen
+                const { data, error } = await supabase
+                    .from('tracking_events')
+                    .insert([trackingData]);
+
+                if (error) {
+                    throw error;
+                }
+
+                updateStatus(`Pageview erfolgreich getrackt${userId ? ' (authentifiziert)' : ' (anonym)'}`);
+                
+            } catch (error) {
+                updateStatus(`Tracking-Fehler: ${error.message}`, true);
+                
+                // Fallback: Lokales Tracking oder alternative Lösung
+                console.warn('[TuningHub] Verwende Fallback-Tracking');
+                localStorage.setItem('tuning_hub_pageview', JSON.stringify({
+                    path: window.location.pathname,
+                    timestamp: new Date().toISOString(),
+                    error: error.message
+                }));
+            }
+        }
+
+        // Sicherstellen, dass DOM vollständig geladen ist
+        function waitForDOM() {
+            return new Promise((resolve) => {
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    // DOM ist bereit
+                    setTimeout(resolve, 10); // Kleine Verzögerung für Sicherheit
+                } else {
+                    // Warten auf DOMContentLoaded
+                    document.addEventListener('DOMContentLoaded', () => {
+                        setTimeout(resolve, 10);
+                    });
+                }
+            });
+        }
+
+        // Hauptausführung mit verbesserter Fehlerbehandlung
+        async function main() {
+            // Warten bis DOM bereit ist
+            await waitForDOM();
+            
+            updateStatus('Initialisiere Tracking...');
+            
+            const initialized = await initializeSupabase();
+            
+            if (initialized) {
+                await trackPageview();
+            } else {
+                updateStatus('Tracking konnte nicht initialisiert werden', true);
+            }
+        }
+
+        // Sofort starten
+        main().catch(error => {
+            console.error('[TuningHub] Kritischer Fehler:', error);
         });
     </script>
 </body>

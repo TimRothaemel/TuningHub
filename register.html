@@ -34,7 +34,20 @@
       <input type="text" id="username" placeholder="Vollständiger Name" required />
       <input type="tel" id="phone" placeholder="Telefonnummer" required />
       <input type="email" id="email" placeholder="E-Mail" required />
-      <input type="password" id="password" placeholder="Passwort" required /> 
+      <input type="password" id="password" placeholder="Passwort" required />
+      
+      <!-- Datenschutz Checkbox -->
+    
+      <div class="checkbox-container">
+  <label class="checkbox-wrapper">
+    <input type="checkbox" id="privacy-consent" required />
+    <span class="checkmark"></span>
+    <span class="checkbox-text">
+      Ich stimme der <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a> zu
+    </span>
+  </label>
+</div>
+      
       <div class="button-group">
         <button type="submit" class="button">Account registrieren</button>
         <a href="registerbusiness.html" class="back-link">Du hast ein Gewerbe?</a>
@@ -50,8 +63,6 @@
         <div class="informations"> <a href="socialmedia.html"> Social Media</a></div>
         <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
     </footer>
-        
-
 
 <script>
 // Supabase Konfiguration für beide Projekte
@@ -89,8 +100,6 @@ async function trackEvent(eventType, metadata = {}) {
 const form = document.getElementById('register-form');
 const errorText = document.getElementById('error');
 
-
-
 // Form submission handler
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -99,6 +108,7 @@ form.addEventListener('submit', async (e) => {
   let phone = document.getElementById('phone').value.trim();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
+  const privacyConsent = document.getElementById('privacy-consent').checked;
 
   // Validierung
   if (!username || !phone || !email || !password) {
@@ -109,6 +119,19 @@ form.addEventListener('submit', async (e) => {
     await trackEvent('form_validation_error', {
       form: 'register',
       error: 'missing_fields'
+    });
+    return;
+  }
+
+  // Datenschutz-Zustimmung prüfen
+  if (!privacyConsent) {
+    errorText.style.color = 'red';
+    errorText.textContent = 'Sie müssen der Datenschutzerklärung zustimmen, um sich zu registrieren.';
+    
+    // Track privacy consent error
+    await trackEvent('form_validation_error', {
+      form: 'register',
+      error: 'privacy_consent_missing'
     });
     return;
   }
@@ -141,7 +164,9 @@ form.addEventListener('submit', async (e) => {
       options: {
         data: {
           username,
-          phone
+          phone,
+          privacy_consent: true,
+          privacy_consent_date: new Date().toISOString()
         }
       }
     });
@@ -155,7 +180,8 @@ form.addEventListener('submit', async (e) => {
       email: email,
       username: username,
       phone: phone,
-      user_id: signupData.user?.id
+      user_id: signupData.user?.id,
+      privacy_consent: true
     });
 
     errorText.style.color = 'green';

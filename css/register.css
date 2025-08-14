@@ -1,14 +1,24 @@
+/* register.css - Verbesserte Version */
+
+/* Basis-Styles */
 body main input {
   width: 100%;
   max-width: 400px;
   padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   background: #fff;
   font-size: 15px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  margin: 8px auto; /* Zentriert die Eingabefelder */
-  display: block; /* Wichtig für margin: auto */
+  margin: 8px auto;
+  display: block;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+body main input:focus {
+  border-color: #007BFF;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+  outline: none;
 }
 
 .form-wrapper {
@@ -18,35 +28,40 @@ body main input {
 
 .main-überschrift {
   margin-top: 16px;
-  text-align: center; /* Einfache Zentrierung für Text */
+  text-align: center;
+  color: #333;
+  font-weight: 600;
 }
 
-/* Optional: Hauptcontainer sicherstellen */
-main {
-  width: 100%;
-}
-/* Stil für den Business-Button */
+/* Button-Styles */
 .button {
   width: 100%;
   max-width: 400px;
   padding: 12px 16px;
   border-radius: 8px;
   border: none;
-  background-color: #007BFF; /* Blaue Farbe wie in der Vorlage */
+  background: linear-gradient(135deg, #0069d9, #0056b3);
   color: white;
-  font-size: 15px;
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  margin: 8px auto;
+  margin: 16px auto 8px;
   display: block;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .button:hover {
-  background-color: #0056b3; /* Dunkleres Blau für Hover-Effekt */
+  background: linear-gradient(135deg, #0056b3, #004899);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
-/* Stil für den "Zurück"-Link */
+.button:active {
+  transform: translateY(0);
+}
+
+/* Link-Styles */
 .back-link {
   display: block;
   text-align: center;
@@ -54,23 +69,115 @@ main {
   color: #007BFF;
   text-decoration: none;
   font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
 }
 
 .back-link:hover {
+  color: #0056b3;
   text-decoration: underline;
 }
 
-/* Stil für Textarea */
-textarea {
+/* Verbessertes Checkbox-Design */
+.checkbox-container {
   width: 100%;
   max-width: 400px;
+  margin: 16px auto 8px;
+  display: block;
   padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   background: #fff;
-  font-size: 15px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  margin: 8px auto;
+  transition: all 0.3s ease;
+}
+
+.checkbox-container:hover {
+  border-color: #007BFF;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.1);
+}
+
+/* Modernes Checkbox-Design */
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: relative;
+  height: 22px;
+  width: 22px;
+  min-width: 22px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  margin-right: 12px;
+  transition: all 0.3s ease;
+  background-color: #fff;
+}
+
+.checkbox-wrapper:hover input ~ .checkmark {
+  border-color: #007BFF;
+}
+
+.checkbox-wrapper input:checked ~ .checkmark {
+  background-color: #007BFF;
+  border-color: #007BFF;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-wrapper input:checked ~ .checkmark:after {
   display: block;
-  resize: vertical;
+}
+
+.checkbox-text {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.checkbox-text a {
+  color: #007BFF;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.checkbox-text a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Fehlermeldungen */
+#error {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+  padding: 8px;
+  border-radius: 6px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
 }
