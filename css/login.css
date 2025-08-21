@@ -74,3 +74,47 @@ form > a {
 .back-link:hover {
   text-decoration: underline;
 }
+.forgot-password-link {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .forgot-password-link:hover {
+            color: #333;
+            text-decoration: underline;
+        }
+        
+        .reset-form {
+            display: none;
+        }
+        
+        .form-toggle {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .form-toggle a {
+            color: #007bff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .form-toggle a:hover {
+            text-decoration: underline;
+        }
+        
+        .success-message {
+            color: green;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
