@@ -8,7 +8,127 @@
     <link rel="stylesheet" href="css/search.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+<style>
+    /* Contact dialog styles */
+        .contact-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
 
+        .contact-dialog-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .contact-phone {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin: 15px 0 25px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .contact-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .contact-option {
+            flex: 1;
+            min-width: 100px;
+            padding: 15px 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .contact-option.call {
+            background: #28a745;
+            color: white;
+        }
+
+        .contact-option.call:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .contact-option.whatsapp {
+            background: #25d366;
+            color: white;
+        }
+
+        .contact-option.whatsapp:hover {
+            background: #1ebe5c;
+            transform: translateY(-2px);
+        }
+
+        .contact-option.sms {
+            background: #007bff;
+            color: white;
+        }
+
+        .contact-option.sms:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .contact-option .icon {
+            font-size: 24px;
+        }
+
+        .contact-cancel {
+            padding: 12px 30px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+
+        .contact-cancel:hover {
+            border-color: #999;
+            color: #333;
+        }
+
+        /* Loading, error, and empty states */
+        .loading, .error, .empty {
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+</style>
 <body>
     <!-- Header mit Logo & Account -->
     <header class="header">
