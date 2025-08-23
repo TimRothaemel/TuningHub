@@ -9,6 +9,70 @@
   <title>Teil hinzufügen – TuningHub</title>
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/teilehinzufügen.css" />
+  <style>
+    /* Zusätzliche Styles für das Multi-Image-Upload */
+    .image-upload-container {
+      margin-bottom: 15px;
+    }
+    
+    .image-preview-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .image-preview {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .image-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .remove-image {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: rgba(255, 0, 0, 0.7);
+      color: white;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 0 0 0 4px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .add-image-btn {
+      background-color: #f0f0f0;
+      color: #333;
+      border: 1px dashed #ccc;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      display: inline-block;
+    }
+    
+    .add-image-btn:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .image-input-wrapper {
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
   <div class="loading-overlay" id="loadingOverlay">
@@ -59,15 +123,26 @@
         <option value="defekt">Defekt / Bastler</option>
       </select>
       
-      <label for="partImage">Bild auswählen</label>
-      <input type="file" 
-             id="partImage" 
-             accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
-             required />
+      <div class="image-upload-container">
+        <label>Bilder auswählen (max. 5)</label>
+        <div id="imageInputsContainer">
+          <div class="image-input-wrapper">
+            <input type="file" 
+                   class="partImage"
+                   accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
+                   data-index="0"
+                   required />
+          </div>
+        </div>
+        
+        <div id="imagePreviews" class="image-preview-container"></div>
+        
+      
+      
       <!-- Verstecktes Feld für den Teil-Typ -->
       <input type="hidden" id="partType" value="teil" />
       
-      <label>Telefonnummer</label>
+      <label class="telefonlabel">Telefonnummer</label>
       <div class="phone-wrapper">
         <span id="userPhoneNumber">Lade...</span>
         <div class="phone-dropdown">
@@ -97,6 +172,7 @@
     let userPhone = '';
     let currentUser = null;
     let isProcessing = false;
+    let imageInputCount = 1; // Startet bei 1, da bereits ein Input vorhanden ist
 
     // Supabase-Initialisierung mit Fehlerbehandlung
     function initializeSupabase() {
@@ -254,7 +330,7 @@
 
     // Formular zurücksetzen
     function resetForm() {
-      const elements = ['partTitle', 'partDescription', 'partPrice', 'partCondition', 'partImage'];
+      const elements = ['partTitle', 'partDescription', 'partPrice', 'partCondition'];
       elements.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -265,6 +341,29 @@
           }
         }
       });
+      
+      // Bild-Eingaben zurücksetzen
+      const imageInputs = document.querySelectorAll('.partImage');
+      imageInputs.forEach(input => {
+        input.value = '';
+      });
+      
+      // Vorschauen löschen
+      document.getElementById('imagePreviews').innerHTML = '';
+      
+      // Nur das erste Input-Feld behalten
+      const container = document.getElementById('imageInputsContainer');
+      while (container.children.length > 1) {
+        container.removeChild(container.lastChild);
+      }
+      
+      // Zähler zurücksetzen
+      imageInputCount = 1;
+      
+      // Ersten Input wieder als required markieren
+      if (container.firstChild) {
+        container.firstChild.querySelector('.partImage').required = true;
+      }
     }
 
     // Bildkomprimierungsfunktion
@@ -308,14 +407,123 @@
       });
     }
 
+    // Bildvorschau erstellen
+    function createImagePreview(file, index) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const previewContainer = document.getElementById('imagePreviews');
+        const previewDiv = document.createElement('div');
+        previewDiv.className = 'image-preview';
+        previewDiv.dataset.index = index;
+        
+        previewDiv.innerHTML = `
+          <img src="${e.target.result}" alt="Vorschau">
+          <button type="button" class="remove-image" data-index="${index}">×</button>
+        `;
+        
+        previewContainer.appendChild(previewDiv);
+        
+        // Event-Listener für Entfernen-Button
+        previewDiv.querySelector('.remove-image').addEventListener('click', function() {
+          removeImageInput(index);
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Bild-Input entfernen
+    function removeImageInput(index) {
+      // Input-Feld entfernen
+      const inputWrapper = document.querySelector(`.partImage[data-index="${index}"]`).closest('.image-input-wrapper');
+      if (inputWrapper) {
+        inputWrapper.remove();
+      }
+      
+      // Vorschau entfernen
+      const preview = document.querySelector(`.image-preview[data-index="${index}"]`);
+      if (preview) {
+        preview.remove();
+      }
+      
+      // Wenn kein Input mehr vorhanden ist, einen neuen hinzufügen
+      const inputs = document.querySelectorAll('.partImage');
+      if (inputs.length === 0) {
+        addImageInput();
+      }
+    }
+
+    // Weitere Bild-Inputs hinzufügen
+    function addImageInput() {
+      if (imageInputCount >= 5) {
+        showError('Maximal 5 Bilder sind erlaubt.');
+        return;
+      }
+      
+      const container = document.getElementById('imageInputsContainer');
+      const newIndex = imageInputCount;
+      
+      const wrapper = document.createElement('div');
+      wrapper.className = 'image-input-wrapper';
+      wrapper.innerHTML = `
+        <input type="file" 
+               class="partImage"
+               accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
+               data-index="${newIndex}" />
+      `;
+      
+      container.appendChild(wrapper);
+      
+      // Event-Listener für das neue Input
+      const newInput = wrapper.querySelector('.partImage');
+      newInput.addEventListener('change', function(e) {
+        handleImageSelection(e, newIndex);
+      });
+      
+      imageInputCount++;
+      
+      // Add-Button ausblenden, wenn Maximum erreicht
+      if (imageInputCount >= 5) {
+        document.getElementById('addImageBtn').style.display = 'none';
+      }
+    }
+
+    // Bildauswahl behandeln
+    function handleImageSelection(e, index) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      
+      // Sofortige Validierung
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        showError('Das ausgewählte Bild ist zu groß (max. 10MB).');
+        e.target.value = '';
+        return;
+      }
+      
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type.toLowerCase())) {
+        showError('Nur Bilddateien (JPEG, PNG, GIF, WebP) sind erlaubt.');
+        e.target.value = '';
+        return;
+      }
+      
+      hideMessages();
+      
+      // Vorschau erstellen
+      createImagePreview(file, index);
+      
+      // Wenn nicht das Maximum erreicht ist, weiteren Input anbieten
+      if (imageInputCount < 5) {
+        addImageInput();
+      }
+    }
+
     // Eingaben validieren
     function validateInputs() {
       const title = document.getElementById("partTitle")?.value?.trim() || '';
       const description = document.getElementById("partDescription")?.value?.trim() || '';
       const priceInput = document.getElementById("partPrice")?.value?.trim() || '';
       const condition = document.getElementById("partCondition")?.value || '';
-      const fileInput = document.getElementById("partImage");
-      const imageFile = fileInput?.files?.[0];
       const type = document.getElementById("partType")?.value || 'teil';
 
       // Titel prüfen
@@ -348,21 +556,34 @@
         throw new Error("Bitte wähle einen Zustand aus.");
       }
 
-      // Bild prüfen
-      if (!imageFile) {
-        throw new Error("Bitte wähle ein Bild aus.");
-      }
+      // Bilder prüfen
+      const imageInputs = document.querySelectorAll('.partImage');
+      let hasImage = false;
+      const imageFiles = [];
+      
+      for (const input of imageInputs) {
+        if (input.files && input.files[0]) {
+          hasImage = true;
+          const file = input.files[0];
+          
+          // Dateigröße prüfen (10MB)
+          const maxFileSize = 10 * 1024 * 1024;
+          if (file.size > maxFileSize) {
+            throw new Error(`Das Bild "${file.name}" ist zu groß. Maximal 10MB sind erlaubt.`);
+          }
 
-      // Dateigröße prüfen (10MB)
-      const maxFileSize = 10 * 1024 * 1024;
-      if (imageFile.size > maxFileSize) {
-        throw new Error("Das Bild ist zu groß. Maximal 10MB sind erlaubt.");
+          // Dateityp prüfen
+          const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+          if (!allowedTypes.includes(file.type.toLowerCase())) {
+            throw new Error(`Nur Bilder (JPEG, PNG, GIF, WebP) sind erlaubt. "${file.name}" ist kein unterstütztes Format.`);
+          }
+          
+          imageFiles.push(file);
+        }
       }
-
-      // Dateityp prüfen
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      if (!allowedTypes.includes(imageFile.type.toLowerCase())) {
-        throw new Error("Nur Bilder (JPEG, PNG, GIF, WebP) sind erlaubt.");
+      
+      if (!hasImage) {
+        throw new Error("Bitte wähle mindestens ein Bild aus.");
       }
 
       // Telefonnummer prüfen
@@ -375,7 +596,7 @@
         description,
         price,
         condition,
-        imageFile,
+        imageFiles,
         type
       };
     }
@@ -440,40 +661,69 @@
         const validatedData = validateInputs();
         console.log('Validierung erfolgreich');
 
-        // Bild komprimieren
+        // Alle Bilder komprimieren und hochladen
         console.log('Starte Bildkomprimierung...');
-        const compressedImage = await compressImage(validatedData.imageFile);
-        console.log('Bild erfolgreich komprimiert', {
-          originalSize: validatedData.imageFile.size,
-          compressedSize: compressedImage.size,
-          reduction: `${Math.round((1 - compressedImage.size / validatedData.imageFile.size) * 100)}%`
-        });
-
-        // Eindeutigen Dateinamen generieren
-        const timestamp = Date.now();
-        const randomString = Math.random().toString(36).substring(2, 8);
-        const fileName = `${user.id}_${timestamp}_${randomString}.jpg`; // Immer JPG nach Komprimierung
-
-        console.log('Starte Bild-Upload:', fileName);
-
-        // Bild hochladen
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('parts-images')
-          .upload(fileName, compressedImage, {
-            cacheControl: '3600',
-            upsert: false,
-            contentType: 'image/jpeg',
+        const compressedImages = [];
+        for (const file of validatedData.imageFiles) {
+          const compressedImage = await compressImage(file);
+          compressedImages.push(compressedImage);
+          console.log('Bild erfolgreich komprimiert', {
+            originalSize: file.size,
+            compressedSize: compressedImage.size,
+            reduction: `${Math.round((1 - compressedImage.size / file.size) * 100)}%`
           });
-
-        if (uploadError) {
-          console.error('Upload-Fehler:', uploadError);
-          throw new Error(`Fehler beim Hochladen des Bildes: ${uploadError.message}`);
         }
 
-        console.log('Bild-Upload erfolgreich');
+        // Bild-URLs sammeln
+        const imageUrls = [];
+        const uploadedFileNames = [];
+        
+        // Bilder hochladen
+        for (let i = 0; i < compressedImages.length; i++) {
+          const compressedImage = compressedImages[i];
+          
+          // Eindeutigen Dateinamen generieren
+          const timestamp = Date.now();
+          const randomString = Math.random().toString(36).substring(2, 8);
+          const fileName = `${user.id}_${timestamp}_${randomString}_${i}.jpg`;
 
-        // Bild-URL generieren
-        const imageUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/parts-images/${fileName}`;
+          console.log(`Starte Bild-Upload ${i+1}:`, fileName);
+
+          // Bild hochladen
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('parts-images')
+            .upload(fileName, compressedImage, {
+              cacheControl: '3600',
+              upsert: false,
+              contentType: 'image/jpeg',
+            });
+
+          if (uploadError) {
+            console.error('Upload-Fehler:', uploadError);
+            
+            // Bereits hochgeladene Bilder löschen
+            if (uploadedFileNames.length > 0) {
+              try {
+                await supabase.storage
+                  .from('parts-images')
+                  .remove(uploadedFileNames);
+              } catch (cleanupError) {
+                console.error('Cleanup-Fehler nach Upload-Fehler:', cleanupError);
+              }
+            }
+            
+            throw new Error(`Fehler beim Hochladen des Bildes: ${uploadError.message}`);
+          }
+
+          console.log(`Bild-Upload ${i+1} erfolgreich`);
+          
+          // Bild-URL generieren und speichern
+          const imageUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/parts-images/${fileName}`;
+          imageUrls.push(imageUrl);
+          uploadedFileNames.push(fileName);
+        }
+
+        console.log('Alle Bilder erfolgreich hochgeladen');
 
         // Daten für Datenbank vorbereiten
         const insertData = {
@@ -483,10 +733,15 @@
           price: validatedData.price,
           condition: validatedData.condition,
           contact_number: userPhone,
-          image_url: imageUrl,
           type: validatedData.type,
           created_at: new Date().toISOString()
         };
+        
+        // Bild-URLs zuweisen (bis zu 5)
+        for (let i = 0; i < Math.min(imageUrls.length, 5); i++) {
+          const fieldName = i === 0 ? 'image_url' : `image_url${i+1}`;
+          insertData[fieldName] = imageUrls[i];
+        }
 
         console.log('Starte Datenbank-Insert');
 
@@ -499,11 +754,11 @@
         if (insertError) {
           console.error('Insert-Fehler:', insertError);
           
-          // Aufräumen: Hochgeladenes Bild löschen
+          // Aufräumen: Hochgeladene Bilder löschen
           try {
             await supabase.storage
               .from('parts-images')
-              .remove([fileName]);
+              .remove(uploadedFileNames);
           } catch (cleanupError) {
             console.error('Cleanup-Fehler:', cleanupError);
           }
@@ -519,8 +774,7 @@
           price: validatedData.price,
           condition: validatedData.condition,
           type: validatedData.type,
-          original_size: validatedData.imageFile.size,
-          compressed_size: compressedImage.size,
+          image_count: validatedData.imageFiles.length,
           success: true
         });
 
@@ -575,35 +829,17 @@
         addButton.addEventListener('click', addPart);
       }
 
-      // File Input Event Listener für besseres Feedback
-      const fileInput = document.getElementById('partImage');
-      if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-          const file = e.target.files?.[0];
-          if (file) {
-            console.log('Datei ausgewählt:', {
-              name: file.name,
-              size: file.size,
-              type: file.type
-            });
-            
-            // Sofortige Validierung
-            const maxSize = 10 * 1024 * 1024; // 10MB
-            if (file.size > maxSize) {
-              showError('Das ausgewählte Bild ist zu groß (max. 10MB).');
-              e.target.value = '';
-              return;
-            }
-            
-            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-            if (!allowedTypes.includes(file.type.toLowerCase())) {
-              showError('Nur Bilddateien (JPEG, PNG, GIF, WebP) sind erlaubt.');
-              e.target.value = '';
-              return;
-            }
-            
-            hideMessages();
-          }
+      // Add Image Button Event Listener
+      const addImageBtn = document.getElementById('addImageBtn');
+      if (addImageBtn) {
+        addImageBtn.addEventListener('click', addImageInput);
+      }
+
+      // Erstes Bild Input Event Listener
+      const firstImageInput = document.querySelector('.partImage[data-index="0"]');
+      if (firstImageInput) {
+        firstImageInput.addEventListener('change', function(e) {
+          handleImageSelection(e, 0);
         });
       }
 
