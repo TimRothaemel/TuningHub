@@ -148,33 +148,8 @@ body > main {
   border-color: #c3e6cb;
 }
 
-/* Link-Bar */
-.link-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 16px 24px 0 24px;
-  gap: 16px; /* optional für Abstand */
-  flex-wrap: nowrap; /* Verhindert Umbruch */
-  max-width: 100%; /* Verhindert Überlauf */
-}
 
 
-/* Link-Stile */
-.left,
-.right {
-  font-weight: bold;
-  color: #0077cc;
-  text-decoration: none;
-  padding: 8px 0;
-  white-space: nowrap; /* verhindert Zeilenumbruch */
-}
-
-
-.left:hover,
-.right:hover {
-  text-decoration: underline;
-}
 
 /* Hauptlink oben im Main – falls du den brauchst */
 main > a {
@@ -224,13 +199,7 @@ footer .informations a:hover {
     padding: 16px;
   }
   
-  .link-bar {
-    flex-direction: column;
-    gap: 8px;
-    text-align: center;
-    margin: 16px;
-  }
-}
+
         /* Detailansicht Modal Styles */
         .detail-modal {
             display: none;

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Business Registrierung – TuningHub</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/registerbusiness.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-top">
+        <div class="logo">
+          <a href="index.html">
+            <img
+              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              alt="TuningHub Logo"
+              height="50"
+            />
+          </a>
+        </div>
+        <div class="account-erstellen">
+          <a id="account-link" href="#">
+            <img
+              src="/img/account_circle_dark.png"
+              alt="Account"
+              width="36"
+              height="36"
+            />
+          </a>
+        </div>
+      </div>
+    </header>
+    <main>
+      <div class="form-wrapper">
+        <h2 class="main-überschrift">Business Account erstellen</h2>
+        <form id="register-business-form">
+          <input
+            type="text"
+            id="fullName"
+            placeholder="Vollständiger Name"
+            required
+          />
+          <input type="tel" id="phone" placeholder="Telefonnummer" required />
+          <input
+            type="email"
+            id="email"
+            placeholder="E-Mail-Adresse"
+            required
+          />
+          <input
+            type="password"
+            id="password"
+            placeholder="Mind. 6 Zeichen"
+            required
+          />
+          <input
+            type="text"
+            id="companyName"
+            placeholder="Firmenname"
+            required
+          />
+          <input
+            type="url"
+            id="contactLink"
+            placeholder="Kontakt (Instagram, Website o.ä.)"
+            required
+          />
+          <textarea
+            id="companyDescription"
+            placeholder="Was bietest du an?"
+            rows="4"
+            required
+          ></textarea>
+
+          <div class="checkbox-container">
+            <label class="checkbox-wrapper">
+              <input type="checkbox" id="privacy-consent" required />
+              <span class="checkmark"></span>
+              <span class="checkbox-text">
+                Ich stimme der
+                <a href="datenschutz.html" target="_blank"
+                  >Datenschutzerklärung</a
+                >
+                zu
+              </span>
+            </label>
+          </div>
+          <div class="button-group">
+            <button type="submit" class="button">
+              Business Account registrieren
+            </button>
+            <a href="register.html" class="back-link"
+              >zurück zur normalen Registrierung</a
+            >
+          </div>
+          <p id="error-message"></p>
+        </form>
+      </div>
+    </main>
+    <footer>
+      <div class="informations"><a href="übertuninghub.html">TuningHub</a></div>
+      <div class="informations"><a href="impressum.html">Impressum</a></div>
+      <div class="informations"><a href="support.html"> Support</a></div>
+      <div class="informations">
+        <a href="socialmedia.html"> Social Media</a>
+      </div>
+      <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+    </footer>
+
+    <script>
+      const trackingUrl = "https://lhxcnrogjjskgaclqxtm.supabase.co";
+      const trackingKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww";
+
+      const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
+      const supabaseKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
+
+      const trackingClient = supabase.createClient(trackingUrl, trackingKey);
+      const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+      async function trackEvent(eventType, metadata = {}) {
+        try {
+          const { data, error } = await trackingClient
+            .from("tracking_events")
+            .insert({
+              event_type: eventType,
+              metadata: metadata,
+            });
+
+          if (error) {
+            console.error("[Tracking] Supabase error:", error);
+          } else {
+            console.log("[Tracking] Event successfully tracked:", eventType);
+          }
+        } catch (err) {
+          console.error("[Tracking] Unexpected error:", err);
+        }
+      }
+
+      const form = document.getElementById("register-business-form");
+      const errorMessage = document.getElementById("error-message");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const fullName = document.getElementById("fullName").value.trim();
+        let phone = document.getElementById("phone").value.trim();
+        const companyName = document.getElementById("companyName").value.trim();
+        const contactLink = document.getElementById("contactLink").value.trim();
+        const companyDescription = document
+          .getElementById("companyDescription")
+          .value.trim();
+
+        if (
+          !email ||
+          !password ||
+          !fullName ||
+          !phone ||
+          !companyName ||
+          !contactLink ||
+          !companyDescription
+        ) {
+          errorMessage.style.color = "red";
+          errorMessage.textContent = "Bitte füllen Sie alle Felder aus.";
+
+          await trackEvent("form_validation_error", {
+            form: "business_register",
+            error: "missing_fields",
+          });
+          return;
+        }
+
+        if (password.length < 6) {
+          errorMessage.style.color = "red";
+          errorMessage.textContent =
+            "Das Passwort muss mindestens 6 Zeichen lang sein.";
+
+          await trackEvent("form_validation_error", {
+            form: "business_register",
+            error: "password_too_short",
+          });
+          return;
+        }
+
+        phone = phone.replace(/\s+/g, "").replace(/[-\/]/g, "");
+
+        if (phone.startsWith("01")) {
+          phone = "+49" + phone.substring(1);
+        } else if (phone.startsWith("49")) {
+          phone = "+" + phone;
+        } else if (phone.startsWith("0049")) {
+          phone = "+" + phone.substring(2);
+        }
+
+        const phoneRegex = /^\+[0-9]{8,}$/;
+        if (!phoneRegex.test(phone)) {
+          errorMessage.style.color = "red";
+          errorMessage.textContent =
+            "Bitte geben Sie eine gültige Telefonnummer ein (z.B. +49123456789).";
+
+          await trackEvent("form_validation_error", {
+            form: "business_register",
+            error: "invalid_phone",
+          });
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          errorMessage.style.color = "red";
+          errorMessage.textContent =
+            "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
+
+          await trackEvent("form_validation_error", {
+            form: "business_register",
+            error: "invalid_email",
+          });
+          return;
+        }
+
+        try {
+          new URL(contactLink);
+        } catch {
+          errorMessage.style.color = "red";
+          errorMessage.textContent =
+            "Bitte geben Sie eine gültige URL ein (z.B. https://instagram.com/deinfirma).";
+
+          await trackEvent("form_validation_error", {
+            form: "business_register",
+            error: "invalid_url",
+          });
+          return;
+        }
+
+        errorMessage.style.color = "black";
+        errorMessage.textContent = "Registrierung läuft...";
+
+        try {
+          await trackEvent("business_registration_attempt", {
+            email: email,
+            company_name: companyName,
+          });
+
+          const { data: authData, error: authError } = await client.auth.signUp(
+            {
+              email: email,
+              password: password,
+              options: {
+                data: {
+                  user_type: "business",
+                  full_name: fullName,
+                  phone: phone,
+                  company_name: companyName,
+                  contact_link: contactLink,
+                  company_description: companyDescription,
+                  created_at: new Date().toISOString(),
+                },
+              },
+            }
+          );
+
+          if (authError) {
+            throw authError;
+          }
+
+          await trackEvent("business_registration_success", {
+            email: email,
+            company_name: companyName,
+            user_id: authData.user?.id,
+          });
+
+          errorMessage.style.color = "green";
+          errorMessage.textContent =
+            "Business Account erfolgreich erstellt! Weiterleitung...";
+
+          form.reset();
+
+          setTimeout(() => {
+            window.location.href = "account.html";
+          }, 1500);
+        } catch (error) {
+          console.error("Business Registrierungsfehler:", error);
+
+          await trackEvent("business_registration_error", {
+            email: email,
+            error_message: error.message,
+            error_code: error.status || "unknown",
+          });
+
+          errorMessage.style.color = "red";
+          errorMessage.textContent = "Fehler: " + error.message;
+        }
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const fullNameInput = document.getElementById("fullName");
+        const phoneInput = document.getElementById("phone");
+        const contactLinkInput = document.getElementById("contactLink");
+        const errorMessage = document.getElementById("error-message");
+
+        function validateInputs() {
+          errorMessage.textContent = "";
+
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (emailInput.value && !emailRegex.test(emailInput.value)) {
+            emailInput.style.borderColor = "red";
+          } else {
+            emailInput.style.borderColor = "";
+          }
+
+          if (passwordInput.value && passwordInput.value.length < 6) {
+            passwordInput.style.borderColor = "red";
+          } else {
+            passwordInput.style.borderColor = "";
+          }
+
+          if (fullNameInput.value && fullNameInput.value.trim().length < 2) {
+            fullNameInput.style.borderColor = "red";
+          } else {
+            fullNameInput.style.borderColor = "";
+          }
+
+          const phoneRegex = /^[\+]?[0-9\s\-\(\)]{8,}$/;
+          if (phoneInput.value && !phoneRegex.test(phoneInput.value)) {
+            phoneInput.style.borderColor = "red";
+          } else {
+            phoneInput.style.borderColor = "";
+          }
+
+          if (contactLinkInput.value) {
+            try {
+              new URL(contactLinkInput.value);
+              contactLinkInput.style.borderColor = "";
+            } catch {
+              contactLinkInput.style.borderColor = "red";
+            }
+          } else {
+            contactLinkInput.style.borderColor = "";
+          }
+        }
+
+        const inputs = document.querySelectorAll("input, textarea");
+        inputs.forEach((input) => {
+          input.addEventListener("input", validateInputs);
+          input.addEventListener("blur", validateInputs);
+        });
+      });
+    </script>
+  </body>
+</html>

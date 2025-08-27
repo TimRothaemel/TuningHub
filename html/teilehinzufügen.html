@@ -7,10 +7,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Teil hinzufügen – TuningHub</title>
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/teilehinzufügen.css" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/teilehinzufügen.css" />
   <style>
-    /* Zusätzliche Styles für das Multi-Image-Upload */
     .image-upload-container {
       margin-bottom: 15px;
     }
@@ -83,12 +82,12 @@
     <div class="header-top">
       <div class="logo">
         <a href="index.html">
-          <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+          <img src="/img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
         </a>
       </div>
       <div class="account-erstellen">
         <a id="account-link" href="account.html" title="Mein Account">
-          <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
+          <img src="/img/account_circle_dark.png" alt="Account" width="36" height="36" />
         </a>
       </div>
     </div>
@@ -137,9 +136,7 @@
         
         <div id="imagePreviews" class="image-preview-container"></div>
         
-      
-      
-      <!-- Verstecktes Feld für den Teil-Typ -->
+  
       <input type="hidden" id="partType" value="teil" />
       
       <label class="telefonlabel">Telefonnummer</label>
@@ -166,18 +163,17 @@
   <script>
     'use strict';
 
-    // Globale Variablen
     let supabase = null;
     let trackingSupabase = null;
     let userPhone = '';
     let currentUser = null;
     let isProcessing = false;
-    let imageInputCount = 1; // Startet bei 1, da bereits ein Input vorhanden ist
+    let imageInputCount = 1; 
 
-    // Supabase-Initialisierung mit Fehlerbehandlung
+
     function initializeSupabase() {
       try {
-        // Haupt-Supabase für Teile, Benutzer, etc.
+      
         supabase = window.supabase.createClient(
           'https://yvdptnkmgfxkrszitweo.supabase.co',
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo',
@@ -190,7 +186,7 @@
           }
         );
 
-        // Separate Supabase-Instanz für Tracking
+       
         trackingSupabase = window.supabase.createClient(
           'https://lhxcnrogjjskgaclqxtm.supabase.co',
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww',
@@ -211,7 +207,7 @@
       }
     }
 
-    // Loading-Overlay
+   
     function showLoading(show = true) {
       const overlay = document.getElementById('loadingOverlay');
       if (overlay) {
@@ -219,7 +215,7 @@
       }
     }
 
-    // Aktuellen Benutzer holen
+   
     async function getCurrentUser() {
       try {
         if (!supabase) {
@@ -249,7 +245,7 @@
       }
     }
 
-    // Telefonnummer laden
+    
     async function loadPhoneNumber() {
       try {
         currentUser = await getCurrentUser();
@@ -258,14 +254,14 @@
         const phoneDisplay = document.getElementById('userPhoneNumber');
         if (!phoneDisplay) return;
 
-        // Zuerst versuchen, aus user_metadata zu laden
+       
         if (currentUser.user_metadata?.phone) {
           userPhone = currentUser.user_metadata.phone;
           phoneDisplay.textContent = userPhone;
           return;
         }
 
-        // Dann aus der profiles Tabelle laden
+       
         const { data, error } = await supabase
           .from('profiles')
           .select('phone_number')
@@ -295,7 +291,7 @@
       }
     }
 
-    // Erfolgsnachricht anzeigen
+    
     function showSuccess(message) {
       hideMessages();
       const successDiv = document.getElementById('success-message');
@@ -309,7 +305,7 @@
       }
     }
 
-    // Fehlernachricht anzeigen
+    
     function showError(message) {
       hideMessages();
       const errorDiv = document.getElementById('error-message');
@@ -319,7 +315,7 @@
       }
     }
 
-    // Nachrichten verstecken
+   
     function hideMessages() {
       const successDiv = document.getElementById('success-message');
       const errorDiv = document.getElementById('error-message');
@@ -328,7 +324,7 @@
       if (errorDiv) errorDiv.style.display = 'none';
     }
 
-    // Formular zurücksetzen
+   
     function resetForm() {
       const elements = ['partTitle', 'partDescription', 'partPrice', 'partCondition'];
       elements.forEach(id => {
@@ -342,31 +338,31 @@
         }
       });
       
-      // Bild-Eingaben zurücksetzen
+    
       const imageInputs = document.querySelectorAll('.partImage');
       imageInputs.forEach(input => {
         input.value = '';
       });
       
-      // Vorschauen löschen
+    
       document.getElementById('imagePreviews').innerHTML = '';
       
-      // Nur das erste Input-Feld behalten
+    
       const container = document.getElementById('imageInputsContainer');
       while (container.children.length > 1) {
         container.removeChild(container.lastChild);
       }
       
-      // Zähler zurücksetzen
+     
       imageInputCount = 1;
       
-      // Ersten Input wieder als required markieren
+     
       if (container.firstChild) {
         container.firstChild.querySelector('.partImage').required = true;
       }
     }
 
-    // Bildkomprimierungsfunktion
+   
     async function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0.85) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -377,23 +373,21 @@
             let width = img.width;
             let height = img.height;
 
-            // Bildmaße anpassen, falls zu groß
+           
             if (width > maxWidth || height > maxHeight) {
               const ratio = Math.min(maxWidth / width, maxHeight / height);
               width = Math.floor(width * ratio);
               height = Math.floor(height * ratio);
             }
 
-            // Canvas mit neuen Maßen erstellen
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
 
-            // Hochwertige Bildskalierung
+          
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(img, 0, 0, width, height);
 
-            // In Blob umwandeln
             canvas.toBlob((blob) => {
               resolve(new File([blob], file.name, {
                 type: 'image/jpeg',
@@ -407,7 +401,6 @@
       });
     }
 
-    // Bildvorschau erstellen
     function createImagePreview(file, index) {
       const reader = new FileReader();
       reader.onload = function(e) {
@@ -423,7 +416,6 @@
         
         previewContainer.appendChild(previewDiv);
         
-        // Event-Listener für Entfernen-Button
         previewDiv.querySelector('.remove-image').addEventListener('click', function() {
           removeImageInput(index);
         });
@@ -431,28 +423,24 @@
       reader.readAsDataURL(file);
     }
 
-    // Bild-Input entfernen
     function removeImageInput(index) {
-      // Input-Feld entfernen
+
       const inputWrapper = document.querySelector(`.partImage[data-index="${index}"]`).closest('.image-input-wrapper');
       if (inputWrapper) {
         inputWrapper.remove();
       }
       
-      // Vorschau entfernen
       const preview = document.querySelector(`.image-preview[data-index="${index}"]`);
       if (preview) {
         preview.remove();
       }
       
-      // Wenn kein Input mehr vorhanden ist, einen neuen hinzufügen
       const inputs = document.querySelectorAll('.partImage');
       if (inputs.length === 0) {
         addImageInput();
       }
     }
 
-    // Weitere Bild-Inputs hinzufügen
     function addImageInput() {
       if (imageInputCount >= 5) {
         showError('Maximal 5 Bilder sind erlaubt.');
@@ -473,7 +461,6 @@
       
       container.appendChild(wrapper);
       
-      // Event-Listener für das neue Input
       const newInput = wrapper.querySelector('.partImage');
       newInput.addEventListener('change', function(e) {
         handleImageSelection(e, newIndex);
@@ -481,19 +468,16 @@
       
       imageInputCount++;
       
-      // Add-Button ausblenden, wenn Maximum erreicht
       if (imageInputCount >= 5) {
         document.getElementById('addImageBtn').style.display = 'none';
       }
     }
 
-    // Bildauswahl behandeln
     function handleImageSelection(e, index) {
       const file = e.target.files?.[0];
       if (!file) return;
       
-      // Sofortige Validierung
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      const maxSize = 10 * 1024 * 1024; 
       if (file.size > maxSize) {
         showError('Das ausgewählte Bild ist zu groß (max. 10MB).');
         e.target.value = '';
@@ -509,16 +493,16 @@
       
       hideMessages();
       
-      // Vorschau erstellen
+      
       createImagePreview(file, index);
       
-      // Wenn nicht das Maximum erreicht ist, weiteren Input anbieten
+      
       if (imageInputCount < 5) {
         addImageInput();
       }
     }
 
-    // Eingaben validieren
+
     function validateInputs() {
       const title = document.getElementById("partTitle")?.value?.trim() || '';
       const description = document.getElementById("partDescription")?.value?.trim() || '';
@@ -526,7 +510,7 @@
       const condition = document.getElementById("partCondition")?.value || '';
       const type = document.getElementById("partType")?.value || 'teil';
 
-      // Titel prüfen
+      
       if (!title) {
         throw new Error("Bitte gib einen Titel ein.");
       }
@@ -534,7 +518,7 @@
         throw new Error("Der Titel ist zu lang (max. 100 Zeichen).");
       }
 
-      // Beschreibung prüfen
+      
       if (!description) {
         throw new Error("Bitte gib eine Beschreibung ein.");
       }
@@ -542,7 +526,7 @@
         throw new Error("Die Beschreibung ist zu lang (max. 1000 Zeichen).");
       }
 
-      // Preis prüfen
+
       const price = parseFloat(priceInput);
       if (!priceInput || isNaN(price) || price < 0) {
         throw new Error("Bitte gib einen gültigen Preis ein.");
@@ -551,12 +535,12 @@
         throw new Error("Der Preis ist zu hoch (max. 99.999€).");
       }
 
-      // Zustand prüfen
+
       if (!condition) {
         throw new Error("Bitte wähle einen Zustand aus.");
       }
 
-      // Bilder prüfen
+
       const imageInputs = document.querySelectorAll('.partImage');
       let hasImage = false;
       const imageFiles = [];
@@ -566,13 +550,12 @@
           hasImage = true;
           const file = input.files[0];
           
-          // Dateigröße prüfen (10MB)
+
           const maxFileSize = 10 * 1024 * 1024;
           if (file.size > maxFileSize) {
             throw new Error(`Das Bild "${file.name}" ist zu groß. Maximal 10MB sind erlaubt.`);
           }
 
-          // Dateityp prüfen
           const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
           if (!allowedTypes.includes(file.type.toLowerCase())) {
             throw new Error(`Nur Bilder (JPEG, PNG, GIF, WebP) sind erlaubt. "${file.name}" ist kein unterstütztes Format.`);
@@ -586,7 +569,7 @@
         throw new Error("Bitte wähle mindestens ein Bild aus.");
       }
 
-      // Telefonnummer prüfen
+
       if (!userPhone) {
         throw new Error("Telefonnummer nicht gefunden. Bitte aktualisiere deine Kontaktdaten in den Einstellungen.");
       }
@@ -601,7 +584,7 @@
       };
     }
 
-    // Tracking-Event
+
     async function trackEvent(eventType, metadata = {}) {
       try {
         if (!trackingSupabase || !currentUser) return;
@@ -627,9 +610,9 @@
       }
     }
 
-    // Haupt-Funktion: Teil hinzufügen
+  
     async function addPart() {
-      // Doppelte Ausführung verhindern
+
       if (isProcessing) {
         console.log('Verarbeitung bereits im Gange...');
         return;
@@ -640,7 +623,7 @@
       try {
         isProcessing = true;
         
-        // UI aktualisieren
+ 
         if (button) {
           button.disabled = true;
           button.textContent = 'Wird gespeichert...';
@@ -650,18 +633,18 @@
 
         console.log('Starte Teil-Hinzufügung...');
 
-        // Benutzer prüfen
+    
         const user = await getCurrentUser();
         if (!user) {
           throw new Error('Benutzer nicht authentifiziert');
         }
         currentUser = user;
 
-        // Eingaben validieren
+
         const validatedData = validateInputs();
         console.log('Validierung erfolgreich');
 
-        // Alle Bilder komprimieren und hochladen
+
         console.log('Starte Bildkomprimierung...');
         const compressedImages = [];
         for (const file of validatedData.imageFiles) {
@@ -674,22 +657,21 @@
           });
         }
 
-        // Bild-URLs sammeln
         const imageUrls = [];
         const uploadedFileNames = [];
         
-        // Bilder hochladen
+
         for (let i = 0; i < compressedImages.length; i++) {
           const compressedImage = compressedImages[i];
           
-          // Eindeutigen Dateinamen generieren
+
           const timestamp = Date.now();
           const randomString = Math.random().toString(36).substring(2, 8);
           const fileName = `${user.id}_${timestamp}_${randomString}_${i}.jpg`;
 
           console.log(`Starte Bild-Upload ${i+1}:`, fileName);
 
-          // Bild hochladen
+
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('parts-images')
             .upload(fileName, compressedImage, {
@@ -701,7 +683,6 @@
           if (uploadError) {
             console.error('Upload-Fehler:', uploadError);
             
-            // Bereits hochgeladene Bilder löschen
             if (uploadedFileNames.length > 0) {
               try {
                 await supabase.storage
@@ -717,7 +698,6 @@
 
           console.log(`Bild-Upload ${i+1} erfolgreich`);
           
-          // Bild-URL generieren und speichern
           const imageUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/parts-images/${fileName}`;
           imageUrls.push(imageUrl);
           uploadedFileNames.push(fileName);
@@ -725,7 +705,6 @@
 
         console.log('Alle Bilder erfolgreich hochgeladen');
 
-        // Daten für Datenbank vorbereiten
         const insertData = {
           user_id: user.id,
           title: validatedData.title,
@@ -737,7 +716,6 @@
           created_at: new Date().toISOString()
         };
         
-        // Bild-URLs zuweisen (bis zu 5)
         for (let i = 0; i < Math.min(imageUrls.length, 5); i++) {
           const fieldName = i === 0 ? 'image_url' : `image_url${i+1}`;
           insertData[fieldName] = imageUrls[i];
@@ -745,7 +723,6 @@
 
         console.log('Starte Datenbank-Insert');
 
-        // Teil in Datenbank speichern
         const { data: result, error: insertError } = await supabase
           .from('parts')
           .insert([insertData])
@@ -754,7 +731,6 @@
         if (insertError) {
           console.error('Insert-Fehler:', insertError);
           
-          // Aufräumen: Hochgeladene Bilder löschen
           try {
             await supabase.storage
               .from('parts-images')
@@ -768,7 +744,6 @@
 
         console.log('Teil erfolgreich gespeichert');
 
-        // Tracking
         await trackEvent('teil_hinzugefuegt', {
           title: validatedData.title,
           price: validatedData.price,
@@ -778,12 +753,10 @@
           success: true
         });
 
-        // Erfolgsmeldung und Formular zurücksetzen
         showLoading(false);
         showSuccess("Teil erfolgreich hinzugefügt! Du wirst zur Startseite weitergeleitet...");
         resetForm();
 
-        // Weiterleitung zur Startseite
         setTimeout(() => {
           window.location.href = 'index.html';
         }, 2000);
@@ -793,7 +766,6 @@
         showLoading(false);
         showError(error.message || 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.');
         
-        // Tracking für Fehler
         await trackEvent('teil_hinzufuegen_fehler', {
           error: error.message,
           success: false
@@ -802,7 +774,6 @@
       } finally {
         isProcessing = false;
         
-        // Button wieder aktivieren
         if (button) {
           button.disabled = false;
           button.textContent = 'Teil hinzufügen';
@@ -811,31 +782,24 @@
       }
     }
 
-    // Event Listeners
     document.addEventListener('DOMContentLoaded', function() {
       console.log('DOM geladen, initialisiere App...');
       
-      // Supabase initialisieren
       if (!initializeSupabase()) {
         return;
       }
 
-      // Telefonnummer laden
       loadPhoneNumber();
 
-      // Button Event Listener
       const addButton = document.getElementById('addPartBtn');
       if (addButton) {
         addButton.addEventListener('click', addPart);
       }
 
-      // Add Image Button Event Listener
       const addImageBtn = document.getElementById('addImageBtn');
       if (addImageBtn) {
         addImageBtn.addEventListener('click', addImageInput);
       }
-
-      // Erstes Bild Input Event Listener
       const firstImageInput = document.querySelector('.partImage[data-index="0"]');
       if (firstImageInput) {
         firstImageInput.addEventListener('change', function(e) {
@@ -843,7 +807,6 @@
         });
       }
 
-      // Formular-Validierung bei Eingabe
       const inputs = ['partTitle', 'partDescription', 'partPrice'];
       inputs.forEach(id => {
         const element = document.getElementById(id);
@@ -855,13 +818,11 @@
       console.log('App erfolgreich initialisiert');
     });
 
-    // Globale Fehlerbehandlung
     window.addEventListener('error', function(e) {
       console.error('Globaler Fehler:', e.error);
       showError('Ein unerwarteter Fehler ist aufgetreten. Bitte lade die Seite neu.');
     });
 
-    // Unhandled Promise Rejections
     window.addEventListener('unhandledrejection', function(e) {
       console.error('Unbehandelte Promise-Ablehnung:', e.reason);
       showError('Ein Netzwerkfehler ist aufgetreten. Bitte versuche es erneut.');

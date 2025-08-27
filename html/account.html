@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TuningHub Account</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/account.css" />
+    <style>
+      .error {
+        color: #e63946;
+        padding: 12px;
+        background: #ffebee;
+        border-radius: 4px;
+        margin-bottom: 16px;
+      }
+      .loading {
+        color: #1d3557;
+        padding: 12px;
+      }
+      .button-link {
+        display: inline-block;
+        padding: 8px 16px;
+        background: #1d3557;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        margin-bottom: 16px;
+      }
+      .danger {
+        background: #e63946 !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="header">
+      <div class="header-top">
+        <div class="logo">
+          <a href="index.html">
+            <img
+              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              alt="TuningHub Logo"
+              height="50"
+            />
+          </a>
+        </div>
+        <div class="account-erstellen">
+          <a id="account-link" href="#">
+            <img
+              src="/img/account_circle_dark.png"
+              alt="Account"
+              width="36"
+              height="36"
+            />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div id="userInfo">Lade Daten...</div>
+
+      <h2>Account verwalten</h2>
+
+      <h3>Weitere Optionen</h3>
+      <a href="meineteile.html" class="button-link">
+        Meine Angebote bearbeiten
+      </a>
+
+      <h3>E-Mail ändern</h3>
+      <label for="newEmail">Neue E-Mail</label>
+      <input type="email" id="newEmail" placeholder="Neue E-Mail-Adresse" />
+      <button onclick="updateEmail()">E-Mail ändern</button>
+
+      <h3>Passwort ändern</h3>
+      <label for="newPassword">Neues Passwort</label>
+      <input type="password" id="newPassword" placeholder="Neues Passwort" />
+      <button onclick="updatePassword()">Passwort ändern</button>
+      <h3>Weitere Einstellungen</h3>
+      <label for="newUsername">Neuer Benutzername</label>
+      <input
+        type="text"
+        id="newUsername"
+        placeholder="Aktueller Benutzername wird geladen..."
+      />
+      <button onclick="updateUsername()">Benutzername ändern</button>
+      <label for="newPhone">Telefonnummer</label>
+      <input
+        type="text"
+        id="newPhone"
+        placeholder="Aktuelle Telefonnummer wird geladen..."
+      />
+      <button onclick="updatePhone()">Telefonnummer speichern</button>
+      <hr style="margin: 24px 0" />
+      <button onclick="logout()">Abmelden</button>
+      <button
+        class="danger"
+        onclick="deleteAccount()"
+        style="background: #e63946; color: white; margin-top: 12px"
+      >
+        Account löschen
+      </button>
+    </main>
+
+    <footer>
+      <div class="informations"><a href="account.html">TuningHub</a></div>
+      <div class="informations"><a href="impressum.html">Impressum</a></div>
+      <div class="informations"><a href="support.html"> Support</a></div>
+      <div class="informations">
+        <a href="socialmedia.html"> Social Media</a>
+      </div>
+      <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      let supabase;
+      let currentUser = null;
+      let isInitialized = false;
+      let trackingClient;
+
+      const trackingUrl = "https://lhxcnrogjjskgaclqxtm.supabase.co";
+      const trackingKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww";
+
+      async function trackEvent(eventType, metadata = {}) {
+        try {
+          const { data, error } = await trackingClient
+            .from("tracking_events")
+            .insert({
+              event_type: eventType,
+              metadata: metadata,
+              user_id: currentUser?.id || "unknown",
+            });
+
+          if (error) {
+            console.error("[Tracking] Supabase error:", error);
+          } else {
+            console.log("[Tracking] Event successfully tracked:", eventType);
+          }
+        } catch (err) {
+          console.error("[Tracking] Unexpected error:", err);
+        }
+      }
+
+      function showError(message) {
+        const userInfo = document.getElementById("userInfo");
+        userInfo.innerHTML = `<div class="error">${message}</div>`;
+      }
+
+      function showLoading(message = "Lade Daten...") {
+        const userInfo = document.getElementById("userInfo");
+        userInfo.innerHTML = `<div class="loading">${message}</div>`;
+      }
+
+      function showUserInfo(user) {
+        const userInfo = document.getElementById("userInfo");
+        userInfo.innerHTML = `
+      <strong>Eingeloggt als:</strong> ${user.email}<br>
+      <small>Benutzername: ${
+        user.user_metadata?.username || "Nicht gesetzt"
+      }</small><br>
+      <small>Telefonnummer: ${
+        formatPhoneForDisplay(user.user_metadata?.phone) || "Nicht gesetzt"
+      }</small><br>
+      <small>Letzte Anmeldung: ${new Date(user.last_sign_in_at).toLocaleString(
+        "de-DE"
+      )}</small>
+    `;
+      }
+
+      function formatPhoneForDisplay(phone) {
+        if (!phone) return null;
+
+        if (phone.startsWith("+49")) {
+          return "0" + phone.substring(3);
+        }
+        return phone;
+      }
+      function formatPhoneForStorage(phone) {
+        if (!phone) return null;
+
+        phone = phone.replace(/\s+/g, "").replace(/[-\/]/g, "");
+
+        if (phone.startsWith("01")) {
+          phone = "+49" + phone.substring(1);
+        } else if (phone.startsWith("49")) {
+          phone = "+" + phone;
+        } else if (phone.startsWith("0049")) {
+          phone = "+" + phone.substring(2);
+        } else if (!phone.startsWith("1")) {
+          phone = "+49" + phone;
+        }
+
+        return phone;
+      }
+
+      async function initializeSupabase() {
+        try {
+          const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
+          const supabaseKey =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
+
+          supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: true,
+            },
+          });
+
+          trackingClient = window.supabase.createClient(
+            trackingUrl,
+            trackingKey
+          );
+
+          const {
+            data: { session },
+            error,
+          } = await supabase.auth.getSession();
+          if (error) throw error;
+
+          if (!session) {
+            window.location.href = "login.html";
+            return false;
+          }
+
+          isInitialized = true;
+          return true;
+        } catch (error) {
+          console.error("Initialisierungsfehler:", error);
+          showError(`Systemfehler: ${error.message}`);
+          return false;
+        }
+      }
+
+      async function loadUser() {
+        if (!isInitialized) {
+          showError("System nicht bereit. Bitte neu laden.");
+          return;
+        }
+
+        try {
+          showLoading("Lade Benutzerdaten...");
+
+          const {
+            data: { user },
+            error,
+          } = await supabase.auth.getUser();
+
+          if (error) {
+            console.error("Fehler beim Laden:", error.message);
+            showError(`Fehler: ${error.message}`);
+            window.location.href = "login.html";
+            return;
+          }
+
+          if (!user) {
+            showError("Kein Benutzer gefunden.");
+            window.location.href = "login.html";
+            return;
+          }
+
+          currentUser = user;
+          showUserInfo(user);
+
+          const metadata = user.user_metadata || {};
+          document.getElementById("newUsername").placeholder =
+            metadata.username || "Kein Benutzername";
+          document.getElementById("newPhone").placeholder =
+            formatPhoneForDisplay(metadata.phone) || "Keine Telefonnummer";
+        } catch (error) {
+          console.error("Unerwarteter Fehler:", error);
+          showError(`Fehler: ${error.message}`);
+        }
+      }
+
+      async function updateEmail() {
+        const email = document.getElementById("newEmail").value.trim();
+        if (!email.includes("@")) {
+          alert("Bitte gültige E-Mail eingeben");
+          return;
+        }
+
+        try {
+          const { error } = await supabase.auth.updateUser({ email });
+          if (error) throw error;
+
+          await trackEvent("email_update_attempt", {
+            new_email: email,
+          });
+
+          alert("Bestätigungsmail gesendet!");
+          document.getElementById("newEmail").value = "";
+          await loadUser();
+        } catch (error) {
+          alert(`Fehler: ${error.message}`);
+        }
+      }
+
+      async function updatePassword() {
+        const pw = document.getElementById("newPassword").value;
+        if (pw.length < 6) {
+          alert("Mindestens 6 Zeichen!");
+          return;
+        }
+
+        try {
+          const { error } = await supabase.auth.updateUser({ password: pw });
+          if (error) throw error;
+
+          await trackEvent("password_update");
+
+          alert("Passwort geändert!");
+          document.getElementById("newPassword").value = "";
+        } catch (error) {
+          alert(`Fehler: ${error.message}`);
+        }
+      }
+
+      async function updateUsername() {
+        const username = document.getElementById("newUsername").value.trim();
+        if (!username) {
+          alert("Benutzername eingeben!");
+          return;
+        }
+
+        try {
+          const {
+            data: { user },
+            error: userError,
+          } = await supabase.auth.getUser();
+          if (userError) throw userError;
+
+          const { error } = await supabase.auth.updateUser({
+            data: { ...(user.user_metadata || {}), username },
+          });
+          if (error) throw error;
+
+          await trackEvent("username_update", {
+            new_username: username,
+          });
+
+          alert("Benutzername aktualisiert!");
+          document.getElementById("newUsername").value = "";
+          await loadUser();
+        } catch (error) {
+          alert(`Fehler: ${error.message}`);
+        }
+      }
+
+      async function updatePhone() {
+        let phone = document.getElementById("newPhone").value.trim();
+        if (!phone) {
+          alert("Telefonnummer eingeben!");
+          return;
+        }
+
+        try {
+          phone = formatPhoneForStorage(phone);
+
+          const phoneRegex = /^\+[0-9]{8,}$/;
+          if (!phoneRegex.test(phone)) {
+            alert(
+              "Bitte geben Sie eine gültige Telefonnummer ein (z.B. 01721234567 oder +491721234567)"
+            );
+            return;
+          }
+
+          const {
+            data: { user },
+            error: userError,
+          } = await supabase.auth.getUser();
+          if (userError) throw userError;
+
+          const { error } = await supabase.auth.updateUser({
+            data: { ...(user.user_metadata || {}), phone },
+          });
+          if (error) throw error;
+
+          await trackEvent("phone_update");
+
+          alert("Telefonnummer aktualisiert!");
+          document.getElementById("newPhone").value = "";
+          await loadUser();
+        } catch (error) {
+          alert(`Fehler: ${error.message}`);
+        }
+      }
+
+      async function logout() {
+        try {
+          await trackEvent("logout_attempt");
+
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
+
+          await trackEvent("logout_success");
+
+          window.location.href = "login.html";
+        } catch (error) {
+          await trackEvent("logout_error", {
+            error_message: error.message,
+          });
+
+          alert(`Abmeldefehler: ${error.message}`);
+        }
+      }
+
+      async function deleteAccount() {
+        if (!confirm("ACCOUNT WIRKLICH LÖSCHEN? ALLE DATEN GEHEN VERLOREN!")) {
+          await trackEvent("account_deletion_cancelled");
+          return;
+        }
+
+        try {
+          const {
+            data: { user },
+            error: userError,
+          } = await supabase.auth.getUser();
+          if (userError) throw userError;
+
+          await trackEvent("account_deletion_attempt", {
+            user_id: user.id,
+            email: user.email,
+          });
+
+          const { error } = await supabase.rpc("delete_user", {
+            user_id: user.id,
+          });
+          if (error) throw error;
+
+          await trackEvent("account_deletion_success", {
+            user_id: user.id,
+            email: user.email,
+          });
+
+          await supabase.auth.signOut();
+          alert("Account gelöscht!");
+          window.location.href = "index.html";
+        } catch (error) {
+          await trackEvent("account_deletion_error", {
+            error_message: error.message,
+            error_code: error.status || "unknown",
+          });
+
+          alert(`Löschfehler: ${error.message}`);
+        }
+      }
+
+      async function initializeApp() {
+        try {
+          let attempts = 0;
+          while (!window.supabase?.createClient && attempts < 20) {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            attempts++;
+          }
+
+          if (!window.supabase) {
+            throw new Error("Supabase-Bibliothek fehlt");
+          }
+
+          const success = await initializeSupabase();
+          if (!success) return;
+
+          await loadUser();
+        } catch (error) {
+          showError(`Startfehler: ${error.message}`);
+        }
+      }
+
+      if (document.readyState === "complete") {
+        initializeApp();
+      } else {
+        document.addEventListener("DOMContentLoaded", initializeApp);
+      }
+    </script>
+  </body>
+</html>

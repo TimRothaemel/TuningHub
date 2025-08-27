@@ -149,6 +149,32 @@
             background: linear-gradient(45deg, #ff6b35, #f7931e);
             z-index: 5;
         }
+        .link-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px 24px 0 24px;
+  gap: 4px; 
+  flex-wrap: nowrap; 
+  max-width: 100%; 
+}
+
+
+
+.left,
+.right {
+  font-weight: bold;
+  color: #0077cc;
+  text-decoration: none;
+  padding: 8px 0;
+  white-space: nowrap; 
+}
+
+
+.left:hover,
+.right:hover {
+  text-decoration: underline;
+}
         
 
         
