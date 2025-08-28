@@ -1,454 +1,614 @@
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrieren TuningHub</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-      /* Basis-Styling */
-      body {
-        font-family: 'Arial', sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f5f5f5;
-        color: #333;
-      }
-      
-      .header {
-        background-color: #fff;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        padding: 10px 20px;
-      }
-      
-      .header-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-      
-      .account-erstellen img {
-        cursor: pointer;
-      }
-      
-      main {
-        max-width: 500px;
-        margin: 30px auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      }
-      
-      .main-überschrift {
-        text-align: center;
-        color: #2c3e50;
-        margin-bottom: 30px;
-      }
-      
-      .form-wrapper {
-        width: 100%;
-      }
-      
-      input[type="text"],
-      input[type="tel"],
-      input[type="email"],
-      input[type="password"] {
-        width: 100%;
-        padding: 12px 15px;
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 16px;
-        box-sizing: border-box;
-      }
-      
-      .checkbox-container {
-        margin: 20px 0;
-      }
-      
-      .checkbox-wrapper {
-        display: flex;
-        align-items: center;
-        position: relative;
-        padding-left: 35px;
-        cursor: pointer;
-        font-size: 16px;
-      }
-      
-      .checkbox-wrapper input {
-        position: absolute;
-        opacity: 0;
-        cursor: pointer;
-      }
-      
-      .checkmark {
-        position: absolute;
-        left: 0;
-        height: 22px;
-        width: 22px;
-        background-color: #eee;
-        border-radius: 4px;
-      }
-      
-      .checkbox-wrapper:hover input ~ .checkmark {
-        background-color: #ccc;
-      }
-      
-      .checkbox-wrapper input:checked ~ .checkmark {
-        background-color: #2c3e50;
-      }
-      
-      .checkmark:after {
-        content: "";
-        position: absolute;
-        display: none;
-      }
-      
-      .checkbox-wrapper input:checked ~ .checkmark:after {
-        display: block;
-      }
-      
-      .checkbox-wrapper .checkmark:after {
-        left: 7px;
-        top: 3px;
-        width: 5px;
-        height: 10px;
-        border: solid white;
-        border-width: 0 3px 3px 0;
-        transform: rotate(45deg);
-      }
-      
-      .checkbox-text a {
-        color: #3498db;
-        text-decoration: none;
-      }
-      
-      .checkbox-text a:hover {
-        text-decoration: underline;
-      }
-      
-      .button-group {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-      }
-      
-      .button {
-        background-color: #2c3e50;
-        color: white;
-        border: none;
-        padding: 12px;
-        border-radius: 4px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-      
-      .button:hover {
-        background-color: #1a252f;
-      }
-      
-      .back-link {
-        text-align: center;
-        color: #3498db;
-        text-decoration: none;
-      }
-      
-      .back-link:hover {
-        text-decoration: underline;
-      }
-      
-      #error {
-        margin-top: 15px;
-        text-align: center;
-        font-weight: bold;
-      }
-      
-      footer {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 20px;
-        margin-top: 40px;
-        padding: 20px;
-        background-color: #2c3e50;
-        color: white;
-      }
-      
-      .informations a {
-        color: white;
-        text-decoration: none;
-      }
-      
-      .informations a:hover {
-        text-decoration: underline;
-      }
-      
-      @media (max-width: 600px) {
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+            --light-gray: #ecf0f1;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .logo img {
+            height: 50px;
+        }
+        
+        .account-erstellen img {
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+        }
+        
         main {
-          margin: 15px;
-          padding: 15px;
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .main-überschrift {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        
+        .form-wrapper {
+            width: 100%;
+        }
+        
+        input[type="text"],
+        input[type="tel"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .checkbox-container {
+            margin: 20px 0;
+        }
+        
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-left: 35px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .checkbox-wrapper input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .checkmark {
+            position: absolute;
+            left: 0;
+            height: 22px;
+            width: 22px;
+            background-color: var(--light-gray);
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .checkbox-wrapper:hover input ~ .checkmark {
+            background-color: #ccc;
+        }
+        
+        .checkbox-wrapper input:checked ~ .checkmark {
+            background-color: var(--primary-color);
+        }
+        
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .checkbox-wrapper input:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .checkbox-wrapper .checkmark:after {
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
+        
+        .checkbox-text a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .checkbox-text a:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .button:hover {
+            background-color: #1a252f;
+        }
+        
+        .back-link {
+            text-align: center;
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+        
+        #error {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 6px;
         }
         
         footer {
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 40px;
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
         }
-      }
+        
+        .informations a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .informations a:hover {
+            text-decoration: underline;
+            color: var(--light-gray);
+        }
+        
+        .admin-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .admin-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .admin-button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .admin-button:hover {
+            background-color: #2980b9;
+        }
+        
+        #admin-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 600px) {
+            main {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            footer {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .header-top {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
     </style>
-  </head>
-
-  <body>
+</head>
+<body>
     <header class="header">
-      <div class="header-top">
-        <div class="logo">
-          <a href="../index.html">
-            <img
-              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
-              alt="TuningHub Logo"
-              height="50"
-            />
-          </a>
+        <div class="header-top">
+            <div class="logo">
+                <a href="../index.html">
+                    <img
+                        src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+                        alt="TuningHub Logo"
+                        height="50"
+                    />
+                </a>
+            </div>
+            <div class="account-erstellen">
+                <a id="account-link" href="#">
+                    <img
+                        src="/img/account_circle_dark.png"
+                        alt="Account"
+                        width="36"
+                        height="36"
+                    />
+                </a>
+            </div>
         </div>
-        <div class="account-erstellen">
-          <a id="account-link" href="#">
-            <img
-              src="/img/account_circle_dark.png"
-              alt="Account"
-              width="36"
-              height="36"
-            />
-          </a>
-        </div>
-      </div>
     </header>
     <main>
-      <h1 class="main-überschrift">Registrieren</h1>
-      <div class="form-wrapper">
-        <form id="register-form">
-          <input
-            type="text"
-            id="username"
-            placeholder="Vollständiger Name"
-            required
-          />
-          <input type="tel" id="phone" placeholder="Telefonnummer (z.B. +491761234567 oder 01761234567)" required />
-          <input type="email" id="email" placeholder="E-Mail" required />
-          <input
-            type="password"
-            id="password"
-            placeholder="Passwort"
-            required
-          />
+        <h1 class="main-überschrift">Registrieren</h1>
+        <div class="form-wrapper">
+            <form id="register-form">
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Vollständiger Name"
+                    required
+                />
+                <input 
+                    type="tel" 
+                    id="phone" 
+                    placeholder="Telefonnummer (z.B. 01761234567 oder +491761234567)" 
+                    required 
+                />
+                <input type="email" id="email" placeholder="E-Mail" required />
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Passwort"
+                    required
+                />
 
-          <div class="checkbox-container">
-            <label class="checkbox-wrapper">
-              <input type="checkbox" id="privacy-consent" required />
-              <span class="checkmark"></span>
-              <span class="checkbox-text">
-                Ich stimme der
-                <a href="datenschutz.html" target="_blank"
-                  >Datenschutzerklärung</a
-                >
-                zu
-              </span>
-            </label>
-          </div>
+                <div class="checkbox-container">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" id="privacy-consent" required />
+                        <span class="checkmark"></span>
+                        <span class="checkbox-text">
+                            Ich stimme der
+                            <a href="datenschutz.html" target="_blank"
+                                >Datenschutzerklärung</a
+                            >
+                            zu
+                        </span>
+                    </label>
+                </div>
 
-          <div class="button-group">
-            <button type="submit" class="button">Account registrieren</button>
-            <a href="registerbusiness.html" class="back-link"
-              >Du hast ein Gewerbe?</a
-            >
-          </div>
-          <p id="error"></p>
-        </form>
-      </div>
+                <div class="button-group">
+                    <button type="submit" class="button">Account registrieren</button>
+                    <a href="registerbusiness.html" class="back-link"
+                        >Du hast ein Gewerbe?</a
+                    >
+                </div>
+                <p id="error"></p>
+            </form>
+        </div>
+        
+        <div class="admin-section" id="admin-section">
+            <h2>Admin-Bereich: Telefonnummern-Korrektur</h2>
+            <p>Hier können Sie bereits falsch gespeicherte Telefonnummern korrigieren (doppelte +49 Präfixe).</p>
+            <button class="admin-button" id="fix-numbers">Falsche Nummern korrigieren</button>
+            <div id="fix-results"></div>
+        </div>
     </main>
     <footer>
-      <div class="informations"><a href="übertuninghub.html">TuningHub</a></div>
-      <div class="informations"><a href="impressum.html">Impressum</a></div>
-      <div class="informations"><a href="support.html"> Support</a></div>
-      <div class="informations">
-        <a href="socialmedia.html"> Social Media</a>
-      </div>
-      <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+        <div class="informations"><a href="übertuninghub.html">TuningHub</a></div>
+        <div class="informations"><a href="impressum.html">Impressum</a></div>
+        <div class="informations"><a href="support.html"> Support</a></div>
+        <div class="informations">
+            <a href="socialmedia.html"> Social Media</a>
+        </div>
+        <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
     </footer>
 
+    <button id="admin-toggle">⚙️</button>
+
     <script>
-      const trackingUrl = "https://lhxcnrogjjskgaclqxtm.supabase.co";
-      const trackingKey =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww";
+        const trackingUrl = "https://lhxcnrogjjskgaclqxtm.supabase.co";
+        const trackingKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww";
 
-      const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
-      const supabaseKey =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
+        const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
 
-      const trackingClient = supabase.createClient(trackingUrl, trackingKey);
-      const client = supabase.createClient(supabaseUrl, supabaseKey);
+        const trackingClient = supabase.createClient(trackingUrl, trackingKey);
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-      async function trackEvent(eventType, metadata = {}) {
-        try {
-          const { data, error } = await trackingClient
-            .from("tracking_events")
-            .insert({
-              event_type: eventType,
-              metadata: metadata,
-            });
+        async function trackEvent(eventType, metadata = {}) {
+            try {
+                const { data, error } = await trackingClient
+                    .from("tracking_events")
+                    .insert({
+                        event_type: eventType,
+                        metadata: metadata,
+                    });
 
-          if (error) {
-            console.error("[Tracking] Supabase error:", error);
-          } else {
-            console.log("[Tracking] Event successfully tracked:", eventType);
-          }
-        } catch (err) {
-          console.error("[Tracking] Unexpected error:", err);
-        }
-      }
-
-      // Verbesserte Telefonnummernvalidierung
-      function formatPhoneNumber(phone) {
-        // Entferne alle Nicht-Ziffern außer dem '+' am Anfang
-        let cleaned = phone.replace(/[^\d+]/g, '');
-        
-        // Prüfe, ob die Nummer bereits mit '+' beginnt (internationales Format)
-        if (cleaned.startsWith('+')) {
-          return cleaned; // Bereits korrekt formatiert
-        }
-        
-        // Handhabe deutsche Nummern
-        if (cleaned.startsWith('01')) {
-          return '+49' + cleaned.substring(1);
-        } else if (cleaned.startsWith('49')) {
-          return '+' + cleaned;
-        } else if (cleaned.startsWith('0049')) {
-          return '+' + cleaned.substring(2);
-        } else {
-          // Annahme: Es handelt sich um eine deutsche Nummer ohne führende 0
-          return '+49' + cleaned;
-        }
-      }
-
-      // Telefonnummernvalidierung
-      function isValidPhoneNumber(phone) {
-        // Einfache Validierung: Mindestens 8 Ziffern (nach dem +)
-        const digitsOnly = phone.replace(/\D/g, '');
-        return digitsOnly.length >= 8;
-      }
-
-      const form = document.getElementById("register-form");
-      const errorText = document.getElementById("error");
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const username = document.getElementById("username").value.trim();
-        let phone = document.getElementById("phone").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
-        const privacyConsent = document.getElementById("privacy-consent").checked;
-
-        if (!username || !phone || !email || !password) {
-          errorText.style.color = "red";
-          errorText.textContent = "Bitte füllen Sie alle Felder aus.";
-
-          await trackEvent("form_validation_error", {
-            form: "register",
-            error: "missing_fields",
-          });
-          return;
+                if (error) {
+                    console.error("[Tracking] Supabase error:", error);
+                } else {
+                    console.log("[Tracking] Event successfully tracked:", eventType);
+                }
+            } catch (err) {
+                console.error("[Tracking] Unexpected error:", err);
+            }
         }
 
-        if (!privacyConsent) {
-          errorText.style.color = "red";
-          errorText.textContent =
-            "Sie müssen der Datenschutzerklärung zustimmen, um sich zu registrieren.";
-
-          await trackEvent("form_validation_error", {
-            form: "register",
-            error: "privacy_consent_missing",
-          });
-          return;
+        // Verbesserte Telefonnummern-Formatierung
+        function formatPhoneNumber(phone) {
+            // Entferne alle Nicht-Ziffern außer dem '+' am Anfang
+            let cleaned = phone.replace(/[^\d+]/g, '');
+            
+            // Prüfe, ob die Nummer bereits mit '+' beginnt (internationales Format)
+            if (cleaned.startsWith('+')) {
+                // Stelle sicher, dass nach dem '+' nur Zahlen folgen
+                return '+' + cleaned.substring(1).replace(/\D/g, '');
+            }
+            
+            // Handhabe deutsche Nummern
+            if (cleaned.startsWith('01')) {
+                return '+49' + cleaned.substring(1);
+            } else if (cleaned.startsWith('49')) {
+                return '+' + cleaned;
+            } else if (cleaned.startsWith('0049')) {
+                return '+' + cleaned.substring(2);
+            } else {
+                // Annahme: Es handelt sich um eine deutsche Nummer ohne führende 0
+                return '+49' + cleaned;
+            }
         }
 
-        // Telefonnummer formatieren
-        const formattedPhone = formatPhoneNumber(phone);
-        
-        // Telefonnummer validieren
-        if (!isValidPhoneNumber(formattedPhone)) {
-          errorText.style.color = "red";
-          errorText.textContent = "Bitte geben Sie eine gültige Telefonnummer ein.";
-
-          await trackEvent("form_validation_error", {
-            form: "register",
-            error: "invalid_phone",
-            phone: phone
-          });
-          return;
+        // Telefonnummern-Validierung
+        function isValidPhoneNumber(phone) {
+            // Einfache Validierung: Mindestens 8 Ziffern (nach dem +)
+            const digitsOnly = phone.replace(/\D/g, '');
+            return digitsOnly.length >= 8;
         }
 
-        errorText.style.color = "black";
-        errorText.textContent = "Registrierung läuft...";
-
-        try {
-          await trackEvent("registration_attempt", {
-            email: email,
-          });
-
-          const { data: signupData, error: signupError } =
-            await client.auth.signUp({
-              email,
-              password,
-              options: {
-                data: {
-                  username,
-                  phone: formattedPhone, // Formatierte Nummer verwenden
-                  privacy_consent: true,
-                  privacy_consent_date: new Date().toISOString(),
-                },
-              },
-            });
-
-          if (signupError) {
-            throw signupError;
-          }
-
-          await trackEvent("registration_success", {
-            email: email,
-            username: username,
-            phone: formattedPhone,
-            user_id: signupData.user?.id,
-            privacy_consent: true,
-          });
-
-          errorText.style.color = "green";
-          errorText.textContent = "Registrierung erfolgreich! Weiterleitung...";
-
-          setTimeout(() => {
-            window.location.href = "account.html";
-          }, 1500);
-        } catch (error) {
-          console.error("Registrierungsfehler:", error);
-
-          await trackEvent("registration_error", {
-            email: email,
-            error_message: error.message,
-            error_code: error.status || "unknown",
-          });
-
-          errorText.style.color = "red";
-          
-          if (error.message.includes('already registered')) {
-            errorText.textContent = "Diese E-Mail ist bereits registriert.";
-          } else {
-            errorText.textContent = "Fehler: " + error.message;
-          }
+        // Funktion zur Korrektur bereits falsch gespeicherter Nummern
+        async function fixIncorrectPhoneNumbers() {
+            const resultsDiv = document.getElementById('fix-results');
+            resultsDiv.innerHTML = '<p>Überprüfe Datenbank auf fehlerhafte Telefonnummern...</p>';
+            
+            try {
+                // Hier müssten Sie Ihre Benutzerdaten abrufen
+                // Dies ist ein Beispiel - passen Sie es an Ihre Datenstruktur an
+                const { data: users, error } = await client
+                    .from('users')  // Stellen Sie sicher, dass dies der korrekte Tabellenname ist
+                    .select('id, phone');
+                
+                if (error) {
+                    resultsDiv.innerHTML = `<p style="color: ${errorColor};">Fehler beim Abrufen der Benutzer: ${error.message}</p>`;
+                    return;
+                }
+                
+                let fixedCount = 0;
+                let errorCount = 0;
+                
+                for (const user of users) {
+                    if (user.phone && user.phone.includes('+49+49')) {
+                        // Korrigiere die doppelten +49 Präfixe
+                        const correctedPhone = user.phone.replace('+49+49', '+49');
+                        
+                        // Aktualisiere den Datensatz
+                        const { error: updateError } = await client
+                            .from('users')
+                            .update({ phone: correctedPhone })
+                            .eq('id', user.id);
+                            
+                        if (updateError) {
+                            console.error(`Fehler beim Aktualisieren von Benutzer ${user.id}:`, updateError);
+                            errorCount++;
+                        } else {
+                            console.log(`Benutzer ${user.id} aktualisiert: ${user.phone} -> ${correctedPhone}`);
+                            fixedCount++;
+                        }
+                    }
+                }
+                
+                resultsDiv.innerHTML = `
+                    <p>Überprüfung abgeschlossen!</p>
+                    <p>Korrigierte Datensätze: ${fixedCount}</p>
+                    <p>Fehler bei der Aktualisierung: ${errorCount}</p>
+                `;
+                
+            } catch (err) {
+                resultsDiv.innerHTML = `<p style="color: ${errorColor};">Unerwarteter Fehler: ${err.message}</p>`;
+                console.error('Fehler bei der Korrektur:', err);
+            }
         }
-      });
+
+        const form = document.getElementById("register-form");
+        const errorText = document.getElementById("error");
+        const adminToggle = document.getElementById("admin-toggle");
+        const adminSection = document.getElementById("admin-section");
+        const fixNumbersButton = document.getElementById("fix-numbers");
+
+        // Admin-Bereich ein-/ausblenden
+        adminToggle.addEventListener("click", () => {
+            adminSection.style.display = adminSection.style.display === "none" ? "block" : "none";
+        });
+
+        // Event-Listener für die Nummernkorrektur
+        fixNumbersButton.addEventListener("click", fixIncorrectPhoneNumbers);
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById("username").value.trim();
+            let phone = document.getElementById("phone").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            const privacyConsent = document.getElementById("privacy-consent").checked;
+
+            if (!username || !phone || !email || !password) {
+                errorText.style.color = "red";
+                errorText.textContent = "Bitte füllen Sie alle Felder aus.";
+
+                await trackEvent("form_validation_error", {
+                    form: "register",
+                    error: "missing_fields",
+                });
+                return;
+            }
+
+            if (!privacyConsent) {
+                errorText.style.color = "red";
+                errorText.textContent =
+                    "Sie müssen der Datenschutzerklärung zustimmen, um sich zu registrieren.";
+
+                await trackEvent("form_validation_error", {
+                    form: "register",
+                    error: "privacy_consent_missing",
+                });
+                return;
+            }
+
+            // Telefonnummer formatieren
+            const formattedPhone = formatPhoneNumber(phone);
+            
+            // Telefonnummer validieren
+            if (!isValidPhoneNumber(formattedPhone)) {
+                errorText.style.color = "red";
+                errorText.textContent = "Bitte geben Sie eine gültige Telefonnummer ein.";
+
+                await trackEvent("form_validation_error", {
+                    form: "register",
+                    error: "invalid_phone",
+                    phone: phone
+                });
+                return;
+            }
+
+            errorText.style.color = "black";
+            errorText.textContent = "Registrierung läuft...";
+
+            try {
+                await trackEvent("registration_attempt", {
+                    email: email,
+                });
+
+                const { data: signupData, error: signupError } =
+                    await client.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            data: {
+                                username,
+                                phone: formattedPhone,
+                                privacy_consent: true,
+                                privacy_consent_date: new Date().toISOString(),
+                            },
+                        },
+                    });
+
+                if (signupError) {
+                    throw signupError;
+                }
+
+                await trackEvent("registration_success", {
+                    email: email,
+                    username: username,
+                    phone: formattedPhone,
+                    user_id: signupData.user?.id,
+                    privacy_consent: true,
+                });
+
+                errorText.style.color = "green";
+                errorText.textContent = "Registrierung erfolgreich! Weiterleitung...";
+
+                setTimeout(() => {
+                    window.location.href = "account.html";
+                }, 1500);
+            } catch (error) {
+                console.error("Registrierungsfehler:", error);
+
+                await trackEvent("registration_error", {
+                    email: email,
+                    error_message: error.message,
+                    error_code: error.status || "unknown",
+                });
+
+                errorText.style.color = "red";
+                
+                if (error.message.includes('already registered')) {
+                    errorText.textContent = "Diese E-Mail ist bereits registriert.";
+                } else {
+                    errorText.textContent = "Fehler: " + error.message;
+                }
+            }
+        });
     </script>
-  </body>
+</body>
 </html>
