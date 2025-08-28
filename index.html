@@ -663,7 +663,7 @@
           } = await supabase.auth.getUser();
           const accountLink = document.getElementById("account-link");
           if (accountLink) {
-            accountLink.href = user ? "account.html" : "login.html";
+            accountLink.href = user ? "account.html" : "/html/login.html";
             log(
               "Account-Link gesetzt:",
               user ? "Eingeloggt" : "Nicht eingeloggt"
