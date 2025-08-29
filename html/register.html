@@ -45,6 +45,7 @@
           />
           <input type="tel" id="phone" placeholder="Telefonnummer" required />
           <input type="email" id="email" placeholder="E-Mail" required />
+          <input type="url" id="social-media" placeholder="Social Media"/>
           <input
             type="password"
             id="password"
@@ -126,6 +127,7 @@
         const username = document.getElementById("username").value.trim();
         let phone = document.getElementById("phone").value.trim();
         const email = document.getElementById("email").value.trim();
+        const socialMedia = document.getElementById("social-media").value.trim();
         const password = document.getElementById("password").value;
         const privacyConsent =
           document.getElementById("privacy-consent").checked;
@@ -183,6 +185,7 @@
                   phone,
                   privacy_consent: true,
                   privacy_consent_date: new Date().toISOString(),
+                  ...(socialMedia && { social_media: socialMedia }),
                 },
               },
             });
