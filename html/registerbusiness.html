@@ -7,6 +7,35 @@
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/registerbusiness.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/libphonenumber-js/1.10.44/libphonenumber-js.min.js"></script>
+    <style>
+      .password-container {
+        position: relative;
+      }
+      
+      .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #666;
+        font-size: 14px;
+        padding: 0;
+        z-index: 1;
+      }
+      
+      .password-toggle:hover {
+        color: #333;
+      }
+      
+      .form-wrapper input[type="password"], 
+      .form-wrapper input[type="text"] {
+        padding-right: 50px;
+      }
+    </style>
   </head>
   <body>
     <header class="header">
@@ -42,19 +71,34 @@
             placeholder="Vollständiger Name"
             required
           />
-          <input type="tel" id="phone" placeholder="Telefonnummer" required />
+          <input type="tel" id="phone" placeholder="Telefonnummer (z.B. +49 123 456789)" required />
           <input
             type="email"
             id="email"
             placeholder="E-Mail-Adresse"
             required
           />
-          <input
-            type="password"
-            id="password"
-            placeholder="Mind. 6 Zeichen"
-            required
-          />
+          
+          <div class="password-container">
+            <input
+              type="password"
+              id="password"
+              placeholder="Passwort (mind. 6 Zeichen)"
+              required
+            />
+            <button type="button" class="password-toggle" onclick="togglePassword('password')" style="display: none;">👁️</button>
+          </div>
+          
+          <div class="password-container">
+            <input
+              type="password"
+              id="password-confirm"
+              placeholder="Passwort bestätigen"
+              required
+            />
+            <button type="button" class="password-toggle" onclick="togglePassword('password-confirm')" style="display: none;">👁️</button>
+          </div>
+          
           <input
             type="text"
             id="companyName"
@@ -121,6 +165,44 @@
       const trackingClient = supabase.createClient(trackingUrl, trackingKey);
       const client = supabase.createClient(supabaseUrl, supabaseKey);
 
+      // Passwort-Anzeige umschalten
+      function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const button = field.parentNode.querySelector('.password-toggle');
+        
+        if (field.type === 'password') {
+          field.type = 'text';
+          button.textContent = '🙈';
+        } else {
+          field.type = 'password';
+          button.textContent = '👁️';
+        }
+      }
+
+      // Telefonnummer mit libphonenumber.js formatieren
+      function formatPhoneNumber(phoneNumber, countryCode = 'DE') {
+        try {
+          const parsed = libphonenumber.parsePhoneNumberFromString(phoneNumber, countryCode);
+          if (parsed && parsed.isValid()) {
+            return parsed.formatInternational();
+          }
+          return null;
+        } catch (error) {
+          console.error('Phone number parsing error:', error);
+          return null;
+        }
+      }
+
+      // Telefonnummer validieren
+      function isValidPhoneNumber(phoneNumber, countryCode = 'DE') {
+        try {
+          const parsed = libphonenumber.parsePhoneNumberFromString(phoneNumber, countryCode);
+          return parsed && parsed.isValid();
+        } catch (error) {
+          return false;
+        }
+      }
+
       async function trackEvent(eventType, metadata = {}) {
         try {
           const { data, error } = await trackingClient
@@ -143,11 +225,24 @@
       const form = document.getElementById("register-business-form");
       const errorMessage = document.getElementById("error-message");
 
+      // Live-Formatierung der Telefonnummer
+      const phoneInput = document.getElementById("phone");
+      phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value;
+        if (value.length > 0) {
+          const formatted = formatPhoneNumber(value);
+          if (formatted && formatted !== value) {
+            e.target.value = formatted;
+          }
+        }
+      });
+
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
+        const passwordConfirm = document.getElementById("password-confirm").value;
         const fullName = document.getElementById("fullName").value.trim();
         let phone = document.getElementById("phone").value.trim();
         const companyName = document.getElementById("companyName").value.trim();
@@ -155,10 +250,13 @@
         const companyDescription = document
           .getElementById("companyDescription")
           .value.trim();
+        const privacyConsent = document.getElementById("privacy-consent").checked;
 
+        // Alle Felder prüfen
         if (
           !email ||
           !password ||
+          !passwordConfirm ||
           !fullName ||
           !phone ||
           !companyName ||
@@ -175,6 +273,19 @@
           return;
         }
 
+        // Passwörter vergleichen
+        if (password !== passwordConfirm) {
+          errorMessage.style.color = "red";
+          errorMessage.textContent = "Die Passwörter stimmen nicht überein.";
+
+          await trackEvent("form_validation_error", {
+            form: "business_register",
+            error: "password_mismatch",
+          });
+          return;
+        }
+
+        // Passwort-Länge prüfen
         if (password.length < 6) {
           errorMessage.style.color = "red";
           errorMessage.textContent =
@@ -187,29 +298,33 @@
           return;
         }
 
-        phone = phone.replace(/\s+/g, "").replace(/[-\/]/g, "");
-
-        if (phone.startsWith("01")) {
-          phone = "+49" + phone.substring(1);
-        } else if (phone.startsWith("49")) {
-          phone = "+" + phone;
-        } else if (phone.startsWith("0049")) {
-          phone = "+" + phone.substring(2);
-        }
-
-        const phoneRegex = /^\+[0-9]{8,}$/;
-        if (!phoneRegex.test(phone)) {
+        // Datenschutz-Zustimmung prüfen
+        if (!privacyConsent) {
           errorMessage.style.color = "red";
           errorMessage.textContent =
-            "Bitte geben Sie eine gültige Telefonnummer ein (z.B. +49123456789).";
+            "Sie müssen der Datenschutzerklärung zustimmen, um sich zu registrieren.";
 
           await trackEvent("form_validation_error", {
             form: "business_register",
-            error: "invalid_phone",
+            error: "privacy_consent_missing",
           });
           return;
         }
 
+        // Telefonnummer mit libphonenumber.js validieren
+        if (!isValidPhoneNumber(phone)) {
+          errorMessage.style.color = "red";
+          errorMessage.textContent = "Bitte geben Sie eine gültige Telefonnummer ein.";
+
+          await trackEvent("form_validation_error", {
+            form: "business_register",
+            error: "invalid_phone_number",
+            phone: phone,
+          });
+          return;
+        }
+
+        // E-Mail validieren
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
           errorMessage.style.color = "red";
@@ -223,6 +338,7 @@
           return;
         }
 
+        // URL validieren
         try {
           new URL(contactLink);
         } catch {
@@ -234,6 +350,17 @@
             form: "business_register",
             error: "invalid_url",
           });
+          return;
+        }
+
+        // Telefonnummer in E.164 Format für die Datenbank
+        try {
+          const parsed = libphonenumber.parsePhoneNumberFromString(phone, 'DE');
+          phone = parsed.format('E.164');
+        } catch (error) {
+          console.error('Phone formatting error:', error);
+          errorMessage.style.color = "red";
+          errorMessage.textContent = "Fehler beim Formatieren der Telefonnummer.";
           return;
         }
 
@@ -258,6 +385,8 @@
                   company_name: companyName,
                   contact_link: contactLink,
                   company_description: companyDescription,
+                  privacy_consent: true,
+                  privacy_consent_date: new Date().toISOString(),
                   created_at: new Date().toISOString(),
                 },
               },
@@ -272,6 +401,7 @@
             email: email,
             company_name: companyName,
             user_id: authData.user?.id,
+            privacy_consent: true,
           });
 
           errorMessage.style.color = "green";
@@ -293,13 +423,24 @@
           });
 
           errorMessage.style.color = "red";
-          errorMessage.textContent = "Fehler: " + error.message;
+          
+          // Benutzerfreundliche Fehlermeldungen
+          if (error.message.includes('already registered')) {
+            errorMessage.textContent = "Diese E-Mail-Adresse ist bereits registriert.";
+          } else if (error.message.includes('invalid email')) {
+            errorMessage.textContent = "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
+          } else if (error.message.includes('weak password')) {
+            errorMessage.textContent = "Das Passwort ist zu schwach. Verwenden Sie mindestens 6 Zeichen.";
+          } else {
+            errorMessage.textContent = "Fehler: " + error.message;
+          }
         }
       });
 
       document.addEventListener("DOMContentLoaded", function () {
         const emailInput = document.getElementById("email");
         const passwordInput = document.getElementById("password");
+        const passwordConfirmInput = document.getElementById("password-confirm");
         const fullNameInput = document.getElementById("fullName");
         const phoneInput = document.getElementById("phone");
         const contactLinkInput = document.getElementById("contactLink");
@@ -308,6 +449,7 @@
         function validateInputs() {
           errorMessage.textContent = "";
 
+          // E-Mail Validierung
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (emailInput.value && !emailRegex.test(emailInput.value)) {
             emailInput.style.borderColor = "red";
@@ -315,25 +457,35 @@
             emailInput.style.borderColor = "";
           }
 
+          // Passwort Validierung
           if (passwordInput.value && passwordInput.value.length < 6) {
             passwordInput.style.borderColor = "red";
           } else {
             passwordInput.style.borderColor = "";
           }
 
+          // Passwort-Bestätigung Validierung
+          if (passwordConfirmInput.value && passwordInput.value !== passwordConfirmInput.value) {
+            passwordConfirmInput.style.borderColor = "red";
+          } else {
+            passwordConfirmInput.style.borderColor = "";
+          }
+
+          // Name Validierung
           if (fullNameInput.value && fullNameInput.value.trim().length < 2) {
             fullNameInput.style.borderColor = "red";
           } else {
             fullNameInput.style.borderColor = "";
           }
 
-          const phoneRegex = /^[\+]?[0-9\s\-\(\)]{8,}$/;
-          if (phoneInput.value && !phoneRegex.test(phoneInput.value)) {
+          // Telefonnummer Validierung mit libphonenumber.js
+          if (phoneInput.value && !isValidPhoneNumber(phoneInput.value)) {
             phoneInput.style.borderColor = "red";
           } else {
             phoneInput.style.borderColor = "";
           }
 
+          // URL Validierung
           if (contactLinkInput.value) {
             try {
               new URL(contactLinkInput.value);
