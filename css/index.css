@@ -135,10 +135,19 @@
   padding: 8px 0;
   white-space: nowrap; 
 }
+.middle {
+  font-weight: bold;
+  color: #0077cc;
+  text-decoration: none;
+  text-align: center;
+  flex-grow: 1; 
+  margin: 8px 8px 16px 8px; 
+}
 
 
 .left:hover,
-.right:hover {
+.right:hover,
+.middle:hover {
   text-decoration: underline;
 }
         

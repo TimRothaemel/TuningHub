@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TuningHub</title>
+    <title>TuningHub Teilübersicht</title>
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/index.css" />
     <link rel="stylesheet" href="/css/card.css">
@@ -1048,91 +1048,92 @@
         }
 
         async function ladeAngebote() {
-            log("Starte Laden der Angebote...");
+    log("Starte Laden der Angebote...");
 
-            const container = document.getElementById("angebot-container");
-            if (!container) {
-                log("ERROR: Container nicht gefunden");
-                return;
-            }
+    const container = document.getElementById("angebot-container");
+    if (!container) {
+        log("ERROR: Container nicht gefunden");
+        return;
+    }
 
-            if (!supabase) {
-                showError("Supabase nicht initialisiert");
-                return;
-            }
+    if (!supabase) {
+        showError("Supabase nicht initialisiert");
+        return;
+    }
 
-            showLoading();
+    showLoading();
+
+    try {
+        log("Lade Daten aus Supabase...");
+
+        const { data, error } = await supabase
+            .from("parts")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            log("Supabase Fehler:", error);
+            showError(`Datenbankfehler: ${error.message}`);
+            return;
+        }
+
+        log("Daten erfolgreich geladen:", data);
+
+        // Link-Card als virtuellen Eintrag erstellen mit einem fixen Datum
+        // Das Datum sollte älter sein als die meisten echten Einträge
+        const linkCardEntry = {
+            id: "custom-link-card",
+            name: "AmbrossSachsen",
+            beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
+            image_url: "/img/zylinderbearbeitung_ambrosssachsen.jpg",
+            preis: "Konfigurieren",
+            created_at: "2025-08-29T00:00:00Z", // Festes, älteres Datum
+            isCustomLink: true, // Flag zur Identifikation
+            targetUrl: "https://ambrosssachsen.com/shop/AmbrossSachsen-*Zylinder-und-Sonderbearbeitungen*-p777421013" // Ziel-URL
+        };
+
+        // Datenarray mit der Link-Card kombinieren
+        const allData = data ? [...data, linkCardEntry] : [linkCardEntry];
+
+        if (allData.length === 0) {
+            showEmpty();
+            return;
+        }
+
+        container.innerHTML = "";
+
+        // Nach Erstellungsdatum sortieren (neueste zuerst)
+        allData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        allData.forEach((teil, index) => {
+            log(`Verarbeite Teil ${index + 1}:`, teil);
 
             try {
-                log("Lade Daten aus Supabase...");
-
-                const { data, error } = await supabase
-                    .from("parts")
-                    .select("*")
-                    .order("created_at", { ascending: false });
-
-                if (error) {
-                    log("Supabase Fehler:", error);
-                    showError(`Datenbankfehler: ${error.message}`);
-                    return;
+                // Prüfen, ob es sich um die benutzerdefinierte Link-Card handelt
+                if (teil.isCustomLink) {
+                    const card = createLinkCard(
+                        teil.name,
+                        teil.beschreibung,
+                        teil.image_url,
+                        teil.preis,
+                        teil.targetUrl
+                    );
+                    container.appendChild(card);
+                } else {
+                    const card = createCard(teil);
+                    container.appendChild(card);
                 }
-
-                log("Daten erfolgreich geladen:", data);
-
-                // Link-Card als virtuellen Eintrag erstellen
-                const linkCardEntry = {
-                    id: "custom-link-card",
-                    name: "AmbrossSachsen",
-                    beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
-                    image_url: "/img/zylinderbearbeitung_ambrosssachsen.jpg",
-                    preis: "Konfigurieren",
-                    created_at: new Date().toISOString(), // Aktuelles Datum für die Sortierung
-                    isCustomLink: true, // Flag zur Identifikation
-                    targetUrl: "https://ambrosssachsen.com/shop/AmbrossSachsen-*Zylinder-und-Sonderbearbeitungen*-p777421013" // Ziel-URL
-                };
-
-                // Datenarray mit der Link-Card kombinieren
-                const allData = data ? [linkCardEntry, ...data] : [linkCardEntry];
-
-                if (allData.length === 0) {
-                    showEmpty();
-                    return;
-                }
-
-                container.innerHTML = "";
-
-                // Nach Erstellungsdatum sortieren
-                allData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-                allData.forEach((teil, index) => {
-                    log(`Verarbeite Teil ${index + 1}:`, teil);
-
-                    try {
-                        // Prüfen, ob es sich um die benutzerdefinierte Link-Card handelt
-                        if (teil.isCustomLink) {
-                            const card = createLinkCard(
-                                teil.name,
-                                teil.beschreibung,
-                                teil.image_url,
-                                teil.preis,
-                                teil.targetUrl
-                            );
-                            container.appendChild(card);
-                        } else {
-                            const card = createCard(teil);
-                            container.appendChild(card);
-                        }
-                    } catch (cardError) {
-                        log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
-                    }
-                });
-
-                log(`✅ ${allData.length} Teile erfolgreich angezeigt`);
-            } catch (error) {
-                log("Unerwarteter Fehler:", error);
-                showError(`Unerwarteter Fehler: ${error.message}`);
+            } catch (cardError) {
+                log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
             }
-        }
+        });
+
+        log(`✅ ${allData.length} Teile erfolgreich angezeigt`);
+    } catch (error) {
+        log("Unerwarteter Fehler:", error);
+        showError(`Unerwarteter Fehler: ${error.message}`);
+    }
+}
 
         async function setAccountLink() {
             if (!supabase) return;
