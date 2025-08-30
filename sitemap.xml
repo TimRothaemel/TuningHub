@@ -3,23 +3,23 @@
 
   <!-- Startseite -->
   <url>
-    <loc>https://tuninghub.netlify.app/</loc>
+    <loc>https://www.tuninghub.netlify.app/</loc>
     <priority>1.0</priority>
   </url>
   
   <!-- Unterseiten -->
   <url>
-    <loc>https://tuninghub.netlify.app/html/teile%C3%BCbersicht.html</loc>
+    <loc>https://www.tuninghub.netlify.app/html/teile%C3%BCbersicht.html</loc>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://tuninghub.netlify.app/html/register.html</loc>
+    <loc>https://www.tuninghub.netlify.app/html/register.html</loc>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://tuninghub.netlify.app/html/account.html</loc>
+    <loc>https://www.tuninghub.netlify.app/html/account.html</loc>
     <priority>0.5</priority>
   </url>
 
