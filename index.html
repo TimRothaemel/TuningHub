@@ -1246,68 +1246,88 @@
         window.addEventListener("error", function (e) {
             log("Globaler Fehler:", e.error);
         });
-         async function trackPageview() {
-        if (!supabase) {
-          updateStatus("Supabase Client nicht verfügbar", true);
-          return;
+        // Korrigierte Version der trackPageview Funktion
+async function trackPageview() {
+    if (!supabase) {
+        console.warn("[TuningHub] Supabase Client nicht verfügbar");
+        return;
+    }
+
+    try {
+        let userId = null;
+        
+        // Versuche, den aktuellen Benutzer zu ermitteln
+        try {
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (session?.user?.id) {
+                userId = session.user.id;
+            }
+        } catch (authError) {
+            console.warn("[TuningHub] Auth nicht verfügbar:", authError.message);
         }
 
-        try {
-          let userId = null;
-          try {
-            const {
-              data: { session },
-              error: sessionError,
-            } = await supabase.auth.getSession();
-            if (session?.user?.id) {
-              userId = session.user.id;
-            }
-          } catch (authError) {
-            console.warn(
-              "[TuningHub] Auth nicht verfügbar:",
-              authError.message
-            );
-          }
-
-          const trackingData = {
+        const trackingData = {
             event_type: "pageview",
             user_id: userId,
             metadata: {
-              path: window.location.pathname || "/",
-              referrer: document.referrer || "",
-              userAgent: navigator.userAgent || "",
-              screen: `${window.screen.width}x${window.screen.height}`,
-              timestamp: new Date().toISOString(),
+                path: window.location.pathname || "/",
+                referrer: document.referrer || "",
+                userAgent: navigator.userAgent || "",
+                screen: `${window.screen.width}x${window.screen.height}`,
+                timestamp: new Date().toISOString(),
             },
-          };
+        };
 
-          const { data, error } = await supabase
+        console.log("[TuningHub] Sende Tracking-Daten:", trackingData);
+
+        const { data, error } = await supabase
             .from("tracking_events")
             .insert([trackingData]);
 
-          if (error) {
+        if (error) {
             throw error;
-          }
-
-          updateStatus(
-            `Pageview erfolgreich getrackt${
-              userId ? " (authentifiziert)" : " (anonym)"
-            }`
-          );
-        } catch (error) {
-          updateStatus(`Tracking-Fehler: ${error.message}`, true);
-
-          console.warn("[TuningHub] Verwende Fallback-Tracking");
-          localStorage.setItem(
-            "tuning_hub_pageview",
-            JSON.stringify({
-              path: window.location.pathname,
-              timestamp: new Date().toISOString(),
-              error: error.message,
-            })
-          );
         }
-      }
+
+        console.log(`[TuningHub] Pageview erfolgreich getrackt${userId ? " (authentifiziert)" : " (anonym)"}`, data);
+        
+    } catch (error) {
+        console.error(`[TuningHub] Tracking-Fehler: ${error.message}`, error);
+
+        // Fallback: Lokale Speicherung
+        try {
+            const fallbackData = {
+                path: window.location.pathname,
+                timestamp: new Date().toISOString(),
+                error: error.message,
+                userAgent: navigator.userAgent
+            };
+            
+            localStorage.setItem("tuning_hub_pageview", JSON.stringify(fallbackData));
+            console.log("[TuningHub] Fallback-Tracking in localStorage gespeichert");
+        } catch (localStorageError) {
+            console.error("[TuningHub] Auch Fallback-Tracking fehlgeschlagen:", localStorageError);
+        }
+    }
+}
+
+// Korrigierter DOMContentLoaded Event-Listener
+document.addEventListener("DOMContentLoaded", function () {
+    log("DOM geladen, starte Initialisierung...");
+
+    setAccountLink();
+    setupSearch();
+    setupDetailView();
+
+    // Hier die trackPageview Funktion aufrufen
+    trackPageview();
+
+    ladeAngebote().catch((error) => {
+        log("Fallback: Zeige Test-Daten wegen Fehler:", error);
+        showError("Fehler beim Laden der Daten: " + error.message);
+    });
+
+    handleSharedPartLink();
+});
 
     </script>
 </body>
