@@ -594,19 +594,29 @@
                 '<div class="empty">📦 Keine Angebote vorhanden</div>';
         }
 
-        const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
-        const supabaseKey =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
+        const trackingUrl = "https://lhxcnrogjjskgaclqxtm.supabase.co";
+      const trackingKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww";
+
+      const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
+      const supabaseKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
 
         let supabase;
+        let trackingSupabase;
 
-        try {
-            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-            log("Supabase Client erfolgreich erstellt");
-        } catch (error) {
-            log("Fehler beim Erstellen des Supabase Clients:", error);
-            showError("Fehler beim Verbinden mit der Datenbank");
-        }
+       try {
+    // Hauptdatenbank-Client
+    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    log("Haupt-Supabase Client erfolgreich erstellt");
+    
+    // Tracking-Datenbank-Client
+    trackingSupabase = window.supabase.createClient(trackingUrl, trackingKey);
+    log("Tracking-Supabase Client erfolgreich erstellt");
+} catch (error) {
+    log("Fehler beim Erstellen der Supabase Clients:", error);
+    showError("Fehler beim Verbinden mit der Datenbank");
+}
 
         function extractData(teil) {
             const name =
@@ -1246,21 +1256,22 @@
         window.addEventListener("error", function (e) {
             log("Globaler Fehler:", e.error);
         });
-        // Korrigierte Version der trackPageview Funktion
-async function trackPageview() {
-    if (!supabase) {
-        console.warn("[TuningHub] Supabase Client nicht verfügbar");
+       async function trackPageview() {
+    if (!trackingSupabase) {
+        console.warn("[TuningHub] Tracking-Supabase Client nicht verfügbar");
         return;
     }
 
     try {
         let userId = null;
         
-        // Versuche, den aktuellen Benutzer zu ermitteln
+        // Versuche, den aktuellen Benutzer aus der Hauptdatenbank zu ermitteln
         try {
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            if (session?.user?.id) {
-                userId = session.user.id;
+            if (supabase) {
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                if (session?.user?.id) {
+                    userId = session.user.id;
+                }
             }
         } catch (authError) {
             console.warn("[TuningHub] Auth nicht verfügbar:", authError.message);
@@ -1280,7 +1291,8 @@ async function trackPageview() {
 
         console.log("[TuningHub] Sende Tracking-Daten:", trackingData);
 
-        const { data, error } = await supabase
+        // Verwende den separaten Tracking-Client
+        const { data, error } = await trackingSupabase
             .from("tracking_events")
             .insert([trackingData]);
 
@@ -1310,7 +1322,7 @@ async function trackPageview() {
     }
 }
 
-// Korrigierter DOMContentLoaded Event-Listener
+// Aktualisierter DOMContentLoaded Event-Listener
 document.addEventListener("DOMContentLoaded", function () {
     log("DOM geladen, starte Initialisierung...");
 
@@ -1318,7 +1330,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setupSearch();
     setupDetailView();
 
-    // Hier die trackPageview Funktion aufrufen
+    // Tracking aufrufen
     trackPageview();
 
     ladeAngebote().catch((error) => {
@@ -1328,7 +1340,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     handleSharedPartLink();
 });
-
     </script>
 </body>
 </html>
