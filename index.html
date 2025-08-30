@@ -1246,6 +1246,69 @@
         window.addEventListener("error", function (e) {
             log("Globaler Fehler:", e.error);
         });
+         async function trackPageview() {
+        if (!supabase) {
+          updateStatus("Supabase Client nicht verfügbar", true);
+          return;
+        }
+
+        try {
+          let userId = null;
+          try {
+            const {
+              data: { session },
+              error: sessionError,
+            } = await supabase.auth.getSession();
+            if (session?.user?.id) {
+              userId = session.user.id;
+            }
+          } catch (authError) {
+            console.warn(
+              "[TuningHub] Auth nicht verfügbar:",
+              authError.message
+            );
+          }
+
+          const trackingData = {
+            event_type: "pageview",
+            user_id: userId,
+            metadata: {
+              path: window.location.pathname || "/",
+              referrer: document.referrer || "",
+              userAgent: navigator.userAgent || "",
+              screen: `${window.screen.width}x${window.screen.height}`,
+              timestamp: new Date().toISOString(),
+            },
+          };
+
+          const { data, error } = await supabase
+            .from("tracking_events")
+            .insert([trackingData]);
+
+          if (error) {
+            throw error;
+          }
+
+          updateStatus(
+            `Pageview erfolgreich getrackt${
+              userId ? " (authentifiziert)" : " (anonym)"
+            }`
+          );
+        } catch (error) {
+          updateStatus(`Tracking-Fehler: ${error.message}`, true);
+
+          console.warn("[TuningHub] Verwende Fallback-Tracking");
+          localStorage.setItem(
+            "tuning_hub_pageview",
+            JSON.stringify({
+              path: window.location.pathname,
+              timestamp: new Date().toISOString(),
+              error: error.message,
+            })
+          );
+        }
+      }
+
     </script>
 </body>
 </html>
