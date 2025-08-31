@@ -489,6 +489,7 @@
         </div>
         <div class="link-bar">
             <a class="middle" href="/html/teileübersicht.html">mehr</a>
+        </div>
     </main>
 
     <div class="detail-modal" id="detail-modal">
@@ -595,28 +596,28 @@
         }
 
         const trackingUrl = "https://lhxcnrogjjskgaclqxtm.supabase.co";
-      const trackingKey =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww";
+        const trackingKey =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww";
 
-      const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
-      const supabaseKey =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
+        const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
+        const supabaseKey =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
 
         let supabase;
         let trackingSupabase;
 
-       try {
-    // Hauptdatenbank-Client
-    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    log("Haupt-Supabase Client erfolgreich erstellt");
-    
-    // Tracking-Datenbank-Client
-    trackingSupabase = window.supabase.createClient(trackingUrl, trackingKey);
-    log("Tracking-Supabase Client erfolgreich erstellt");
-} catch (error) {
-    log("Fehler beim Erstellen der Supabase Clients:", error);
-    showError("Fehler beim Verbinden mit der Datenbank");
-}
+        try {
+            // Hauptdatenbank-Client
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            log("Haupt-Supabase Client erfolgreich erstellt");
+            
+            // Tracking-Datenbank-Client
+            trackingSupabase = window.supabase.createClient(trackingUrl, trackingKey);
+            log("Tracking-Supabase Client erfolgreich erstellt");
+        } catch (error) {
+            log("Fehler beim Erstellen der Supabase Clients:", error);
+            showError("Fehler beim Verbinden mit der Datenbank");
+        }
 
         function extractData(teil) {
             const name =
@@ -687,26 +688,26 @@
             const dialog = document.createElement("div");
             dialog.className = "contact-dialog-overlay";
             dialog.innerHTML = `
-                    <div class="contact-dialog-content">
-                        <h3>Kontaktoptionen</h3>
-                        <p class="contact-phone">${telefon}</p>
-                        <div class="contact-options">
-                            <button class="contact-option call">
-                                <span class="icon">📞</span>
-                                <span>Anrufen</span>
-                            </button>
-                            <button class="contact-option whatsapp">
-                                <span class="icon">💬</span>
-                                <span>WhatsApp</span>
-                            </button>
-                            <button class="contact-option sms">
-                                <span class="icon">📱</span>
-                                <span>SMS</span>
-                            </button>
-                        </div>
-                        <button class="contact-cancel">Abbrechen</button>
+                <div class="contact-dialog-content">
+                    <h3>Kontaktoptionen</h3>
+                    <p class="contact-phone">${telefon}</p>
+                    <div class="contact-options">
+                        <button class="contact-option call">
+                            <span class="icon">📞</span>
+                            <span>Anrufen</span>
+                        </button>
+                        <button class="contact-option whatsapp">
+                            <span class="icon">💬</span>
+                            <span>WhatsApp</span>
+                        </button>
+                        <button class="contact-option sms">
+                            <span class="icon">📱</span>
+                            <span>SMS</span>
+                        </button>
                     </div>
-                `;
+                    <button class="contact-cancel">Abbrechen</button>
+                </div>
+            `;
 
             document.body.appendChild(dialog);
 
@@ -990,6 +991,11 @@
             const isSearch = typ === "teilesuche";
             card.className = isSearch ? "card search-card" : "card";
 
+            // WICHTIG: Teil-ID als data-Attribut speichern
+            if (teil.id) {
+                card.dataset.partId = teil.id;
+            }
+
             const imageUrl =
                 bild ||
                 "https://via.placeholder.com/300x200/e9ecef/666?text=Kein+Bild";
@@ -1005,23 +1011,23 @@
             const kurzbeschreibung = truncateDescription(beschreibung, 120);
 
             card.innerHTML = `
-                    ${isSearch ? '<span class="search-badge">🔍 SUCHE</span>' : ""}
-                    <img src="${imageUrl}" 
-                         alt="${name}" 
-                         onerror="this.src='${fallbackUrl}'" 
-                         loading="lazy" />
-                    <div class="card-content">
-                        <h2>${name}</h2>
-                        ${
-                            kurzbeschreibung
-                                ? `<p class="card-description">${kurzbeschreibung}</p>`
-                                : ""
-                        }
-                        <div class="card-footer">
-                            <p><strong>${preisText}</strong></p>
-                        </div>
+                ${isSearch ? '<span class="search-badge">🔍 SUCHE</span>' : ""}
+                <img src="${imageUrl}" 
+                     alt="${name}" 
+                     onerror="this.src='${fallbackUrl}'" 
+                     loading="lazy" />
+                <div class="card-content">
+                    <h2>${name}</h2>
+                    ${
+                        kurzbeschreibung
+                            ? `<p class="card-description">${kurzbeschreibung}</p>`
+                            : ""
+                    }
+                    <div class="card-footer">
+                        <p><strong>${preisText}</strong></p>
                     </div>
-                `;
+                </div>
+            `;
 
             card.addEventListener("click", function () {
                 openDetailView(teil);
@@ -1051,7 +1057,6 @@
                 </div>
             `;
 
-            // Klick → andere HTML-Seite öffnen
             card.addEventListener("click", function () {
                 window.location.href = targetUrl;
             });
@@ -1059,97 +1064,133 @@
             return card;
         }
 
-    async function ladeAngebote() {
-    log("Starte Laden der Angebote...");
-
-    const container = document.getElementById("angebot-container");
-    if (!container) {
-        log("ERROR: Container nicht gefunden");
-        return;
-    }
-
-    if (!supabase) {
-        showError("Supabase nicht initialisiert");
-        return;
-    }
-
-    showLoading();
-
-    try {
-        log("Lade Daten aus Supabase...");
-
-        const { data, error } = await supabase
-            .from("parts")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .limit(20); // Limitierung auf 20 Einträge direkt in der Datenbankabfrage
-
-        if (error) {
-            log("Supabase Fehler:", error);
-            showError(`Datenbankfehler: ${error.message}`);
-            return;
+        // NEU: Position-Tracking für "mehr" Link
+        function setupMoreLinkWithPosition() {
+            const moreLink = document.querySelector('.link-bar a[href*="teileübersicht"]');
+            
+            if (moreLink) {
+                moreLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Finde das sichtbarste Teil
+                    const cards = document.querySelectorAll('.card');
+                    let visibleCardIndex = 0;
+                    let bestCard = null;
+                    let bestDistance = Infinity;
+                    
+                    cards.forEach((card, index) => {
+                        const rect = card.getBoundingClientRect();
+                        const centerY = window.innerHeight / 2;
+                        const cardCenterY = rect.top + rect.height / 2;
+                        const distance = Math.abs(centerY - cardCenterY);
+                        
+                        // Finde die Karte, die am nächsten zum Bildschirmzentrum ist
+                        if (rect.top < window.innerHeight && rect.bottom > 0 && distance < bestDistance) {
+                            bestDistance = distance;
+                            bestCard = card;
+                            visibleCardIndex = index;
+                        }
+                    });
+                    
+                    // Speichere die Position
+                    sessionStorage.setItem('tuninghub_scroll_card_index', visibleCardIndex);
+                    
+                    // Auch die Teil-ID speichern falls verfügbar
+                    if (bestCard && bestCard.dataset.partId) {
+                        sessionStorage.setItem('tuninghub_scroll_part_id', bestCard.dataset.partId);
+                    }
+                    
+                    log('Position gespeichert:', { visibleCardIndex, partId: bestCard?.dataset.partId });
+                    
+                    // Navigiere zur Übersichtsseite
+                    window.location.href = '/html/teileübersicht.html';
+                });
+            }
         }
 
-        log("Daten erfolgreich geladen:", data);
+        async function ladeAngebote() {
+            log("Starte Laden der Angebote...");
 
-        // Link-Card als virtuellen Eintrag erstellen mit einem fixen Datum
-        // Das Datum sollte älter sein als die meisten echten Einträge
-        const linkCardEntry = {
-            id: "custom-link-card",
-            name: "AmbrossSachsen",
-            beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
-            image_url: "/img/zylinderbearbeitung_ambrosssachsen.jpg",
-            preis: "Konfigurieren",
-            created_at: "2025-08-29T00:00:00Z", // Festes, älteres Datum
-            isCustomLink: true, // Flag zur Identifikation
-            targetUrl: "https://ambrosssachsen.com/shop/AmbrossSachsen-*Zylinder-und-Sonderbearbeitungen*-p777421013" // Ziel-URL
-        };
+            const container = document.getElementById("angebot-container");
+            if (!container) {
+                log("ERROR: Container nicht gefunden");
+                return;
+            }
 
-        // Datenarray mit der Link-Card kombinieren und auf maximal 20 begrenzen
-        let allData = data ? [...data, linkCardEntry] : [linkCardEntry];
-        
-        // Nach Erstellungsdatum sortieren (neueste zuerst)
-        allData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        
-        // Auf maximal 20 Einträge begrenzen
-        allData = allData.slice(0, 20);
+            if (!supabase) {
+                showError("Supabase nicht initialisiert");
+                return;
+            }
 
-        if (allData.length === 0) {
-            showEmpty();
-            return;
-        }
-
-        container.innerHTML = "";
-
-        allData.forEach((teil, index) => {
-            log(`Verarbeite Teil ${index + 1}:`, teil);
+            showLoading();
 
             try {
-                // Prüfen, ob es sich um die benutzerdefinierte Link-Card handelt
-                if (teil.isCustomLink) {
-                    const card = createLinkCard(
-                        teil.name,
-                        teil.beschreibung,
-                        teil.image_url,
-                        teil.preis,
-                        teil.targetUrl
-                    );
-                    container.appendChild(card);
-                } else {
-                    const card = createCard(teil);
-                    container.appendChild(card);
-                }
-            } catch (cardError) {
-                log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
-            }
-        });
+                log("Lade Daten aus Supabase...");
 
-        log(`✅ ${allData.length} Teile erfolgreich angezeigt (maximal 20)`);
-    } catch (error) {
-        log("Unerwarteter Fehler:", error);
-        showError(`Unerwarteter Fehler: ${error.message}`);
-    }
-}
+                const { data, error } = await supabase
+                    .from("parts")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+                    .limit(20);
+
+                if (error) {
+                    log("Supabase Fehler:", error);
+                    showError(`Datenbankfehler: ${error.message}`);
+                    return;
+                }
+
+                log("Daten erfolgreich geladen:", data);
+
+                const linkCardEntry = {
+                    id: "custom-link-card",
+                    name: "AmbrossSachsen",
+                    beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
+                    image_url: "/img/zylinderbearbeitung_ambrosssachsen.jpg",
+                    preis: "Konfigurieren",
+                    created_at: "2025-08-29T00:00:00Z",
+                    isCustomLink: true,
+                    targetUrl: "https://ambrosssachsen.com/shop/AmbrossSachsen-*Zylinder-und-Sonderbearbeitungen*-p777421013"
+                };
+
+                let allData = data ? [...data, linkCardEntry] : [linkCardEntry];
+                allData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                allData = allData.slice(0, 20);
+
+                if (allData.length === 0) {
+                    showEmpty();
+                    return;
+                }
+
+                container.innerHTML = "";
+
+                allData.forEach((teil, index) => {
+                    log(`Verarbeite Teil ${index + 1}:`, teil);
+
+                    try {
+                        if (teil.isCustomLink) {
+                            const card = createLinkCard(
+                                teil.name,
+                                teil.beschreibung,
+                                teil.image_url,
+                                teil.preis,
+                                teil.targetUrl
+                            );
+                            container.appendChild(card);
+                        } else {
+                            const card = createCard(teil);
+                            container.appendChild(card);
+                        }
+                    } catch (cardError) {
+                        log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
+                    }
+                });
+
+                log(`✅ ${allData.length} Teile erfolgreich angezeigt (maximal 20)`);
+            } catch (error) {
+                log("Unerwarteter Fehler:", error);
+                showError(`Unerwarteter Fehler: ${error.message}`);
+            }
+        }
 
         async function setAccountLink() {
             if (!supabase) return;
@@ -1160,7 +1201,7 @@
                 } = await supabase.auth.getUser();
                 const accountLink = document.getElementById("account-link");
                 if (accountLink) {
-                    accountLink.href = user ? "account.html" : "/html/login.html";
+                    accountLink.href = user ? "/html/account.html" : "/html/login.html";
                     log(
                         "Account-Link gesetzt:",
                         user ? "Eingeloggt" : "Nicht eingeloggt"
@@ -1238,12 +1279,78 @@
             }
         }
 
+        async function trackPageview() {
+            if (!trackingSupabase) {
+                console.warn("[TuningHub] Tracking-Supabase Client nicht verfügbar");
+                return;
+            }
+
+            try {
+                let userId = null;
+                
+                try {
+                    if (supabase) {
+                        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                        if (session?.user?.id) {
+                            userId = session.user.id;
+                        }
+                    }
+                } catch (authError) {
+                    console.warn("[TuningHub] Auth nicht verfügbar:", authError.message);
+                }
+
+                const trackingData = {
+                    event_type: "pageview",
+                    user_id: userId,
+                    metadata: {
+                        path: window.location.pathname || "/",
+                        referrer: document.referrer || "",
+                        userAgent: navigator.userAgent || "",
+                        screen: `${window.screen.width}x${window.screen.height}`,
+                        timestamp: new Date().toISOString(),
+                    },
+                };
+
+                console.log("[TuningHub] Sende Tracking-Daten:", trackingData);
+
+                const { data, error } = await trackingSupabase
+                    .from("tracking_events")
+                    .insert([trackingData]);
+
+                if (error) {
+                    throw error;
+                }
+
+                console.log(`[TuningHub] Pageview erfolgreich getrackt${userId ? " (authentifiziert)" : " (anonym)"}`, data);
+                
+            } catch (error) {
+                console.error(`[TuningHub] Tracking-Fehler: ${error.message}`, error);
+
+                try {
+                    const fallbackData = {
+                        path: window.location.pathname,
+                        timestamp: new Date().toISOString(),
+                        error: error.message,
+                        userAgent: navigator.userAgent
+                    };
+                    
+                    localStorage.setItem("tuning_hub_pageview", JSON.stringify(fallbackData));
+                    console.log("[TuningHub] Fallback-Tracking in localStorage gespeichert");
+                } catch (localStorageError) {
+                    console.error("[TuningHub] Auch Fallback-Tracking fehlgeschlagen:", localStorageError);
+                }
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             log("DOM geladen, starte Initialisierung...");
 
             setAccountLink();
             setupSearch();
             setupDetailView();
+            setupMoreLinkWithPosition(); // NEU: Position-Tracking
+
+            trackPageview();
 
             ladeAngebote().catch((error) => {
                 log("Fallback: Zeige Test-Daten wegen Fehler:", error);
@@ -1256,90 +1363,6 @@
         window.addEventListener("error", function (e) {
             log("Globaler Fehler:", e.error);
         });
-       async function trackPageview() {
-    if (!trackingSupabase) {
-        console.warn("[TuningHub] Tracking-Supabase Client nicht verfügbar");
-        return;
-    }
-
-    try {
-        let userId = null;
-        
-        // Versuche, den aktuellen Benutzer aus der Hauptdatenbank zu ermitteln
-        try {
-            if (supabase) {
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                if (session?.user?.id) {
-                    userId = session.user.id;
-                }
-            }
-        } catch (authError) {
-            console.warn("[TuningHub] Auth nicht verfügbar:", authError.message);
-        }
-
-        const trackingData = {
-            event_type: "pageview",
-            user_id: userId,
-            metadata: {
-                path: window.location.pathname || "/",
-                referrer: document.referrer || "",
-                userAgent: navigator.userAgent || "",
-                screen: `${window.screen.width}x${window.screen.height}`,
-                timestamp: new Date().toISOString(),
-            },
-        };
-
-        console.log("[TuningHub] Sende Tracking-Daten:", trackingData);
-
-        // Verwende den separaten Tracking-Client
-        const { data, error } = await trackingSupabase
-            .from("tracking_events")
-            .insert([trackingData]);
-
-        if (error) {
-            throw error;
-        }
-
-        console.log(`[TuningHub] Pageview erfolgreich getrackt${userId ? " (authentifiziert)" : " (anonym)"}`, data);
-        
-    } catch (error) {
-        console.error(`[TuningHub] Tracking-Fehler: ${error.message}`, error);
-
-        // Fallback: Lokale Speicherung
-        try {
-            const fallbackData = {
-                path: window.location.pathname,
-                timestamp: new Date().toISOString(),
-                error: error.message,
-                userAgent: navigator.userAgent
-            };
-            
-            localStorage.setItem("tuning_hub_pageview", JSON.stringify(fallbackData));
-            console.log("[TuningHub] Fallback-Tracking in localStorage gespeichert");
-        } catch (localStorageError) {
-            console.error("[TuningHub] Auch Fallback-Tracking fehlgeschlagen:", localStorageError);
-        }
-    }
-}
-
-// Aktualisierter DOMContentLoaded Event-Listener
-document.addEventListener("DOMContentLoaded", function () {
-    log("DOM geladen, starte Initialisierung...");
-
-    setAccountLink();
-    setupSearch();
-    setupDetailView();
-
-    // Tracking aufrufen
-    trackPageview();
-
-    ladeAngebote().catch((error) => {
-        log("Fallback: Zeige Test-Daten wegen Fehler:", error);
-        showError("Fehler beim Laden der Daten: " + error.message);
-    });
-
-    handleSharedPartLink();
-});
     </script>
 </body>
 </html>

@@ -592,7 +592,7 @@
                 '<div class="empty">📦 Keine Angebote vorhanden</div>';
         }
 
-        const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
+         const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
         const supabaseKey =
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
 
@@ -857,6 +857,9 @@
         }
 
         function openDetailView(teil) {
+            // Speichere die aktuelle Scroll-Position vor dem Öffnen des Modals
+            sessionStorage.setItem('tuninghub_scroll_position', window.scrollY);
+            
             const modal = document.getElementById("detail-modal");
             const {
                 name,
@@ -968,6 +971,13 @@
             imageUrls = [];
             currentImageIndex = 0;
 
+            // Wiederherstellung der Scroll-Position nach Schließen des Modals
+            const savedPosition = sessionStorage.getItem('tuninghub_scroll_position');
+            if (savedPosition) {
+                window.scrollTo(0, parseInt(savedPosition));
+                sessionStorage.removeItem('tuninghub_scroll_position');
+            }
+
             log("Detailansicht geschlossen");
         }
 
@@ -1048,92 +1058,94 @@
         }
 
         async function ladeAngebote() {
-    log("Starte Laden der Angebote...");
+            log("Starte Laden der Angebote...");
 
-    const container = document.getElementById("angebot-container");
-    if (!container) {
-        log("ERROR: Container nicht gefunden");
-        return;
-    }
+            const container = document.getElementById("angebot-container");
+            if (!container) {
+                log("ERROR: Container nicht gefunden");
+                return;
+            }
 
-    if (!supabase) {
-        showError("Supabase nicht initialisiert");
-        return;
-    }
+            if (!supabase) {
+                showError("Supabase nicht initialisiert");
+                return;
+            }
 
-    showLoading();
-
-    try {
-        log("Lade Daten aus Supabase...");
-
-        const { data, error } = await supabase
-            .from("parts")
-            .select("*")
-            .order("created_at", { ascending: false });
-
-        if (error) {
-            log("Supabase Fehler:", error);
-            showError(`Datenbankfehler: ${error.message}`);
-            return;
-        }
-
-        log("Daten erfolgreich geladen:", data);
-
-        // Link-Card als virtuellen Eintrag erstellen mit einem fixen Datum
-        // Das Datum sollte älter sein als die meisten echten Einträge
-        const linkCardEntry = {
-            id: "custom-link-card",
-            name: "AmbrossSachsen",
-            beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
-            image_url: "/img/zylinderbearbeitung_ambrosssachsen.jpg",
-            preis: "Konfigurieren",
-            created_at: "2025-08-29T00:00:00Z", // Festes, älteres Datum
-            isCustomLink: true, // Flag zur Identifikation
-            targetUrl: "https://ambrosssachsen.com/shop/AmbrossSachsen-*Zylinder-und-Sonderbearbeitungen*-p777421013" // Ziel-URL
-        };
-
-        // Datenarray mit der Link-Card kombinieren
-        const allData = data ? [...data, linkCardEntry] : [linkCardEntry];
-
-        if (allData.length === 0) {
-            showEmpty();
-            return;
-        }
-
-        container.innerHTML = "";
-
-        // Nach Erstellungsdatum sortieren (neueste zuerst)
-        allData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-        allData.forEach((teil, index) => {
-            log(`Verarbeite Teil ${index + 1}:`, teil);
+            showLoading();
 
             try {
-                // Prüfen, ob es sich um die benutzerdefinierte Link-Card handelt
-                if (teil.isCustomLink) {
-                    const card = createLinkCard(
-                        teil.name,
-                        teil.beschreibung,
-                        teil.image_url,
-                        teil.preis,
-                        teil.targetUrl
-                    );
-                    container.appendChild(card);
-                } else {
-                    const card = createCard(teil);
-                    container.appendChild(card);
-                }
-            } catch (cardError) {
-                log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
-            }
-        });
+                log("Lade Daten aus Supabase...");
 
-        log(`✅ ${allData.length} Teile erfolgreich angezeigt`);
-    } catch (error) {
-        log("Unerwarteter Fehler:", error);
-        showError(`Unerwarteter Fehler: ${error.message}`);
-    }
-}
+                const { data, error } = await supabase
+                    .from("parts")
+                    .select("*")
+                    .order("created_at", { ascending: false });
+
+                if (error) {
+                    log("Supabase Fehler:", error);
+                    showError(`Datenbankfehler: ${error.message}`);
+                    return;
+                }
+
+                log("Daten erfolgreich geladen:", data);
+
+                // Link-Card als virtuellen Eintrag erstellen mit einem fixen Datum
+                const linkCardEntry = {
+                    id: "custom-link-card",
+                    name: "AmbrossSachsen",
+                    beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
+                    image_url: "/img/zylinderbearbeitung_ambrosssachsen.jpg",
+                    preis: "Konfigurieren",
+                    created_at: "2025-08-29T00:00:00Z",
+                    isCustomLink: true,
+                    targetUrl: "https://ambrosssachsen.com/shop/AmbrossSachsen-*Zylinder-und-Sonderbearbeitungen*-p777421013"
+                };
+
+                // Datenarray mit der Link-Card kombinieren
+                const allData = data ? [...data, linkCardEntry] : [linkCardEntry];
+
+                if (allData.length === 0) {
+                    showEmpty();
+                    return;
+                }
+
+                container.innerHTML = "";
+
+                // Nach Erstellungsdatum sortieren (neueste zuerst)
+                allData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                allData.forEach((teil, index) => {
+                    log(`Verarbeite Teil ${index + 1}:`, teil);
+
+                    try {
+                        // Prüfen, ob es sich um die benutzerdefinierte Link-Card handelt
+                        if (teil.isCustomLink) {
+                            const card = createLinkCard(
+                                teil.name,
+                                teil.beschreibung,
+                                teil.image_url,
+                                teil.preis,
+                                teil.targetUrl
+                            );
+                            container.appendChild(card);
+                        } else {
+                            const card = createCard(teil);
+                            container.appendChild(card);
+                        }
+                    } catch (cardError) {
+                        log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
+                    }
+                });
+
+                log(`✅ ${allData.length} Teile erfolgreich angezeigt`);
+                
+                // Nach dem Laden der Karten die Scroll-Position wiederherstellen
+                restoreScrollPosition();
+            } catch (error) {
+                log("Unerwarteter Fehler:", error);
+                showError(`Unerwarteter Fehler: ${error.message}`);
+            }
+        }
 
         async function setAccountLink() {
             if (!supabase) return;
@@ -1219,6 +1231,22 @@
                         alert("Fehler beim Laden des geteilten Teils.");
                     }
                 }, 1000);
+            }
+        }
+
+        function restoreScrollPosition() {
+            // Prüfe auf gespeicherte Position
+            const savedPosition = sessionStorage.getItem('tuninghub_scroll_position');
+            
+            if (savedPosition !== null) {
+                // Warte bis alle Karten geladen sind
+                setTimeout(() => {
+                    window.scrollTo(0, parseInt(savedPosition));
+                    console.log('Scroll-Position wiederhergestellt:', savedPosition);
+                    
+                    // Cleanup
+                    sessionStorage.removeItem('tuninghub_scroll_position');
+                }, 100);
             }
         }
 
