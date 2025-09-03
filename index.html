@@ -903,14 +903,14 @@
             ? bilder
             : [
                 bild ||
-                  "https://via.placeholder.com/600x400/e9ecef/666?text=Kein+Bild",
+                  "/img/no-image.png",
               ];
         currentImageIndex = 0;
 
         document.getElementById("detail-title").textContent = name;
 
         const fallbackUrl =
-          "https://via.placeholder.com/600x400/f8f9fa/adb5bd?text=Bild+nicht+verfügbar";
+          src="/img/no-image.png";
         const detailImage = document.getElementById("detail-image");
         detailImage.src = imageUrls[0] || fallbackUrl;
         detailImage.alt = name;
@@ -1009,7 +1009,7 @@
 
         const imageUrl =
           bild ||
-          "https://via.placeholder.com/300x200/e9ecef/666?text=Kein+Bild";
+          "/img/no-image.png";
         const fallbackUrl = "/img/search.png";
 
         let preisText = preis;
@@ -1063,7 +1063,7 @@
         card.innerHTML = `
                 <img src="${
                   imageUrl ||
-                  "https://via.placeholder.com/300x200/e9ecef/666?text=Kein+Bild"
+                  "/img/no-image.png"
                 }"
                      alt="${title}"
                      onerror="this.src='${fallbackUrl}'"
