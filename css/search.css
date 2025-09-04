@@ -3,20 +3,23 @@
     position: relative;
     margin: 15px auto;
     max-width: 800px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+
+}
+.searchbar-wrapper input{
+    border: none;
+    background-color: transparent;
 }
 
 .searchbar {
     width: 100%;
     padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
     font-size: 16px;
 }
 
 .search-history-dropdown {
     background: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     z-index: 1000;
     max-height: 300px;
@@ -57,16 +60,3 @@
     color: #666;
 }
 
-.action-button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    margin-top: 10px;
-    cursor: pointer;
-}
-
-.action-button:hover {
-    background: #0069d9;
-}
