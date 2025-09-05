@@ -6,13 +6,60 @@
   <title>Über TuningHub</title>
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/datenschutz.css" />
+     <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/css/search.css" />
+    <script src="/js/menu.js"></script>
+    <script src="/js/search.js"></script>
 </head>
 <body>
-  <header class="header">
-    <div class="logo">
-      <a href="../index.html"><img src="/img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50"/></a>
-    </div>
-  </header>
+<header class="header">
+      <div class="header-top">
+        <div class="logo">
+          <a href="../index.html">
+            <img
+              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              alt="TuningHub Logo"
+              height="50"
+            />
+          </a>
+        </div>
+        <div class="searchbar-wrapper">
+        <input
+          id="searchbar"
+          type="text"
+          class="searchbar"
+          placeholder="Suche nach Teilen, Marken..."
+        >
+        <img 
+        src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+        >
+        
+      </div>
+      
+  
+      <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
+  <!-- Öffnene -->
+  <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+  <!-- Schließen -->
+  <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+</button>
+<nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Navigation</div>
+        </div>
+        <div class="menu-items">
+            <a href="../index.html" class="menu-item">Startseite</a>
+            <a href="#" class="menu-item" style="color: #999;">Benachrichtigungen</a>
+            <a href="#" class="menu-item" style="color: #999;">Produkte</a>   
+            <a href="datenschutz.html" class="menu-item">Datenschutz</a>          
+            <a href="impressum.html" class="menu-item">Impressum</a>           
+            <a href="übertuninghub.html" class="menu-item">Über uns</a>
+            <a href="support.html" class="menu-item">Support</a>
+            <a href="account.html" class="menu-item">Einstellungen</a>
+        </div>
+    </nav>
+      <div class="overlay" id="overlay"></div>
+    </header>
 
   <main>
     <h1>Über TuningHub</h1>
