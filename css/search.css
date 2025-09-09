@@ -1,62 +1,139 @@
-/* Suchleiste und Verlauf */
 .searchbar-wrapper {
-    position: relative;
-    margin: 15px auto;
-    max-width: 800px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-
-}
-.searchbar-wrapper input{
-    border: none;
-    background-color: transparent;
-}
-
-.searchbar {
-    width: 100%;
-    padding: 10px 15px;
-    font-size: 16px;
-}
-
-.search-history-dropdown {
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 1000;
-    max-height: 300px;
-    overflow-y: auto;
-    position: absolute;
-    width: 100%;
-    margin-top: 5px;
-}
-
-.history-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-}
-
-.history-item:hover {
-    background-color: #f5f5f5;
-}
-
-.history-item:last-child {
-    border-bottom: none;
-}
-
-.no-history {
-    color: #666;
-    cursor: default;
-}
-
-.highlight {
-    background-color: #fff3cd;
-    padding: 0 2px;
-    border-radius: 2px;
-}
-
-.empty-search, .error {
-    text-align: center;
-    padding: 40px 20px;
-    color: #666;
-}
-
+            position: relative;
+            margin: 25px auto;
+            max-width: 650px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .searchbar-wrapper:focus-within {
+            border-color: #007bff;
+            box-shadow: 0 2px 12px rgba(0, 123, 255, 0.2);
+        }
+        
+        .searchbar-container {
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+        }
+        
+        .searchbar {
+            flex: 1;
+            padding: 14px 10px;
+            font-size: 16px;
+            border: none;
+            background: transparent;
+            outline: none;
+            color: #333;
+        }
+        
+        .searchbar::placeholder {
+            color: #999;
+        }
+        
+        .search-icon {
+            width: 24px;
+            height: 24px;
+            margin-left: 8px;
+            opacity: 0.6;
+        }
+        
+        .search-history-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 2px;
+            display: none;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+        }
+        
+        .searchbar-wrapper.show-history .search-history-dropdown {
+            display: block;
+        }
+        
+        .history-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .history-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .history-icon {
+            margin-right: 10px;
+            opacity: 0.5;
+            width: 18px;
+            height: 18px;
+        }
+        
+        .no-history {
+            color: #999;
+            padding: 15px;
+            text-align: center;
+            font-style: italic;
+        }
+        
+        .highlight {
+            background-color: #fff3cd;
+            padding: 0 2px;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+        
+        .clear-history {
+            display: block;
+            text-align: center;
+            padding: 10px;
+            color: #007bff;
+            cursor: pointer;
+            border-top: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        
+        .clear-history:hover {
+            background-color: #f8f9fa;
+            color: #0056b3;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+                border-radius: 8px;
+            }
+            
+            .searchbar-wrapper {
+                margin: 15px auto;
+                border-radius: 8px;
+            }
+            
+            .searchbar {
+                padding: 12px 8px;
+                font-size: 16px; /* Verhindert Zoom auf iOS */
+            }
+            
+            .search-history-dropdown {
+                border-radius: 0 0 8px 8px;
+            }
+        }
