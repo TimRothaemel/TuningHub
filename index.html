@@ -620,6 +620,7 @@
 
       let supabase;
       let trackingSupabase;
+      let teileSharing; // NEU: TeileSharing Instanz
 
       try {
         // Hauptdatenbank-Client
@@ -632,6 +633,15 @@
           trackingKey
         );
         log("Tracking-Supabase Client erfolgreich erstellt");
+
+        // NEU: TeileSharing initialisieren (prüfe ob Klasse verfügbar ist)
+        if (typeof TeileSharing !== 'undefined') {
+          teileSharing = new TeileSharing(supabase);
+          log("TeileSharing erfolgreich initialisiert");
+        } else {
+          log("TeileSharing Klasse nicht verfügbar, verwende Fallback");
+        }
+        
       } catch (error) {
         log("Fehler beim Erstellen der Supabase Clients:", error);
         showError("Fehler beim Verbinden mit der Datenbank");
@@ -769,39 +779,42 @@
         }
       }
 
+      // GEÄNDERT: Neue sharePart Funktion mit TeileSharing Integration
       function sharePart(id) {
         if (!id) {
           alert("Fehler: Teil-ID nicht verfügbar");
           return;
         }
 
-        const url = `${
-          window.location.origin
-        }../index.html?part=${encodeURIComponent(id)}`;
-
-        if (navigator.share) {
-          navigator
-            .share({
+        if (!teileSharing) {
+          log("TeileSharing nicht verfügbar, verwende Fallback");
+          
+          // Fallback für den Fall, dass TeileSharing nicht geladen wurde
+          const url = `${window.location.origin}${window.location.pathname}?part=${encodeURIComponent(id)}`;
+          
+          if (navigator.share) {
+            navigator.share({
               title: "Tuning-Teil bei TuningHub",
               text: "Schau dir dieses Teil bei TuningHub an!",
               url: url,
-            })
-            .catch((err) => console.warn("Sharing failed:", err));
-        } else {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard
-              .writeText(url)
-              .then(() =>
-                alert("Link zum Teil wurde in die Zwischenablage kopiert!")
-              )
-              .catch((err) => {
-                console.error("Fehler beim Kopieren des Links:", err);
-                fallbackCopyToClipboard(url);
-              });
+            }).catch((err) => console.warn("Sharing failed:", err));
           } else {
-            fallbackCopyToClipboard(url);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(url)
+                .then(() => alert("Link zum Teil wurde in die Zwischenablage kopiert!"))
+                .catch((err) => {
+                  console.error("Fehler beim Kopieren des Links:", err);
+                  fallbackCopyToClipboard(url);
+                });
+            } else {
+              fallbackCopyToClipboard(url);
+            }
           }
+          return;
         }
+
+        // Verwende die neue TeileSharing Klasse
+        teileSharing.sharePart(id, currentPart);
       }
 
       function fallbackCopyToClipboard(text) {
@@ -916,8 +929,7 @@
 
         document.getElementById("detail-title").textContent = name;
 
-        const fallbackUrl =
-          src="/img/no-image.png";
+        const fallbackUrl = "/img/no-image.png";
         const detailImage = document.getElementById("detail-image");
         detailImage.src = imageUrls[0] || fallbackUrl;
         detailImage.alt = name;
@@ -980,6 +992,7 @@
           contactBtn.textContent = "Verkäufer kontaktieren";
         }
 
+        // GEÄNDERT: Share Button mit neuer sharePart Funktion
         const shareBtn = document.getElementById("share-btn");
         shareBtn.onclick = function () {
           sharePart(id);
@@ -1095,7 +1108,7 @@
         return card;
       }
 
-      // NEU: Position-Tracking für "mehr" Link
+      // Position-Tracking für "mehr" Link
       function setupMoreLinkWithPosition() {
         const moreLink = document.querySelector(
           '.link-bar a[href*="teileübersicht"]'
@@ -1293,12 +1306,18 @@
         log("Detailansicht Event-Listener eingerichtet");
       }
 
+      // GEÄNDERT: Erweiterte Behandlung geteilter Links
       function handleSharedPartLink() {
         const urlParams = new URLSearchParams(window.location.search);
         const partId = urlParams.get("part");
 
         if (partId) {
           log("Shared part ID detected:", partId);
+
+          // Meta-Tags für bessere Previews aktualisieren (falls TeileSharing verfügbar)
+          if (teileSharing) {
+            teileSharing.initSharedPart();
+          }
 
           setTimeout(async () => {
             try {
@@ -1316,6 +1335,12 @@
 
               if (part) {
                 log("Opening shared part:", part);
+                
+                // Meta-Tags aktualisieren für bessere Previews
+                if (teileSharing) {
+                  teileSharing.updateMetaTags(part);
+                }
+                
                 openDetailView(part);
               } else {
                 alert("Das geteilte Teil existiert nicht mehr.");
@@ -1415,7 +1440,7 @@
         setAccountLink();
         setupSearch();
         setupDetailView();
-        setupMoreLinkWithPosition(); // NEU: Position-Tracking
+        setupMoreLinkWithPosition();
 
         trackPageview();
 
