@@ -10,8 +10,9 @@
     <link rel="stylesheet" href="/css/search.css" />
     <link rel="stylesheet" href="/css/menu.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script href="/js/search.js" defer></script>
-    <script href="/js/menu.js" defer></script>
+     <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+    <script src="/js/search.js" defer></script>
+    <script src="/js/menu.js" defer></script>
     <style>
         /* Stile hier behalten, aber Platz sparen */
         .search-badge {
@@ -491,6 +492,7 @@
             <a href="teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
             <a href="teilesuchen.html" class="menu-item">Teile suchen</a>
             <a href="#" class="menu-item" style="color: #999">Teile sofort verkaufen</a>
+                         <a href="#" class="menu-item" style="color: #999">Chat</a>
             <a href="#" class="menu-item" style="color: #999;">Benachrichtigungen</a>
             <a href="#" class="menu-item" style="color: #999;">Produkte</a>   
             <a href="datenschutz.html" class="menu-item">Datenschutz</a>          
@@ -502,6 +504,7 @@
     </nav>
       <div class="overlay" id="overlay"></div>
     </header>
+
 
     <main>
         <div class="link-bar">
@@ -1081,95 +1084,176 @@
             return card;
         }
 
-        async function ladeAngebote() {
-            log("Starte Laden der Angebote...");
+// Ersetzen Sie die bestehende ladeAngebote() Funktion mit dieser Version:
 
-            const container = document.getElementById("angebot-container");
-            if (!container) {
-                log("ERROR: Container nicht gefunden");
-                return;
+// LÖSUNG 1: Korrigierte ladeAngebote() Funktion für teileübersicht.html
+// Ersetzen Sie die bestehende ladeAngebote() Funktion:
+
+async function ladeAngebote() {
+    log("Starte Laden der Angebote...");
+
+    const container = document.getElementById("angebot-container");
+    if (!container) {
+        log("ERROR: Container nicht gefunden");
+        return;
+    }
+
+    if (!supabase) {
+        showError("Supabase nicht initialisiert");
+        return;
+    }
+
+    // Prüfe URL-Parameter für Suche
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('search');
+    
+    showLoading();
+
+    try {
+        log("Lade Daten aus Supabase...");
+
+        const { data, error } = await supabase
+            .from("parts")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            log("Supabase Fehler:", error);
+            showError(`Datenbankfehler: ${error.message}`);
+            return;
+        }
+
+        log("Daten erfolgreich geladen:", data);
+
+        // Link-Card hinzufügen
+        const linkCardEntry = {
+            id: "custom-link-card",
+            name: "AmbrossSachsen",
+            beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
+            image_url: "/img/zylinderbearbeitung_ambrosssachsen.jpg",
+            preis: "Konfigurieren",
+            created_at: "2025-08-29T00:00:00Z",
+            isCustomLink: true,
+            targetUrl: "https://ambrosssachsen.com/shop/AmbrossSachsen-*Zylinder-und-Sonderbearbeitungen*-p777421013"
+        };
+
+        const allData = data ? [...data, linkCardEntry] : [linkCardEntry];
+        window.allParts = allData;
+
+        // WICHTIG: Wenn Suchparameter vorhanden, filtere die Daten direkt hier
+        let displayData = allData;
+        
+        if (searchQuery && searchQuery.trim()) {
+            log("Führe direkte Suche aus für:", searchQuery);
+            
+            // Setze Suchwert in Input-Feld
+            const searchInput = document.getElementById('searchbar') || document.querySelector('.searchbar');
+            if (searchInput && !searchInput.value) {
+                searchInput.value = searchQuery;
             }
+            
+            // Direkte Textsuche ohne Fuse.js dependency
+            const query = searchQuery.toLowerCase().trim();
+            displayData = allData.filter(teil => {
+                const name = (teil.name || teil.title || '').toLowerCase();
+                const beschreibung = (teil.beschreibung || teil.description || '').toLowerCase();
+                const typ = (teil.type || teil.typ || '').toLowerCase();
+                
+                return name.includes(query) || 
+                       beschreibung.includes(query) || 
+                       typ.includes(query) ||
+                       (name + ' ' + beschreibung).includes(query);
+            });
+            
+            log(`Suchergebnisse: ${displayData.length} von ${allData.length} Teilen`);
+        }
 
-            if (!supabase) {
-                showError("Supabase nicht initialisiert");
-                return;
+        if (displayData.length === 0) {
+            if (searchQuery) {
+                container.innerHTML = `
+                    <div class="search-empty" style="text-align: center; padding: 40px; color: #666; grid-column: 1 / -1;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🔍</div>
+                        <h3>Keine Ergebnisse für "${searchQuery}" gefunden</h3>
+                        <p>Versuche andere Suchbegriffe oder durchstöbere alle verfügbaren Teile.</p>
+                        <button onclick="clearSearchAndReload()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px;">
+                            Suche zurücksetzen
+                        </button>
+                    </div>
+                `;
+            } else {
+                showEmpty();
             }
+            return;
+        }
 
-            showLoading();
+        container.innerHTML = "";
+
+        // Sortiere Ergebnisse
+        displayData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        // Zeige Suchergebnis-Header wenn gesucht wurde
+        if (searchQuery) {
+            const searchHeader = document.createElement('div');
+            searchHeader.className = 'search-results-header';
+            searchHeader.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;';
+            searchHeader.innerHTML = `
+                <h3 style="margin: 0 0 10px 0; color: #333;">Suchergebnisse für "${searchQuery}"</h3>
+                <p style="margin: 0; color: #666;">${displayData.length} ${displayData.length === 1 ? 'Ergebnis' : 'Ergebnisse'} gefunden</p>
+                <button onclick="clearSearchAndReload()" style="margin-top: 10px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Alle Teile anzeigen
+                </button>
+            `;
+            container.appendChild(searchHeader);
+        }
+
+        // Erstelle Karten
+        displayData.forEach((teil, index) => {
+            log(`Verarbeite Teil ${index + 1}:`, teil);
 
             try {
-                log("Lade Daten aus Supabase...");
-
-                const { data, error } = await supabase
-                    .from("parts")
-                    .select("*")
-                    .order("created_at", { ascending: false });
-
-                if (error) {
-                    log("Supabase Fehler:", error);
-                    showError(`Datenbankfehler: ${error.message}`);
-                    return;
+                if (teil.isCustomLink) {
+                    const card = createLinkCard(
+                        teil.name,
+                        teil.beschreibung,
+                        teil.image_url,
+                        teil.preis,
+                        teil.targetUrl
+                    );
+                    container.appendChild(card);
+                } else {
+                    const card = createCard(teil);
+                    container.appendChild(card);
                 }
-
-                log("Daten erfolgreich geladen:", data);
-
-                // Link-Card als virtuellen Eintrag erstellen mit einem fixen Datum
-                const linkCardEntry = {
-                    id: "custom-link-card",
-                    name: "AmbrossSachsen",
-                    beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
-                    image_url: "/img/zylinderbearbeitung_ambrosssachsen.jpg",
-                    preis: "Konfigurieren",
-                    created_at: "2025-08-29T00:00:00Z",
-                    isCustomLink: true,
-                    targetUrl: "https://ambrosssachsen.com/shop/AmbrossSachsen-*Zylinder-und-Sonderbearbeitungen*-p777421013"
-                };
-
-                // Datenarray mit der Link-Card kombinieren
-                const allData = data ? [...data, linkCardEntry] : [linkCardEntry];
-
-                if (allData.length === 0) {
-                    showEmpty();
-                    return;
-                }
-
-                container.innerHTML = "";
-
-                // Nach Erstellungsdatum sortieren (neueste zuerst)
-                allData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-                allData.forEach((teil, index) => {
-                    log(`Verarbeite Teil ${index + 1}:`, teil);
-
-                    try {
-                        // Prüfen, ob es sich um die benutzerdefinierte Link-Card handelt
-                        if (teil.isCustomLink) {
-                            const card = createLinkCard(
-                                teil.name,
-                                teil.beschreibung,
-                                teil.image_url,
-                                teil.preis,
-                                teil.targetUrl
-                            );
-                            container.appendChild(card);
-                        } else {
-                            const card = createCard(teil);
-                            container.appendChild(card);
-                        }
-                    } catch (cardError) {
-                        log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
-                    }
-                });
-
-                log(`✅ ${allData.length} Teile erfolgreich angezeigt`);
-                
-                // Nach dem Laden der Karten die Scroll-Position wiederherstellen
-                restoreScrollPosition();
-            } catch (error) {
-                log("Unerwarteter Fehler:", error);
-                showError(`Unerwarteter Fehler: ${error.message}`);
+            } catch (cardError) {
+                log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
             }
-        }
+        });
+
+        log(`✅ ${displayData.length} Teile erfolgreich angezeigt`);
+        restoreScrollPosition();
+        
+    } catch (error) {
+        log("Unerwarteter Fehler:", error);
+        showError(`Unerwarteter Fehler: ${error.message}`);
+    }
+}
+
+// Hilfsfunktion zum Zurücksetzen der Suche
+function clearSearchAndReload() {
+    // URL-Parameter entfernen
+    const url = new URL(window.location);
+    url.searchParams.delete('search');
+    window.history.pushState({}, '', url);
+    
+    // Suchfeld leeren
+    const searchInput = document.getElementById('searchbar') || document.querySelector('.searchbar');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    // Seite neu laden ohne Suchparameter
+    ladeAngebote();
+}
 
         async function setAccountLink() {
             if (!supabase) return;
@@ -1274,20 +1358,23 @@
             }
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            log("DOM geladen, starte Initialisierung...");
+     document.addEventListener("DOMContentLoaded", function () {
+    log("DOM geladen, starte Initialisierung...");
 
-            setAccountLink();
-            setupSearch();
-            setupDetailView();
+    setAccountLink();
+    setupSearch();
+    setupDetailView();
 
-            ladeAngebote().catch((error) => {
-                log("Fallback: Zeige Test-Daten wegen Fehler:", error);
-                showError("Fehler beim Laden der Daten: " + error.message);
-            });
-
-            handleSharedPartLink();
+    // Kleine Verzögerung damit das Such-System zuerst laden kann
+    setTimeout(() => {
+        ladeAngebote().catch((error) => {
+            log("Fallback: Zeige Test-Daten wegen Fehler:", error);
+            showError("Fehler beim Laden der Daten: " + error.message);
         });
+    }, 300);
+
+    handleSharedPartLink();
+});
 
         window.addEventListener("error", function (e) {
             log("Globaler Fehler:", e.error);

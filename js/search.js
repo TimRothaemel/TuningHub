@@ -1,13 +1,13 @@
-// TuningHub Search System - Ohne Namenskonflikte
-// Kompatibel mit bestehenden HTML-Variablen
-
-// Namespace für Search-System
-window.TuningHubSearch = window.TuningHubSearch || {};
+// TuningHub Universal Search System
+// Funktioniert auf allen Seiten und leitet zur Teileübersicht weiter
 
 (function() {
     'use strict';
     
-    // Lokale Variablen (kein Konflikt mit globalen Variablen)
+    // Namespace für Such-System
+    window.TuningHubSearch = window.TuningHubSearch || {};
+
+    // Lokale Variablen
     let searchFuse;
     let searchParts = [];
     let searchLoading = false;
@@ -27,7 +27,6 @@ window.TuningHubSearch = window.TuningHubSearch || {};
     // Supabase-Client für Suche initialisieren
     function initSearchSupabase() {
         try {
-            // Versuche globalen Supabase-Client zu verwenden
             if (window.supabase && typeof window.supabase.createClient === 'function') {
                 searchSupabase = window.supabase.createClient(SEARCH_CONFIG.supabaseUrl, SEARCH_CONFIG.supabaseKey);
                 searchLog("Search-Supabase Client erstellt");
@@ -87,14 +86,6 @@ window.TuningHubSearch = window.TuningHubSearch || {};
         searchLog("Lade Teile für Suche...");
 
         try {
-            // Prüfe ob bereits geladene Daten vorhanden sind
-            if (window.allParts && Array.isArray(window.allParts) && window.allParts.length > 0) {
-                searchLog("Verwende bereits geladene Daten aus globalem allParts");
-                searchParts = normalizePartsData(window.allParts);
-                initSearchFuse();
-                return searchParts;
-            }
-
             // Falls kein globaler Supabase Client verfügbar, versuche eigenen
             if (!searchSupabase) {
                 initSearchSupabase();
@@ -185,19 +176,6 @@ window.TuningHubSearch = window.TuningHubSearch || {};
                 image_url: "https://via.placeholder.com/300x200/e9ecef/666?text=Auspuff",
                 images: ["https://via.placeholder.com/300x200/e9ecef/666?text=Auspuff"],
                 searchText: "simson s51 auspuff sportauspuff"
-            },
-            {
-                id: "search-fallback-2", 
-                name: "Suche: S51 Tank",
-                title: "Suche: S51 Tank",
-                description: "Suche original Tank für Simson S51 in gutem Zustand",
-                price: 0,
-                condition: "Gesucht",
-                type: "teilesuche",
-                contact_number: "+49 987 654321",
-                image_url: "https://via.placeholder.com/300x200/ff6b35/fff?text=SUCHE",
-                images: ["https://via.placeholder.com/300x200/ff6b35/fff?text=SUCHE"],
-                searchText: "suche s51 tank simson"
             }
         ];
     }
@@ -205,8 +183,8 @@ window.TuningHubSearch = window.TuningHubSearch || {};
     // Suchfunktion
     function executeSearch(query) {
         if (!query || !query.trim()) {
-            searchLog("Leere Suche - zeige alle Teile");
-            return searchParts;
+            searchLog("Leere Suche");
+            return [];
         }
 
         const trimmedQuery = query.trim();
@@ -254,8 +232,72 @@ window.TuningHubSearch = window.TuningHubSearch || {};
         }
     }
 
-    // Suchergebnisse rendern
-    function renderResults(results, container) {
+    // Universelle Such-Karte erstellen (identisch zu index.html createCard)
+    function createUnifiedCard(teil) {
+        const name = teil.name || teil.title || 'Unbekanntes Teil';
+        const preis = teil.price || teil.preis || 'Preis auf Anfrage';
+        const beschreibung = teil.description || teil.beschreibung || '';
+        const bild = teil.image_url || teil.bild_url || null;
+        const typ = teil.type || teil.typ || '';
+
+        const card = document.createElement("div");
+        const isSearch = typ === "teilesuche";
+        card.className = isSearch ? "card search-card" : "card";
+
+        if (teil.id) {
+            card.dataset.partId = teil.id;
+        }
+
+        const imageUrl = bild || "/img/no-image.png";
+        const fallbackUrl = "/img/search.png";
+
+        let preisText = preis;
+        if (typeof preis === "number") {
+            preisText = `${preis.toLocaleString("de-DE")}€`;
+        } else if (typeof preis === "string" && !isNaN(parseFloat(preis))) {
+            preisText = `${parseFloat(preis).toLocaleString("de-DE")}€`;
+        }
+
+        // Beschreibung kürzen
+        function truncateDescription(text, maxLength = 120) {
+            if (!text) return "";
+            if (text.length <= maxLength) return text;
+            return text.substr(0, maxLength).trim() + "...";
+        }
+
+        const kurzbeschreibung = truncateDescription(beschreibung, 120);
+
+        // Identische HTML-Struktur wie in index.html
+        card.innerHTML = `
+            ${isSearch ? '<span class="search-badge">🔍 SUCHE</span>' : ""}
+            <img src="${imageUrl}" 
+                 alt="${name}" 
+                 onerror="this.src='${fallbackUrl}'" 
+                 loading="lazy" />
+            <div class="card-content">
+                <h2>${name}</h2>
+                ${kurzbeschreibung ? `<p class="card-description">${kurzbeschreibung}</p>` : ""}
+                <div class="card-footer">
+                    <p><strong>${preisText}</strong></p>
+                </div>
+            </div>
+        `;
+
+        card.addEventListener("click", function () {
+            // Prüfe ob openDetailView verfügbar ist (auf teileübersicht.html)
+            if (typeof openDetailView === 'function') {
+                openDetailView(teil);
+            } else {
+                // Fallback: Alert mit Grundinformationen
+                alert(`${name}\n\nPreis: ${preisText}\nZustand: ${teil.condition}\n\n${beschreibung || 'Keine Beschreibung verfügbar'}`);
+            }
+        });
+
+        return card;
+    }
+
+    // Suchergebnisse rendern (nur auf teileübersicht.html)
+    function renderSearchResults(results, container) {
         if (!container) {
             searchLog("Container nicht gefunden");
             return;
@@ -265,7 +307,7 @@ window.TuningHubSearch = window.TuningHubSearch || {};
 
         if (!results || results.length === 0) {
             container.innerHTML = `
-                <div class="search-empty" style="text-align: center; padding: 40px; color: #666;">
+                <div class="search-empty" style="text-align: center; padding: 40px; color: #666; grid-column: 1 / -1;">
                     <div style="font-size: 48px; margin-bottom: 20px;">🔍</div>
                     <h3>Keine Ergebnisse gefunden</h3>
                     <p>Versuche andere Suchbegriffe oder durchstöbere alle verfügbaren Teile.</p>
@@ -281,7 +323,7 @@ window.TuningHubSearch = window.TuningHubSearch || {};
 
         results.forEach((part, index) => {
             try {
-                const card = createResultCard(part, index);
+                const card = createUnifiedCard(part);
                 container.appendChild(card);
             } catch (error) {
                 searchLog(`Fehler beim Erstellen der Karte ${index}:`, error);
@@ -291,135 +333,73 @@ window.TuningHubSearch = window.TuningHubSearch || {};
         searchLog(`${results.length} Suchergebnisse gerendert`);
     }
 
-    // Result-Karte erstellen
-    function createResultCard(part, index = 0) {
-        const card = document.createElement('div');
-        const isSearch = part.type === 'teilesuche';
-        
-        card.className = `card ${isSearch ? 'search-card' : ''}`;
-        card.dataset.partId = part.id;
-        card.dataset.searchIndex = index;
-
-        // Preis formatieren
-        let priceText = 'Preis auf Anfrage';
-        if (part.price && part.price > 0) {
-            try {
-                priceText = new Intl.NumberFormat('de-DE', {
-                    style: 'currency',
-                    currency: 'EUR'
-                }).format(part.price);
-            } catch (e) {
-                priceText = part.price + ' €';
-            }
-        } else if (isSearch) {
-            priceText = 'Gesuch';
-        }
-
-        // Beschreibung kürzen
-        const shortDescription = truncateSearchText(part.description, 120);
-
-        // Bild-URL bestimmen
-        const imageUrl = part.image_url || 
-                        (part.images && part.images[0]) || 
-                        'https://via.placeholder.com/300x200/f8f9fa/adb5bd?text=Kein+Bild';
-
-        const fallbackImage = isSearch ? 
-                             'https://via.placeholder.com/300x200/ff6b35/fff?text=SUCHE' : 
-                             'https://via.placeholder.com/300x200/f8f9fa/adb5bd?text=Bild+nicht+verfügbar';
-
-        card.innerHTML = `
-            ${isSearch ? '<div class="search-badge" style="position: absolute; top: 10px; left: 10px; background: #ff6b35; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; z-index: 10;">🔍 SUCHE</div>' : ''}
-            
-            <div class="card-image-container" style="position: relative;">
-                <img src="${imageUrl}" 
-                     alt="${part.name || part.title}"
-                     onerror="this.src='${fallbackImage}'"
-                     loading="lazy"
-                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0;" />
-                ${part.images && part.images.length > 1 ? 
-                    `<div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 8px; border-radius: 10px; font-size: 12px;">${part.images.length} Bilder</div>` : ''
-                }
-            </div>
-            
-            <div class="card-content" style="padding: 15px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: #333;">${part.name || part.title}</h3>
-                
-                ${shortDescription ? 
-                    `<p style="color: #666; font-size: 0.9rem; line-height: 1.4; margin: 0 0 15px 0;">${shortDescription}</p>` : ''
-                }
-                
-                <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-weight: bold; color: #2c3e50; font-size: 1.1rem;">${priceText}</div>
-                    <div style="color: #666; font-size: 0.9rem;">${part.condition}</div>
-                </div>
-            </div>
-        `;
-
-        // Click-Handler
-        card.addEventListener('click', () => {
-            openSearchPartDetail(part);
-        });
-
-        // Hover-Effekte
-        card.style.cursor = 'pointer';
-        card.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
-        
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-5px)';
-            card.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-        });
-
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0)';
-            card.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-        });
-
-        return card;
-    }
-
-    // Hilfsfunktionen
-    function truncateSearchText(text, maxLength) {
-        if (!text || text.length <= maxLength) return text || '';
-        return text.substring(0, maxLength).trim() + '...';
-    }
-
-    function formatSearchPrice(price) {
-        if (!price || price === 0) return 'Preis auf Anfrage';
-        try {
-            return new Intl.NumberFormat('de-DE', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(price);
-        } catch (e) {
-            return price + ' €';
-        }
-    }
-
-    // Detailansicht öffnen
-    function openSearchPartDetail(part) {
-        searchLog("Öffne Detailansicht für:", part.name);
-        
-        // Prüfe verschiedene mögliche globale Funktionen
-        if (typeof window.openDetailView === 'function') {
-            window.openDetailView(part);
-        } else if (typeof openDetailView === 'function') {
-            openDetailView(part);
+    // Suchparameter in URL speichern
+    function saveSearchToURL(query) {
+        const url = new URL(window.location);
+        if (query && query.trim()) {
+            url.searchParams.set('search', query.trim());
         } else {
-            // Fallback: Alert mit Grundinformationen
-            const message = `${part.name || part.title}\n\nPreis: ${formatSearchPrice(part.price)}\nZustand: ${part.condition}\n\n${part.description || 'Keine Beschreibung verfügbar'}`;
-            alert(message);
+            url.searchParams.delete('search');
+        }
+        window.history.pushState({}, '', url);
+    }
+
+    // Suchparameter aus URL laden
+    function loadSearchFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('search') || '';
+    }
+
+    // Suche ausführen und zur Teileübersicht weiterleiten
+    async function performSearch(query) {
+        if (!query || !query.trim()) {
+            searchLog("Leere Suche abgebrochen");
+            return;
+        }
+
+        const trimmedQuery = query.trim();
+        searchLog(`Führe Suche aus: "${trimmedQuery}"`);
+
+        // Lade Daten falls noch nicht verfügbar
+        if (searchParts.length === 0) {
+            await loadSearchParts();
+        }
+
+        // Prüfe ob wir bereits auf der Teileübersicht sind
+        const currentPage = window.location.pathname;
+        const isOnOverviewPage = currentPage.includes('teileübersicht.html') || currentPage.includes('teileubersicht.html');
+
+        if (isOnOverviewPage) {
+            // Bereits auf der Übersichtsseite - direkt suchen
+            const results = executeSearch(trimmedQuery);
+            const container = document.getElementById('angebot-container');
+            
+            if (container) {
+                renderSearchResults(results, container);
+                saveSearchToURL(trimmedQuery);
+                
+                // Scroll zum Anfang der Ergebnisse
+                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        } else {
+            // Auf anderer Seite - zur Teileübersicht weiterleiten
+            const targetUrl = '/html/teileübersicht.html';
+            const url = new URL(targetUrl, window.location.origin);
+            url.searchParams.set('search', trimmedQuery);
+            
+            searchLog(`Leite zur Teileübersicht weiter: ${url.toString()}`);
+            window.location.href = url.toString();
         }
     }
 
-    // Such-Interface initialisieren
+    // Such-Interface auf aktueller Seite initialisieren
     function initSearchInterface() {
-        searchLog("Initialisiere Such-Interface...");
+        searchLog("Initialisiere universelles Such-Interface...");
 
-        // Such-Input finden (mehrere mögliche Selektoren)
+        // Such-Input finden
         const searchInput = document.getElementById('searchbar') || 
                            document.getElementById('search-input') || 
                            document.querySelector('.searchbar') ||
-                           document.querySelector('#searchbar') ||
                            document.querySelector('input[placeholder*="Suche"]');
 
         if (!searchInput) {
@@ -427,81 +407,83 @@ window.TuningHubSearch = window.TuningHubSearch || {};
             return false;
         }
 
+        // Such-Button (Lupe) finden
+        const searchButton = searchInput.parentNode?.querySelector('img[src*="search"]') ||
+                            document.querySelector('.search-button') ||
+                            document.querySelector('[onclick*="search"]');
+
         searchLog("Such-Input gefunden:", searchInput.id || searchInput.className);
-
-        // Container finden
-        const resultsContainer = document.getElementById('angebot-container') || 
-                               document.getElementById('results-container') ||
-                               document.querySelector('.grid-container');
-
-        if (!resultsContainer) {
-            searchLog("Ergebnis-Container nicht gefunden");
-            return false;
+        if (searchButton) {
+            searchLog("Such-Button gefunden");
         }
 
-        searchLog("Container gefunden:", resultsContainer.id || resultsContainer.className);
+        // Bestehende Event-Listener entfernen
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
 
-        // Suchlogik mit Debouncing
-        let searchTimeout;
-        
-        const performDelayedSearch = (query) => {
-            clearTimeout(searchTimeout);
-            
-            if (!query.trim()) {
-                renderResults(searchParts, resultsContainer);
-                return;
-            }
-
-            resultsContainer.classList.add('loading');
-            
-            searchTimeout = setTimeout(() => {
-                try {
-                    const results = executeSearch(query);
-                    renderResults(results, resultsContainer);
-                } catch (error) {
-                    searchLog("Suchfehler:", error);
-                    resultsContainer.classList.remove('loading');
-                }
-            }, 300);
-        };
-
-        // Event-Listener
-        searchInput.addEventListener('input', (e) => {
-            performDelayedSearch(e.target.value);
-        });
-
-        searchInput.addEventListener('keydown', (e) => {
+        // Enter-Taste Handler
+        newSearchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                clearTimeout(searchTimeout);
-                const results = executeSearch(e.target.value);
-                renderResults(results, resultsContainer);
+                const query = newSearchInput.value.trim();
+                if (query) {
+                    performSearch(query);
+                }
             }
         });
 
-        searchLog("Such-Interface initialisiert");
+        // Such-Button Handler
+        if (searchButton) {
+            // Bestehende Event-Listener entfernen
+            const newSearchButton = searchButton.cloneNode(true);
+            searchButton.parentNode.replaceChild(newSearchButton, searchButton);
 
-        // Initial alle Teile anzeigen
-        if (searchParts.length > 0) {
-            renderResults(searchParts, resultsContainer);
+            newSearchButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                const query = newSearchInput.value.trim();
+                if (query) {
+                    performSearch(query);
+                }
+            });
+
+            // Cursor pointer für Button
+            newSearchButton.style.cursor = 'pointer';
         }
 
+        // Wenn wir auf der Teileübersicht sind, lade eventuell gespeicherte Suche
+        const currentPage = window.location.pathname;
+        const isOnOverviewPage = currentPage.includes('teileübersicht.html') || currentPage.includes('teileubersicht.html');
+        
+        if (isOnOverviewPage) {
+            const savedSearch = loadSearchFromURL();
+            if (savedSearch) {
+                newSearchInput.value = savedSearch;
+                searchLog(`Gespeicherte Suche geladen: "${savedSearch}"`);
+                
+                // Führe Suche automatisch aus
+                setTimeout(() => {
+                    performSearch(savedSearch);
+                }, 500);
+            }
+        }
+
+        searchLog("Universelles Such-Interface initialisiert");
         return true;
     }
 
     // Hauptinitialisierung
-    async function initializeTuningHubSearch() {
-        searchLog("Starte Such-System...");
+    async function initializeUniversalSearch() {
+        searchLog("Starte universelles Such-System...");
 
         try {
-            // Daten laden
-            await loadSearchParts();
+            // Lade Daten im Hintergrund
+            loadSearchParts();
             
             // Interface initialisieren
             const interfaceReady = initSearchInterface();
             
             if (interfaceReady) {
-                searchLog("Such-System erfolgreich initialisiert");
+                searchLog("Universelles Such-System erfolgreich initialisiert");
             } else {
                 searchLog("Such-Interface konnte nicht initialisiert werden");
             }
@@ -511,7 +493,7 @@ window.TuningHubSearch = window.TuningHubSearch || {};
         }
     }
 
-    // Globale API für das Such-System
+    // Globale API
     window.TuningHubSearch.clearSearch = function() {
         const searchInput = document.getElementById('searchbar') || 
                            document.getElementById('search-input') || 
@@ -522,31 +504,35 @@ window.TuningHubSearch = window.TuningHubSearch || {};
             searchInput.focus();
         }
 
-        const container = document.getElementById('angebot-container') || 
-                         document.getElementById('results-container');
+        // URL Parameter entfernen
+        saveSearchToURL('');
+
+        // Wenn auf Teileübersicht, alle Teile anzeigen
+        const currentPage = window.location.pathname;
+        const isOnOverviewPage = currentPage.includes('teileübersicht.html') || currentPage.includes('teileubersicht.html');
         
-        if (container && searchParts.length > 0) {
-            renderResults(searchParts, container);
+        if (isOnOverviewPage && typeof ladeAngebote === 'function') {
+            ladeAngebote(); // Lade alle Teile neu
         }
     };
 
-    // Öffentliche API
-    window.TuningHubSearch.search = executeSearch;
+    window.TuningHubSearch.search = performSearch;
+    window.TuningHubSearch.executeSearch = executeSearch;
     window.TuningHubSearch.getParts = () => searchParts;
-    window.TuningHubSearch.init = initializeTuningHubSearch;
+    window.TuningHubSearch.init = initializeUniversalSearch;
 
     // Auto-Initialisierung
-    function startTuningHubSearch() {
+    function startUniversalSearch() {
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeTuningHubSearch);
+            document.addEventListener('DOMContentLoaded', initializeUniversalSearch);
         } else {
-            setTimeout(initializeTuningHubSearch, 500); // Etwas länger warten
+            setTimeout(initializeUniversalSearch, 100);
         }
     }
 
     // Starte das Such-System
-    startTuningHubSearch();
+    startUniversalSearch();
 
-    searchLog("TuningHub Search System geladen");
+    searchLog("TuningHub Universal Search System geladen");
 
 })();

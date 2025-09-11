@@ -14,7 +14,7 @@
     <script src="/js/search.js" defer></script>
     <script src="/js/menu.js" defer></script>
     <style>
-      /* Stile hier behalten, aber Platz sparen */
+      /* Spezifische Styles für Such-Karten behalten */
       .card.search-card {
         border: 2px solid #ff6b35;
         background: linear-gradient(135deg, #fff 0%, #fff8f5 100%);
@@ -31,6 +31,7 @@
         z-index: 5;
       }
 
+      /* Modal und Detailansicht Styles behalten */
       .detail-modal {
         position: fixed;
         top: 0;
@@ -411,18 +412,6 @@
       }
 
       @media (max-width: 768px) {
-        .card {
-          min-height: 360px;
-        }
-
-        .card img {
-          height: 180px;
-        }
-
-        .card-content {
-          padding: 14px;
-        }
-
         .detail-body {
           grid-template-columns: 1fr;
           gap: 20px;
@@ -472,9 +461,10 @@
         </div>
         <div class="menu-items">
             <a href="index.html" class="menu-item">Startseite</a>
-            <a href="/html/teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
+            <a href="/html/teil" class="menu-item">Teile verkaufen</a>
             <a href="/html/teilesuchen.html" class="menu-item">Teile suchen</a>
             <a href="#" class="menu-item" style="color: #999">Teile sofort verkaufen</a>
+                         <a href="#" class="menu-item" style="color: #999">Chat</a>
             <a href="#" class="menu-item" style="color: #999;">Benachrichtigungen</a>
             <a href="#" class="menu-item" style="color: #999;">Produkte</a>   
             <a href="/html/datenschutz.html" class="menu-item">Datenschutz</a>          
