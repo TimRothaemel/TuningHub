@@ -48,11 +48,11 @@ label {
   color: #555;
 }
 
-input[type="text"],
-input[type="number"],
-input[type="file"],
-textarea,
-select {
+main input[type="text"],
+main input[type="number"],
+main input[type="file"],
+main textarea,
+main select {
   width: 100%;
   padding: 12px;
   margin-bottom: 16px;
@@ -62,12 +62,12 @@ select {
   box-sizing: border-box;
 }
 
-textarea {
+main textarea {
   resize: vertical;
   min-height: 80px;
 }
 
-button {
+main button {
   width: 100%;
   padding: 12px;
   background-color: #007bff;
@@ -79,11 +79,11 @@ button {
   margin-top: 1rem;
 }
 
-button:hover {
+main button:hover {
   background-color: #0056b3;
 }
 
-button:disabled {
+main button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
