@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TuningHub Chat</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="/js/meta_date_loader.js" defer></script>
+    <meta
+      property="og:title"
+      content="TuningHub Mopedteile kaufen und verkaufen"
+    />
+    <meta
+      property="og:description"
+      content="Finde und verkaufe Mopedteile für dein Moped. Große Auswahl an Felgen, Auspuffanlagen, Fahrwerken und mehr."
+    />
+    <meta
+      property="og:image"
+      content="/img/THub-Logo-ohne-Hintergrund-500x200"
+    />
+    <meta property="og:url" content="https://tuninghub.netlify.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TuningHub" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="TuningHub Mopedteile kaufen und verkaufen"
+    />
+    <meta
+      name="twitter:description"
+      content="Finde und verkaufe Mopedteile für dein Moped."
+    />
+    <meta
+      name="twitter:image"
+      content="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+    />
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/chat.css" />
+    <link rel="stylesheet" href="/css/search.css" />
+    <link rel="stylesheet" href="/css/menu.css" />
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+
+    <script src="/js/search.js" defer></script>
+    <script src="/js/menu.js" defer></script>
+    <script src="/js/chat.js" defer></script>
+  </head>
+  <body>
+     <header class="header">
+      <div class="header-top">
+        <div class="logo">
+          <a href="../index.html">
+            <img
+              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              alt="TuningHub Logo"
+              height="50"
+            />
+          </a>
+        </div>
+        <div class="searchbar-wrapper">
+        <input
+          id="searchbar"
+          type="text"
+          class="searchbar"
+          placeholder="Suche nach Teilen, Marken..."
+        >
+        <img 
+        src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+        >
+        
+      </div>
+      
+  
+      <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
+  <!-- Öffnene -->
+  <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+  <!-- Schließen -->
+  <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+</button>
+<nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Navigation</div>
+        </div>
+        <div class="menu-items">
+            <a href="index.html" class="menu-item">Startseite</a>
+            <a href="/html/teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
+            <a href="/html/teilesuchen.html" class="menu-item">Teile suchen</a>
+            <a href="#" class="menu-item" style="color: #999">Teile sofort verkaufen</a>
+            <a href="/html/chat.html" class="menu-item" style="color: #999">Chat</a>
+            <a href="#" class="menu-item" style="color: #999;">Benachrichtigungen</a>
+            <a href="#" class="menu-item" style="color: #999;">Produkte</a>   
+            <a href="/html/datenschutz.html" class="menu-item">Datenschutz</a>          
+            <a href="/html/impressum.html" class="menu-item">Impressum</a>           
+            <a href="/html/übertuninghub.html" class="menu-item">Über uns</a>
+            <a href="/html/support.html" class="menu-item">Support</a>
+            <a href="/html/account.html" class="menu-item">Einstellungen</a>
+        </div>
+    </nav>
+      <div class="overlay" id="overlay"></div>
+    </header>
+    <main>
+    <div id="chat-container">
+      <div id="chat-list">
+        <h3>Chats</h3>
+        <ul id="chats"></ul>
+      </div>
+
+      <div id="chat-window">
+        <div id="messages"></div>
+        <div id="input-area">
+          <input
+            type="text"
+            id="messageInput"
+            placeholder="Nachricht eingeben..."
+          />
+          <button onclick="sendMessage()">Senden</button>
+        </div>
+      </div>
+    </div>
+</main>
+<footer>
+      <div class="informations">
+        <a href="/html/übertuninghub.html">TuningHub</a>
+      </div>
+      <div class="informations">
+        <a href="/html/impressum.html">Impressum</a>
+      </div>
+      <div class="informations"><a href="/html/support.html"> Support</a></div>
+      <div class="informations">
+        <a href="/html/socialmedia.html"> Social Media</a>
+      </div>
+      <div class="informations">
+        <a href="/html/datenschutz.html">Datenschutz</a>
+      </div>
+    </footer>
+
+    <script>
+      const trackingUrl = "https://lhxcnrogjjskgaclqxtm.supabase.co";
+      const trackingKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww";
+
+      const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
+      const supabaseKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
+
+      let currentUser = null; // später aus Auth übernehmen
+      let currentChatId = null;
+
+      // Tabellen (Beispiel):
+      // chats: id | name | is_group (boolean)
+      // chat_members: chat_id | user_id
+      // messages: id | chat_id | sender_id | content | created_at
+
+      async function loadChats() {
+        let { data } = await supabase.from("chats").select("*");
+        const chatList = document.getElementById("chats");
+        chatList.innerHTML = "";
+        data.forEach((chat) => {
+          const li = document.createElement("li");
+          li.textContent = chat.is_group ? `👥 ${chat.name}` : chat.name;
+          li.onclick = () => openChat(chat.id);
+          chatList.appendChild(li);
+        });
+      }
+
+      async function openChat(chatId) {
+        currentChatId = chatId;
+        let { data } = await supabase
+          .from("messages")
+          .select("*")
+          .eq("chat_id", chatId)
+          .order("created_at", { ascending: true });
+
+        renderMessages(data);
+
+        // Echtzeit-Updates
+        supabase
+          .channel("chat-" + chatId)
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "messages",
+              filter: `chat_id=eq.${chatId}`,
+            },
+            (payload) => {
+              renderMessages([payload.new], true);
+            }
+          )
+          .subscribe();
+      }
+
+      function renderMessages(messages, append = false) {
+        const container = document.getElementById("messages");
+        if (!append) container.innerHTML = "";
+        messages.forEach((msg) => {
+          const div = document.createElement("div");
+          div.classList.add("message");
+          div.textContent = `${msg.sender_id}: ${msg.content}`;
+          container.appendChild(div);
+        });
+      }
+
+      async function sendMessage() {
+        const content = document.getElementById("messageInput").value;
+        if (!content || !currentChatId) return;
+        await supabase.from("messages").insert([
+          {
+            chat_id: currentChatId,
+            sender_id: currentUser || "Gast",
+            content: content,
+          },
+        ]);
+        document.getElementById("messageInput").value = "";
+      }
+
+      // Start
+      loadChats();
+    </script>
+  </body>
+</html>
