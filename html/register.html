@@ -8,38 +8,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/libphonenumber-js/1.10.44/libphonenumber-js.min.js"></script>
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/register.css" />
-       <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/css/menu.css" />
     <link rel="stylesheet" href="/css/search.css" />
+    <link rel="stylesheet" href="/css/register.css">
     <script src="/js/menu.js"></script>
     <script src="/js/search.js"></script>
-    <style>
-      .password-container {
-        position: relative;
-      }
-      
-      .password-toggle {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: #666;
-        font-size: 14px;
-        padding: 0;
-        z-index: 1;
-      }
-      
-      .password-toggle:hover {
-        color: #333;
-      }
-      
-      .form-wrapper input[type="password"], 
-      .form-wrapper input[type="text"] {
-        padding-right: 50px;
-      }
-    </style>
+    <script src="/js/register.js" defer></script>
+   
   </head>
 
   <body>
@@ -55,34 +30,32 @@
           </a>
         </div>
         <div class="searchbar-wrapper">
-        <input
-          id="searchbar"
-          type="text"
-          class="searchbar"
-          placeholder="Suche nach Teilen, Marken..."
-        >
-        <img 
-        src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
-        >
-        
-      </div>
-      
-  
-      <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
-  <!-- Öffnene -->
-  <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
-  <!-- Schließen -->
-  <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
-</button>
-<nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title">Navigation</div>
+          <input
+            id="searchbar"
+            type="text"
+            class="searchbar"
+            placeholder="Suche nach Teilen, Marken..."
+          >
+          <img 
+            src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+          >
         </div>
-                <div class="menu-items">
+      
+        <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
+          <!-- Öffnen -->
+          <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+          <!-- Schließen -->
+          <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+        </button>
+        <nav class="sidebar" id="sidebar">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Navigation</div>
+          </div>
+          <div class="menu-items">
             <a href="../index.html" class="menu-item">Startseite</a>
             <a href="teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
             <a href="teilesuchen.html" class="menu-item">Teile suchen</a>
-                         <a href="#" class="menu-item" style="color: #999">Chat</a>
+            <a href="#" class="menu-item" style="color: #999">Chat</a>
             <a href="#" class="menu-item" style="color: #999">Teile sofort verkaufen</a>
             <a href="#" class="menu-item" style="color: #999;">Benachrichtigungen</a>
             <a href="#" class="menu-item" style="color: #999;">Produkte</a>   
@@ -91,314 +64,156 @@
             <a href="übertuninghub.html" class="menu-item">Über uns</a>
             <a href="support.html" class="menu-item">Support</a>
             <a href="account.html" class="menu-item">Einstellungen</a>
-        </div>
-    </nav>
-      <div class="overlay" id="overlay"></div>
+          </div>
+        </nav>
+        <div class="overlay" id="overlay"></div>
+      </div>
     </header>
+    
     <main>
       <h1 class="main-überschrift">Registrieren</h1>
+      
+      <!-- Fortschrittsanzeige -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-line" id="progress-line"></div>
+          <div class="step">
+            <div class="step-circle active" id="step-circle-1">1</div>
+            <div class="step-title active" id="step-title-1">Persönliche Daten</div>
+          </div>
+          <div class="step">
+            <div class="step-circle" id="step-circle-2">2</div>
+            <div class="step-title" id="step-title-2">Kontakt Präferenzen</div>
+          </div>
+          <div class="step">
+            <div class="step-circle" id="step-circle-3">3</div>
+            <div class="step-title" id="step-title-3">Bestätigung</div>
+          </div>
+        </div>
+      </div>
+
       <div class="form-wrapper">
         <form id="register-form">
-          <input
-            type="text"
-            id="username"
-            placeholder="Vollständiger Name"
-            required
-          />
-          <input type="tel" id="phone" placeholder="Telefonnummer (z.B. +49 123 456789)" required />
-          <input type="email" id="email" placeholder="E-Mail" required />
-
-          <input type="url" id="social-media" placeholder="Social Media (optional)"/>
-       
-
           
-          <div class="password-container">
+          <!-- Schritt 1: Persönliche Daten -->
+          <div class="step-content active" id="step-1">
             <input
-              type="password"
-              id="password"
-              placeholder="Passwort"
+              type="text"
+              id="username"
+              placeholder="Vollständiger Name"
               required
             />
-            <button type="button" class="password-toggle" onclick="togglePassword('password')" style="display: none;">👁️</button>
-          </div>
-          
-          <div class="password-container">
-            <input
-              type="password"
-              id="password-confirm"
-              placeholder="Passwort bestätigen"
-              required
-            />
-            <button type="button" class="password-toggle" onclick="togglePassword('password-confirm')" style="display: none;">👁️</button>
+            <input type="tel" id="phone" placeholder="Telefonnummer (z.B. +49 123 456789)" required />
+            <input type="email" id="email" placeholder="E-Mail" required />
+            <input type="url" id="social-media" placeholder="Social Media (optional)"/>
+            
+            <div class="password-container">
+              <input
+                type="password"
+                id="password"
+                placeholder="Passwort"
+                required
+              />
+              <button type="button" class="password-toggle" onclick="togglePassword('password')" style="display: none;">👁️</button>
+            </div>
+            
+            <div class="password-container">
+              <input
+                type="password"
+                id="password-confirm"
+                placeholder="Passwort bestätigen"
+                required
+              />
+              <button type="button" class="password-toggle" onclick="togglePassword('password-confirm')" style="display: none;">👁️</button>
+            </div>
+
+            <div class="checkbox-container">
+              <label class="checkbox-wrapper">
+                <input type="checkbox" id="privacy-consent" required />
+                <span class="checkmark"></span>
+                <span class="checkbox-text">
+                  Ich stimme der
+                  <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a>
+                  zu
+                </span>
+              </label>
+            </div>
           </div>
 
-
-          <div class="checkbox-container">
-            <label class="checkbox-wrapper">
-              <input type="checkbox" id="privacy-consent" required />
-              <span class="checkmark"></span>
-              <span class="checkbox-text">
-                Ich stimme der
-                <a href="datenschutz.html" target="_blank"
-                  >Datenschutzerklärung</a
-                >
-                zu
-              </span>
-            </label>
+          <!-- Schritt 2: Kontakt Präferenzen -->
+          <div class="step-content" id="step-2">
+            <h3 style="text-align: center; margin-bottom: 20px; color: #333;">Wie möchten Sie kontaktiert werden?</h3>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">Wählen Sie mindestens eine Kontaktmöglichkeit aus:</p>
+            
+            <div class="contact-options">
+              <div class="contact-option" onclick="selectContactOption('phone-contact')">
+                <input type="checkbox" id="phone-contact" name="contact-method" value="phone">
+                <div class="contact-option-content">
+                  <div class="contact-option-title">Telefonnummer</div>
+                  <div class="contact-option-desc">Direkter Kontakt per Anruf oder SMS</div>
+                </div>
+                <div class="contact-option-icon">📞</div>
+              </div>
+              
+              <div class="contact-option" onclick="selectContactOption('social-contact')">
+                <input type="checkbox" id="social-contact" name="contact-method" value="social">
+                <div class="contact-option-content">
+                  <div class="contact-option-title">Social Media</div>
+                  <div class="contact-option-desc">Kontakt über Ihre Social Media Kanäle</div>
+                </div>
+                <div class="contact-option-icon">📱</div>
+              </div>
+              
+              <div class="contact-option" onclick="selectContactOption('chat-contact')">
+                <input type="checkbox" id="chat-contact" name="contact-method" value="chat">
+                <div class="contact-option-content">
+                  <div class="contact-option-title">Integrierte Chat-Funktion</div>
+                  <div class="contact-option-desc">Sicherer Chat direkt über TuningHub</div>
+                </div>
+                <div class="contact-option-icon">💬</div>
+              </div>
+            </div>
           </div>
 
-          <div class="button-group">
-            <button type="submit" class="button">Account registrieren</button>
-            <a href="registerbusiness.html" class="back-link"
-              >Du hast ein Gewerbe?</a
-            >
+          <!-- Schritt 3: Bestätigung -->
+          <div class="step-content" id="step-3">
+            <div class="confirmation-content">
+              <div class="confirmation-icon">📧</div>
+              <div class="confirmation-title">Fast geschafft!</div>
+              <div class="confirmation-text">
+                Wir haben eine Bestätigungs-E-Mail an <span class="email-highlight" id="confirmation-email"></span> gesendet.
+                <br><br>
+                Bitte überprüfen Sie Ihr E-Mail-Postfach (auch den Spam-Ordner) und klicken Sie auf den Bestätigungslink, um Ihren Account zu aktivieren.
+                <br><br>
+                <strong>Wichtig:</strong> Ohne E-Mail-Bestätigung können Sie sich nicht einloggen.
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation -->
+          <div class="step-navigation">
+            <button type="button" class="nav-button secondary" id="prev-button" onclick="previousStep()" style="display: none;">
+              Zurück
+            </button>
+            <button type="button" class="nav-button primary" id="next-button" onclick="nextStep()">
+              Weiter
+            </button>
+          </div>
+
+          <div class="button-group" style="display: none;" id="alternative-links">
+            <a href="registerbusiness.html" class="back-link">Du hast ein Gewerbe?</a>
           </div>
           <p id="error"></p>
         </form>
       </div>
     </main>
+    
     <footer>
       <div class="informations"><a href="übertuninghub.html">TuningHub</a></div>
       <div class="informations"><a href="impressum.html">Impressum</a></div>
       <div class="informations"><a href="support.html"> Support</a></div>
-      <div class="informations">
-        <a href="socialmedia.html"> Social Media</a>
-      </div>
+      <div class="informations"><a href="socialmedia.html"> Social Media</a></div>
       <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
     </footer>
 
-    <script>
-      const trackingUrl = "https://lhxcnrogjjskgaclqxtm.supabase.co";
-      const trackingKey =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww";
-
-      const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
-      const supabaseKey =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
-
-      const trackingClient = supabase.createClient(trackingUrl, trackingKey);
-      const client = supabase.createClient(supabaseUrl, supabaseKey);
-
-      // Passwort-Anzeige umschalten
-      function togglePassword(fieldId) {
-        const field = document.getElementById(fieldId);
-        const button = field.parentNode.querySelector('.password-toggle');
-        
-        if (field.type === 'password') {
-          field.type = 'text';
-          button.textContent = '🙈';
-        } else {
-          field.type = 'password';
-          button.textContent = '👁️';
-        }
-      }
-
-      // Telefonnummer mit libphonenumber.js formatieren
-      function formatPhoneNumber(phoneNumber, countryCode = 'DE') {
-        try {
-          const parsed = libphonenumber.parsePhoneNumberFromString(phoneNumber, countryCode);
-          if (parsed && parsed.isValid()) {
-            return parsed.formatInternational();
-          }
-          return null;
-        } catch (error) {
-          console.error('Phone number parsing error:', error);
-          return null;
-        }
-      }
-
-      // Telefonnummer validieren
-      function isValidPhoneNumber(phoneNumber, countryCode = 'DE') {
-        try {
-          const parsed = libphonenumber.parsePhoneNumberFromString(phoneNumber, countryCode);
-          return parsed && parsed.isValid();
-        } catch (error) {
-          return false;
-        }
-      }
-
-      async function trackEvent(eventType, metadata = {}) {
-        try {
-          const { data, error } = await trackingClient
-            .from("tracking_events")
-            .insert({
-              event_type: eventType,
-              metadata: metadata,
-            });
-
-          if (error) {
-            console.error("[Tracking] Supabase error:", error);
-          } else {
-            console.log("[Tracking] Event successfully tracked:", eventType);
-          }
-        } catch (err) {
-          console.error("[Tracking] Unexpected error:", err);
-        }
-      }
-
-      const form = document.getElementById("register-form");
-      const errorText = document.getElementById("error");
-
-      // Live-Formatierung der Telefonnummer
-      const phoneInput = document.getElementById("phone");
-      phoneInput.addEventListener('input', function(e) {
-        let value = e.target.value;
-        if (value.length > 0) {
-          const formatted = formatPhoneNumber(value);
-          if (formatted && formatted !== value) {
-            e.target.value = formatted;
-          }
-        }
-      });
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const username = document.getElementById("username").value.trim();
-        let phone = document.getElementById("phone").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const socialMedia = document.getElementById("social-media").value.trim();
-        const password = document.getElementById("password").value;
-        const passwordConfirm = document.getElementById("password-confirm").value;
-        const privacyConsent = document.getElementById("privacy-consent").checked;
-
-        // Alle Felder prüfen
-        if (!username || !phone || !email || !password || !passwordConfirm) {
-          errorText.style.color = "red";
-          errorText.textContent = "Bitte füllen Sie alle Felder aus.";
-
-          await trackEvent("form_validation_error", {
-            form: "register",
-            error: "missing_fields",
-          });
-          return;
-        }
-
-        // Passwörter vergleichen
-        if (password !== passwordConfirm) {
-          errorText.style.color = "red";
-          errorText.textContent = "Die Passwörter stimmen nicht überein.";
-
-          await trackEvent("form_validation_error", {
-            form: "register",
-            error: "password_mismatch",
-          });
-          return;
-        }
-
-        // Passwort-Stärke prüfen (optional)
-        if (password.length < 6) {
-          errorText.style.color = "red";
-          errorText.textContent = "Das Passwort muss mindestens 6 Zeichen lang sein.";
-
-          await trackEvent("form_validation_error", {
-            form: "register",
-            error: "password_too_short",
-          });
-          return;
-        }
-
-        // Datenschutz-Zustimmung prüfen
-        if (!privacyConsent) {
-          errorText.style.color = "red";
-          errorText.textContent =
-            "Sie müssen der Datenschutzerklärung zustimmen, um sich zu registrieren.";
-
-          await trackEvent("form_validation_error", {
-            form: "register",
-            error: "privacy_consent_missing",
-          });
-          return;
-        }
-
-        // Telefonnummer mit libphonenumber.js validieren und formatieren
-        if (!isValidPhoneNumber(phone)) {
-          errorText.style.color = "red";
-          errorText.textContent = "Bitte geben Sie eine gültige Telefonnummer ein.";
-
-          await trackEvent("form_validation_error", {
-            form: "register",
-            error: "invalid_phone_number",
-            phone: phone,
-          });
-          return;
-        }
-
-        // Telefonnummer in E.164 Format für die Datenbank
-        try {
-          const parsed = libphonenumber.parsePhoneNumberFromString(phone, 'DE');
-          phone = parsed.format('E.164');
-        } catch (error) {
-          console.error('Phone formatting error:', error);
-          errorText.style.color = "red";
-          errorText.textContent = "Fehler beim Formatieren der Telefonnummer.";
-          return;
-        }
-
-        errorText.style.color = "black";
-        errorText.textContent = "Registrierung läuft...";
-
-        try {
-          await trackEvent("registration_attempt", {
-            email: email,
-          });
-
-          const { data: signupData, error: signupError } =
-            await client.auth.signUp({
-              email,
-              password,
-              options: {
-                data: {
-                  username,
-                  phone,
-                  privacy_consent: true,
-                  privacy_consent_date: new Date().toISOString(),
-                  ...(socialMedia && { social_media: socialMedia }),
-                },
-              },
-            });
-
-          if (signupError) {
-            throw signupError;
-          }
-
-          await trackEvent("registration_success", {
-            email: email,
-            username: username,
-            phone: phone,
-            user_id: signupData.user?.id,
-            privacy_consent: true,
-          });
-
-          errorText.style.color = "green";
-          errorText.textContent = "Registrierung erfolgreich! Weiterleitung...";
-
-          setTimeout(() => {
-            window.location.href = "account.html";
-          }, 1500);
-        } catch (error) {
-          console.error("Registrierungsfehler:", error);
-
-          await trackEvent("registration_error", {
-            email: email,
-            error_message: error.message,
-            error_code: error.status || "unknown",
-          });
-
-          errorText.style.color = "red";
-          
-          // Benutzerfreundliche Fehlermeldungen
-          if (error.message.includes('already registered')) {
-            errorText.textContent = "Diese E-Mail-Adresse ist bereits registriert.";
-          } else if (error.message.includes('invalid email')) {
-            errorText.textContent = "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
-          } else if (error.message.includes('weak password')) {
-            errorText.textContent = "Das Passwort ist zu schwach. Verwenden Sie mindestens 6 Zeichen.";
-          } else {
-            errorText.textContent = "Fehler: " + error.message;
-          }
-        }
-      });
-    </script>
   </body>
-</html>
