@@ -104,13 +104,7 @@ body > main {
 }
 
 /* NEUE STYLES FÜR TEXT IN KARTEN */
-.card h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
-  line-height: 1.3;
-}
+
 
 .card p {
   color: #666;
@@ -448,4 +442,12 @@ footer .informations a:hover {
             padding: 40px;
             color: #6c757d;
             font-size: 18px;
+        }
+        .link {
+            margin: 4px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .link:hover {
+            text-decoration: underline;
         }
