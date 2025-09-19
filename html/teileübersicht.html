@@ -9,15 +9,446 @@
     <link rel="stylesheet" href="/css/card.css">
     <link rel="stylesheet" href="/css/search.css" />
     <link rel="stylesheet" href="/css/menu.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script href="/js/search.js" defer></script>
+    <script href="/js/menu.js" defer></script>
+    <style>
+        /* Stile hier behalten, aber Platz sparen */
+        .search-badge {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            border: 2px solid white;
+        }
 
-     <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+        .card.search-card {
+            border: 2px solid #ff6b35;
+            background: linear-gradient(135deg, #fff 0%, #fff8f5 100%);
+        }
 
-    <script type="module" src="/js/supabaseClient.js"></script>
-<script type="module" src="/js/loadParts.js"></script>
-<script type="module" src="/js/index.js"></script>
-<script src="/js/search.js" defer></script>
-<script src="/js/menu.js" defer></script>
-<script src="/js/shareParts.js" defer></script>
+        .card.search-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            z-index: 5;
+        }
+
+        .detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .detail-modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .detail-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .detail-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .detail-title {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        .close-button:hover {
+            background-color: #f5f5f5;
+        }
+
+        .detail-body {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .detail-image-section {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #f8f9fa;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-main-image {
+            max-width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-navigation {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        .nav-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .image-indicators {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .image-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .image-indicator.active {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.2);
+        }
+
+        .image-counter {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            z-index: 10;
+        }
+
+        .detail-info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .detail-price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .detail-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #555;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .detail-meta {
+            display: grid;
+            gap: 12px;
+        }
+
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .meta-value {
+            color: #333;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .primary-button {
+            background: #007bff;
+            color: white;
+        }
+
+        .primary-button:hover {
+            background: #0056b3;
+        }
+
+        .secondary-button {
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .secondary-button:hover {
+            background: #e9ecef;
+        }
+
+        .contact-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .contact-dialog-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .contact-phone {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin: 15px 0 25px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .contact-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .contact-option {
+            flex: 1;
+            min-width: 100px;
+            padding: 15px 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .contact-option.call {
+            background: #28a745;
+            color: white;
+        }
+
+        .contact-option.call:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .contact-option.whatsapp {
+            background: #25d366;
+            color: white;
+        }
+
+        .contact-option.whatsapp:hover {
+            background: #1ebe5c;
+            transform: translateY(-2px);
+        }
+
+        .contact-option.sms {
+            background: #007bff;
+            color: white;
+        }
+
+        .contact-option.sms:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .contact-option .icon {
+            font-size: 24px;
+        }
+
+        .contact-cancel {
+            padding: 12px 30px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+
+        .contact-cancel:hover {
+            border-color: #999;
+            color: #333;
+        }
+
+        .loading,
+        .error,
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                min-height: 360px;
+            }
+
+            .card img {
+                height: 180px;
+            }
+
+            .card-content {
+                padding: 14px;
+            }
+
+            .detail-body {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .contact-options {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -55,11 +486,10 @@
         <div class="sidebar-header">
             <div class="sidebar-title">Navigation</div>
         </div>
-           <div class="menu-items">
+        <div class="menu-items">
             <a href="../index.html" class="menu-item">Startseite</a>
-            <a href="teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
-            <a href="teilesuchen.html" class="menu-item">Teile suchen</a>
-           
+            <a href="#" class="menu-item" style="color: #999;">Benachrichtigungen</a>
+            <a href="#" class="menu-item" style="color: #999;">Produkte</a>   
             <a href="datenschutz.html" class="menu-item">Datenschutz</a>          
             <a href="impressum.html" class="menu-item">Impressum</a>           
             <a href="übertuninghub.html" class="menu-item">Über uns</a>
@@ -69,7 +499,6 @@
     </nav>
       <div class="overlay" id="overlay"></div>
     </header>
-
 
     <main>
         <div class="link-bar">
@@ -162,6 +591,704 @@
         <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
     </footer>
 
-   
+    <script>
+        function log(message, data = null) {
+            console.log(`[TuningHub] ${message}`, data || "");
+        }
+
+        function showError(message) {
+            const container = document.getElementById("angebot-container");
+            container.innerHTML = `<div class="error">❌ ${message}</div>`;
+            log(`ERROR: ${message}`);
+        }
+
+        function showLoading() {
+            const container = document.getElementById("angebot-container");
+            container.innerHTML = '<div class="loading">🔄 Lade Angebote...</div>';
+        }
+
+        function showEmpty() {
+            const container = document.getElementById("angebot-container");
+            container.innerHTML =
+                '<div class="empty">📦 Keine Angebote vorhanden</div>';
+        }
+
+         const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
+        const supabaseKey =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
+
+        let supabase;
+
+        try {
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            log("Supabase Client erfolgreich erstellt");
+        } catch (error) {
+            log("Fehler beim Erstellen des Supabase Clients:", error);
+            showError("Fehler beim Verbinden mit der Datenbank");
+        }
+
+        function extractData(teil) {
+            const name =
+                teil.name ||
+                teil.title ||
+                teil.bezeichnung ||
+                teil.teil_name ||
+                "Unbekanntes Teil";
+            const preis =
+                teil.preis ||
+                teil.price ||
+                teil.kosten ||
+                teil.euro ||
+                "Preis auf Anfrage";
+            const beschreibung =
+                teil.beschreibung || teil.description || teil.details || "";
+            const bild =
+                teil.bild_url || teil.image_url || teil.foto || teil.bild || null;
+            const kategorie =
+                teil.kategorie || teil.category || teil.type || "Tuning-Teil";
+            const zustand =
+                teil.zustand || teil.condition || teil.state || "Gebraucht";
+            const telefon = teil.contact_number || teil.phone || teil.telefon || "";
+            const verkäufer =
+                teil.seller_name || teil.user_name || "Privater Verkäufer";
+            const datum = teil.created_at || teil.date || new Date().toISOString();
+            const id = teil.id;
+            const typ = teil.type || teil.typ || "";
+
+            const bilder = [];
+            for (let i = 1; i <= 5; i++) {
+                const feldName = i === 1 ? "image_url" : `image_url${i}`;
+                if (teil[feldName]) {
+                    bilder.push(teil[feldName]);
+                }
+            }
+
+            return {
+                name,
+                preis,
+                beschreibung,
+                bild,
+                kategorie,
+                zustand,
+                telefon,
+                verkäufer,
+                datum,
+                id,
+                typ,
+                bilder,
+            };
+        }
+
+        function truncateDescription(text, maxLength = 120) {
+            if (!text) return "";
+            if (text.length <= maxLength) return text;
+            return text.substr(0, maxLength).trim() + "...";
+        }
+
+        function contactSeller(telefon) {
+            if (!telefon) {
+                alert("Keine Telefonnummer verfügbar");
+                return;
+            }
+
+            const cleanedPhone = telefon.replace(/[^\d+]/g, "");
+
+            const dialog = document.createElement("div");
+            dialog.className = "contact-dialog-overlay";
+            dialog.innerHTML = `
+                    <div class="contact-dialog-content">
+                        <h3>Kontaktoptionen</h3>
+                        <p class="contact-phone">${telefon}</p>
+                        <div class="contact-options">
+                            <button class="contact-option call">
+                                <span class="icon">📞</span>
+                                <span>Anrufen</span>
+                            </button>
+                            <button class="contact-option whatsapp">
+                                <span class="icon">💬</span>
+                                <span>WhatsApp</span>
+                            </button>
+                            <button class="contact-option sms">
+                                <span class="icon">📱</span>
+                                <span>SMS</span>
+                            </button>
+                        </div>
+                        <button class="contact-cancel">Abbrechen</button>
+                    </div>
+                `;
+
+            document.body.appendChild(dialog);
+
+            dialog.querySelector(".call").addEventListener("click", () => {
+                window.location.href = `tel:${cleanedPhone}`;
+                removeDialog();
+            });
+
+            dialog.querySelector(".whatsapp").addEventListener("click", () => {
+                window.open(
+                    `https://wa.me/${cleanedPhone.replace(/[^\d]/g, "")}`,
+                    "_blank"
+                );
+                removeDialog();
+            });
+
+            dialog.querySelector(".sms").addEventListener("click", () => {
+                window.location.href = `sms:${cleanedPhone}`;
+                removeDialog();
+            });
+
+            dialog
+                .querySelector(".contact-cancel")
+                .addEventListener("click", removeDialog);
+
+            dialog.addEventListener("click", (e) => {
+                if (e.target === dialog) {
+                    removeDialog();
+                }
+            });
+
+            document.addEventListener("keydown", function escHandler(e) {
+                if (e.key === "Escape") {
+                    removeDialog();
+                    document.removeEventListener("keydown", escHandler);
+                }
+            });
+
+            function removeDialog() {
+                dialog.remove();
+            }
+        }
+
+        function sharePart(id) {
+            if (!id) {
+                alert("Fehler: Teil-ID nicht verfügbar");
+                return;
+            }
+
+            const url = `${
+                window.location.origin
+            }../index.html?part=${encodeURIComponent(id)}`;
+
+            if (navigator.share) {
+                navigator
+                    .share({
+                        title: "Tuning-Teil bei TuningHub",
+                        text: "Schau dir dieses Teil bei TuningHub an!",
+                        url: url,
+                    })
+                    .catch((err) => console.warn("Sharing failed:", err));
+            } else {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard
+                        .writeText(url)
+                        .then(() =>
+                            alert("Link zum Teil wurde in die Zwischenablage kopiert!")
+                        )
+                        .catch((err) => {
+                            console.error("Fehler beim Kopieren des Links:", err);
+                            fallbackCopyToClipboard(url);
+                        });
+                } else {
+                    fallbackCopyToClipboard(url);
+                }
+            }
+        }
+
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand("copy");
+                if (successful) {
+                    alert("Link zum Teil wurde in die Zwischenablage kopiert!");
+                } else {
+                    showLinkDialog(text);
+                }
+            } catch (err) {
+                console.error("Fallback copy failed:", err);
+                showLinkDialog(text);
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function showLinkDialog(url) {
+            const message = `Link konnte nicht automatisch kopiert werden. Bitte kopiere den Link manuell:\n\n${url}`;
+            alert(message);
+        }
+
+        let currentPart = null;
+        let currentImageIndex = 0;
+        let imageUrls = [];
+
+        function showImage(index) {
+            if (imageUrls.length === 0) return;
+
+            if (index < 0) index = imageUrls.length - 1;
+            if (index >= imageUrls.length) index = 0;
+
+            currentImageIndex = index;
+            const detailImage = document.getElementById("detail-image");
+
+            detailImage.classList.remove("fade-in");
+            setTimeout(() => {
+                detailImage.src = imageUrls[index];
+                detailImage.classList.add("fade-in");
+            }, 50);
+
+            document.getElementById("prev-image").disabled = imageUrls.length <= 1;
+            document.getElementById("next-image").disabled = imageUrls.length <= 1;
+
+            updateImageIndicators();
+
+            document.getElementById("image-counter").textContent = `${index + 1}/${
+                imageUrls.length
+            }`;
+        }
+
+        function nextImage() {
+            showImage(currentImageIndex + 1);
+        }
+
+        function prevImage() {
+            showImage(currentImageIndex - 1);
+        }
+
+        function updateImageIndicators() {
+            const indicatorsContainer = document.getElementById("image-indicators");
+            indicatorsContainer.innerHTML = "";
+
+            if (imageUrls.length <= 1) return;
+
+            for (let i = 0; i < imageUrls.length; i++) {
+                const indicator = document.createElement("div");
+                indicator.className = `image-indicator ${
+                    i === currentImageIndex ? "active" : ""
+                }`;
+                indicator.addEventListener("click", () => showImage(i));
+                indicatorsContainer.appendChild(indicator);
+            }
+        }
+
+        function openDetailView(teil) {
+            // Speichere die aktuelle Scroll-Position vor dem Öffnen des Modals
+            sessionStorage.setItem('tuninghub_scroll_position', window.scrollY);
+            
+            const modal = document.getElementById("detail-modal");
+            const {
+                name,
+                preis,
+                beschreibung,
+                bild,
+                kategorie,
+                zustand,
+                telefon,
+                verkäufer,
+                typ,
+                id,
+                bilder,
+            } = extractData(teil);
+
+            currentPart = teil;
+
+            imageUrls =
+                bilder.length > 0
+                    ? bilder
+                    : [
+                        bild ||
+                            "/img/search.png",
+                    ];
+            currentImageIndex = 0;
+
+            document.getElementById("detail-title").textContent = name;
+
+            const fallbackUrl =
+                src = "/img/search.png";
+            const detailImage = document.getElementById("detail-image");
+            detailImage.src = imageUrls[0] || fallbackUrl;
+            detailImage.alt = name;
+            detailImage.onerror = function () {
+                this.src = fallbackUrl;
+            };
+
+            showImage(0);
+
+            document
+                .getElementById("prev-image")
+                .addEventListener("click", prevImage);
+            document
+                .getElementById("next-image")
+                .addEventListener("click", nextImage);
+
+            function handleKeydown(e) {
+                if (e.key === "ArrowLeft") prevImage();
+                if (e.key === "ArrowRight") nextImage();
+            }
+
+            document.addEventListener("keydown", handleKeydown);
+
+            let preisText = preis;
+            if (typeof preis === "number") {
+                preisText = `${preis.toLocaleString("de-DE")}€`;
+            } else if (typeof preis === "string" && !isNaN(parseFloat(preis))) {
+                preisText = `${parseFloat(preis).toLocaleString("de-DE")}€`;
+            }
+            document.getElementById("detail-price").textContent = preisText;
+
+            document.getElementById("detail-description").textContent =
+                beschreibung || "Keine detaillierte Beschreibung verfügbar.";
+
+            document.getElementById("detail-category").textContent = kategorie;
+            document.getElementById("detail-condition").textContent = zustand;
+            document.getElementById("detail-seller").textContent = verkäufer;
+            document.getElementById("detail-phone").textContent =
+                telefon || "Nicht verfügbar";
+
+            const typeContainer = document.getElementById("detail-type-container");
+            const typeElement = document.getElementById("detail-type");
+            if (typ) {
+                typeContainer.style.display = "flex";
+                typeElement.textContent = typ === "teilesuche" ? "Suche" : typ;
+            } else {
+                typeContainer.style.display = "none";
+            }
+
+            const contactBtn = document.getElementById("contact-seller-btn");
+            contactBtn.onclick = function () {
+                contactSeller(telefon);
+            };
+
+            if (!telefon) {
+                contactBtn.disabled = true;
+                contactBtn.textContent = "Keine Kontaktdaten verfügbar";
+            } else {
+                contactBtn.disabled = false;
+                contactBtn.textContent = "Verkäufer kontaktieren";
+            }
+
+            const shareBtn = document.getElementById("share-btn");
+            shareBtn.onclick = function () {
+                sharePart(id);
+            };
+
+            modal.classList.add("active");
+            document.body.style.overflow = "hidden";
+
+            log("Detailansicht geöffnet für:", name);
+        }
+
+        function closeDetailView() {
+            const modal = document.getElementById("detail-modal");
+            modal.classList.remove("active");
+            document.body.style.overflow = "";
+            currentPart = null;
+            imageUrls = [];
+            currentImageIndex = 0;
+
+            // Wiederherstellung der Scroll-Position nach Schließen des Modals
+            const savedPosition = sessionStorage.getItem('tuninghub_scroll_position');
+            if (savedPosition) {
+                window.scrollTo(0, parseInt(savedPosition));
+                sessionStorage.removeItem('tuninghub_scroll_position');
+            }
+
+            log("Detailansicht geschlossen");
+        }
+
+        function createCard(teil) {
+            const { name, preis, beschreibung, bild, typ } = extractData(teil);
+
+            const card = document.createElement("div");
+            const isSearch = typ === "teilesuche";
+            card.className = isSearch ? "card search-card" : "card";
+
+            const imageUrl =
+                bild ||
+                "/img/search.png";
+            const fallbackUrl = "/img/search.png";
+
+            let preisText = preis;
+            if (typeof preis === "number") {
+                preisText = `${preis.toLocaleString("de-DE")}€`;
+            } else if (typeof preis === "string" && !isNaN(parseFloat(preis))) {
+                preisText = `${parseFloat(preis).toLocaleString("de-DE")}€`;
+            }
+
+            const kurzbeschreibung = truncateDescription(beschreibung, 120);
+
+            card.innerHTML = `
+                    ${isSearch ? '<span class="search-badge">🔍 SUCHE</span>' : ""}
+                    <img src="${imageUrl}" 
+                         alt="${name}" 
+                         onerror="this.src='${fallbackUrl}'" 
+                         loading="lazy" />
+                    <div class="card-content">
+                        <h2>${name}</h2>
+                        ${
+                            kurzbeschreibung
+                                ? `<p class="card-description">${kurzbeschreibung}</p>`
+                                : ""
+                        }
+                        <div class="card-footer">
+                            <p><strong>${preisText}</strong></p>
+                        </div>
+                    </div>
+                `;
+
+            card.addEventListener("click", function () {
+                openDetailView(teil);
+            });
+
+            return card;
+        }
+
+        function createLinkCard(title, description, imageUrl, preisText, targetUrl) {
+            const card = document.createElement("div");
+            card.className = "card";
+
+            const fallbackUrl = "/img/search.png";
+            const kurzbeschreibung = truncateDescription(description, 120);
+
+            card.innerHTML = `
+                <img src="${imageUrl || "/img/no-image.png"}"
+                     alt="${title}"
+                     onerror="this.src='${fallbackUrl}'"
+                     loading="lazy" />
+                <div class="card-content">
+                    <h2>${title}</h2>
+                    ${kurzbeschreibung ? `<p class="card-description">${kurzbeschreibung}</p>` : ""}
+                    <div class="card-footer">
+                        <p><strong>${preisText}</strong></p>
+                    </div>
+                </div>
+            `;
+
+            // Klick → andere HTML-Seite öffnen
+            card.addEventListener("click", function () {
+                window.location.href = targetUrl;
+            });
+
+            return card;
+        }
+
+        async function ladeAngebote() {
+            log("Starte Laden der Angebote...");
+
+            const container = document.getElementById("angebot-container");
+            if (!container) {
+                log("ERROR: Container nicht gefunden");
+                return;
+            }
+
+            if (!supabase) {
+                showError("Supabase nicht initialisiert");
+                return;
+            }
+
+            showLoading();
+
+            try {
+                log("Lade Daten aus Supabase...");
+
+                const { data, error } = await supabase
+                    .from("parts")
+                    .select("*")
+                    .order("created_at", { ascending: false });
+
+                if (error) {
+                    log("Supabase Fehler:", error);
+                    showError(`Datenbankfehler: ${error.message}`);
+                    return;
+                }
+
+                log("Daten erfolgreich geladen:", data);
+
+                // Link-Card als virtuellen Eintrag erstellen mit einem fixen Datum
+                const linkCardEntry = {
+                    id: "custom-link-card",
+                    name: "AmbrossSachsen",
+                    beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
+                    image_url: "/img/zylinderbearbeitung_ambrosssachsen.jpg",
+                    preis: "Konfigurieren",
+                    created_at: "2025-08-29T00:00:00Z",
+                    isCustomLink: true,
+                    targetUrl: "https://ambrosssachsen.com/shop/AmbrossSachsen-*Zylinder-und-Sonderbearbeitungen*-p777421013"
+                };
+
+                // Datenarray mit der Link-Card kombinieren
+                const allData = data ? [...data, linkCardEntry] : [linkCardEntry];
+
+                if (allData.length === 0) {
+                    showEmpty();
+                    return;
+                }
+
+                container.innerHTML = "";
+
+                // Nach Erstellungsdatum sortieren (neueste zuerst)
+                allData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                allData.forEach((teil, index) => {
+                    log(`Verarbeite Teil ${index + 1}:`, teil);
+
+                    try {
+                        // Prüfen, ob es sich um die benutzerdefinierte Link-Card handelt
+                        if (teil.isCustomLink) {
+                            const card = createLinkCard(
+                                teil.name,
+                                teil.beschreibung,
+                                teil.image_url,
+                                teil.preis,
+                                teil.targetUrl
+                            );
+                            container.appendChild(card);
+                        } else {
+                            const card = createCard(teil);
+                            container.appendChild(card);
+                        }
+                    } catch (cardError) {
+                        log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
+                    }
+                });
+
+                log(`✅ ${allData.length} Teile erfolgreich angezeigt`);
+                
+                // Nach dem Laden der Karten die Scroll-Position wiederherstellen
+                restoreScrollPosition();
+            } catch (error) {
+                log("Unerwarteter Fehler:", error);
+                showError(`Unerwarteter Fehler: ${error.message}`);
+            }
+        }
+
+        async function setAccountLink() {
+            if (!supabase) return;
+
+            try {
+                const {
+                    data: { user },
+                } = await supabase.auth.getUser();
+                const accountLink = document.getElementById("account-link");
+                if (accountLink) {
+                    accountLink.href = user ? "account.html" : "login.html";
+                    log(
+                        "Account-Link gesetzt:",
+                        user ? "Eingeloggt" : "Nicht eingeloggt"
+                    );
+                }
+            } catch (error) {
+                log("Fehler beim Setzen des Account-Links:", error);
+            }
+        }
+
+        function setupSearch() {
+            const searchInput = document.querySelector(".searchbar");
+            if (!searchInput) return;
+
+            searchInput.addEventListener("input", function (e) {
+                const query = e.target.value.toLowerCase();
+                log("Suche:", query);
+            });
+        }
+
+        function setupDetailView() {
+            document
+                .getElementById("close-detail")
+                .addEventListener("click", closeDetailView);
+
+            document
+                .getElementById("detail-modal")
+                .addEventListener("click", function (e) {
+                    if (e.target === this) {
+                        closeDetailView();
+                    }
+                });
+
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") {
+                    closeDetailView();
+                }
+            });
+
+            log("Detailansicht Event-Listener eingerichtet");
+        }
+
+        function handleSharedPartLink() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const partId = urlParams.get("part");
+
+            if (partId) {
+                log("Shared part ID detected:", partId);
+
+                setTimeout(async () => {
+                    try {
+                        const { data: part, error } = await supabase
+                            .from("parts")
+                            .select("*")
+                            .eq("id", partId)
+                            .single();
+
+                        if (error) {
+                            log("Error loading shared part:", error);
+                            alert("Das geteilte Teil konnte nicht gefunden werden.");
+                            return;
+                        }
+
+                        if (part) {
+                            log("Opening shared part:", part);
+                            openDetailView(part);
+                        } else {
+                            alert("Das geteilte Teil existiert nicht mehr.");
+                        }
+                    } catch (error) {
+                        log("Error handling shared part:", error);
+                        alert("Fehler beim Laden des geteilten Teils.");
+                    }
+                }, 1000);
+            }
+        }
+
+        function restoreScrollPosition() {
+            // Prüfe auf gespeicherte Position
+            const savedPosition = sessionStorage.getItem('tuninghub_scroll_position');
+            
+            if (savedPosition !== null) {
+                // Warte bis alle Karten geladen sind
+                setTimeout(() => {
+                    window.scrollTo(0, parseInt(savedPosition));
+                    console.log('Scroll-Position wiederhergestellt:', savedPosition);
+                    
+                    // Cleanup
+                    sessionStorage.removeItem('tuninghub_scroll_position');
+                }, 100);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            log("DOM geladen, starte Initialisierung...");
+
+            setAccountLink();
+            setupSearch();
+            setupDetailView();
+
+            ladeAngebote().catch((error) => {
+                log("Fallback: Zeige Test-Daten wegen Fehler:", error);
+                showError("Fehler beim Laden der Daten: " + error.message);
+            });
+
+            handleSharedPartLink();
+        });
+
+        window.addEventListener("error", function (e) {
+            log("Globaler Fehler:", e.error);
+        });
+    </script>
 </body>
 </html>
