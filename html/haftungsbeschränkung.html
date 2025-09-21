@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TuningHub</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/metaDateLoader.js" defer></script>
+    <meta property="og:title" content="TuningHub Mopedteile kaufen und verkaufen" />
+  <meta property="og:description" content="Finde und verkaufe Mopedteile für dein Moped. Große Auswahl an Felgen, Auspuffanlagen, Fahrwerken und mehr." />
+  <meta property="og:image" content="/img/THub-Logo-ohne-Hintergrund-500x200" />
+  <meta property="og:url" content="https://tuninghub.netlify.app/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="TuningHub" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="TuningHub Mopedteile kaufen und verkaufen" />
+  <meta name="twitter:description" content="Finde und verkaufe Mopedteile für dein Moped." />
+  <meta name="twitter:image" content="/img/THub-Logo-ohne-Hintergrund-500x200.png" />
+
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/index.css" />
+    <link rel="stylesheet" href="/css/card.css" />
+    <link rel="stylesheet" href="/css/search.css" />
+    <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/css/haftungsbeschränkung.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+
+
+<script type="module" src="/js/supabaseClient.js"></script>
+<script type="module" src="/js/loadParts.js"></script>
+<script type="module" src="/js/index.js"></script>
+<script src="/js/search.js" defer></script>
+<script src="/js/menu.js" defer></script>
+<script src="/js/shareParts.js" defer></script>
+  </head>
+  
+  <body>
+    <header class="header">
+      <div class="header-top">
+        <div class="logo">
+          <a href="../index.html">
+            <img
+              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              alt="TuningHub Logo"
+              height="50"
+            />
+          </a>
+        </div>
+        <div class="searchbar-wrapper">
+        <input
+          id="searchbar"
+          type="text"
+          class="searchbar"
+          placeholder="Suche nach Teilen, Marken..."
+        >
+        <img 
+        src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+        >
+        
+      </div>
+      
+  
+      <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
+  <!-- Öffnene -->
+  <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+  <!-- Schließen -->
+  <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+</button>
+<nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Navigation</div>
+        </div>
+        <div class="menu-items">
+            <a href="index.html" class="menu-item">Startseite</a>
+            <a href="/html/teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
+            <a href="/html/teilesuchen.html" class="menu-item">Teile suchen</a>
+            <a href="/html/datenschutz.html" class="menu-item">Datenschutz</a>          
+            <a href="/html/impressum.html" class="menu-item">Impressum</a>           
+            <a href="/html/übertuninghub.html" class="menu-item">Über uns</a>
+            <a href="/html/support.html" class="menu-item">Support</a>
+            <a href="/html/account.html" class="menu-item">Einstellungen</a>
+        </div>
+    </nav>
+      <div class="overlay" id="overlay"></div>
+    </header>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AGB — TuningHub</title>
+  <link rel="stylesheet" href="/css/terms.css" />
+</head>
+<body>
+
+  <main class="container">
+ <h1>Haftungsbeschränkung / Disclaimer</h1>
+    <p><strong>Stand:</strong> 30. August 2025</p>
+
+    <section>
+      <h2>1. Plattformfunktion</h2>
+      <p>
+        TuningHub bietet eine Plattform zum Einstellen und Finden von Inseraten.
+        Wir stellen lediglich die technische Infrastruktur bereit. Zwischen Käufer
+        und Verkäufer kommt ein Vertrag zustande TuningHub ist hierin nicht Partei.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Keine Gewähr für Inhalte</h2>
+      <p>
+        Wir übernehmen keine Gewähr für die Vollständigkeit, Richtigkeit oder
+        Aktualität von Inseraten, Produktangaben oder sonstigen Inhalten.
+        Nutzer sind angehalten, Angaben vor einem Kauf selbst zu prüfen.
+      </p>
+    </section>
+
+    <section>
+      <h2>3. Haftungsbeschränkung</h2>
+      <p>
+        Sofern rechtlich zulässig, ist die Haftung von TuningHub für Schäden gleich aus
+        welchem Rechtsgrund auf Vorsatz und grobe Fahrlässigkeit beschränkt.
+        Für leichte Fahrlässigkeit haften wir nur bei Verletzung einer wesentlichen
+        Vertragspflicht (Kardinalpflicht). In diesem Fall ist die Haftung der Höhe
+        nach begrenzt auf den typischerweise vorhersehbaren Schaden.
+      </p>
+    </section>
+
+    <section>
+      <h2>4. Haftung Dritter</h2>
+      <p>
+        Für Links zu externen Webseiten Dritter übernehmen wir keine Haftung.
+        Inhalte Dritter sind nicht von uns geprüft.
+      </p>
+    </section>
+
+    <section>
+      <h2>5. Haftung für Datenverlust</h2>
+      <p>
+        Wir sichern Daten regelmäßig; trotzdem empfehlen wir Nutzern, wichtige
+        Daten selbst zu sichern. Für Datenverluste haften wir nur bei Vorsatz oder grober Fahrlässigkeit.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. Kontakt</h2>
+      <p>
+        Bei Fragen zur Haftung erreichen Sie uns über das
+        <a href="/html/support.html">Supportformular</a> oder per E-Mail an
+        <a href="mailto:timrothamel@gmail.com">timrothamel@gmail.com</a>.
+      </p>
+    </section>
+</main>
+   
+
+    <footer>
+      <div class="informations">
+        <a href="übertuninghub.html">TuningHub</a>
+      </div>
+      <div class="informations">
+        <a href="impressum.html">Impressum</a>
+      </div>
+      <div class="informations"><a href="support.html"> Support</a></div>
+      <div class="informations">
+        <a href="socialmedia.html"> Social Media</a>
+      </div>
+      <div class="informations">
+        <a href="datenschutz.html">Datenschutz</a>
+      </div>
+    </footer>
+  </body>
+</html>

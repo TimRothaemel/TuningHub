@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TuningHub</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/metaDateLoader.js" defer></script>
+    <meta property="og:title" content="TuningHub Mopedteile kaufen und verkaufen" />
+  <meta property="og:description" content="Finde und verkaufe Mopedteile für dein Moped. Große Auswahl an Felgen, Auspuffanlagen, Fahrwerken und mehr." />
+  <meta property="og:image" content="/img/THub-Logo-ohne-Hintergrund-500x200" />
+  <meta property="og:url" content="https://tuninghub.netlify.app/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="TuningHub" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="TuningHub Mopedteile kaufen und verkaufen" />
+  <meta name="twitter:description" content="Finde und verkaufe Mopedteile für dein Moped." />
+  <meta name="twitter:image" content="/img/THub-Logo-ohne-Hintergrund-500x200.png" />
+
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/index.css" />
+    <link rel="stylesheet" href="/css/card.css" />
+    <link rel="stylesheet" href="/css/search.css" />
+    <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/css/agb.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+
+
+<script type="module" src="/js/supabaseClient.js"></script>
+<script type="module" src="/js/loadParts.js"></script>
+<script type="module" src="/js/index.js"></script>
+<script src="/js/search.js" defer></script>
+<script src="/js/menu.js" defer></script>
+<script src="/js/shareParts.js" defer></script>
+  </head>
+  
+  <body>
+    <header class="header">
+      <div class="header-top">
+        <div class="logo">
+          <a href="../index.html">
+            <img
+              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              alt="TuningHub Logo"
+              height="50"
+            />
+          </a>
+        </div>
+        <div class="searchbar-wrapper">
+        <input
+          id="searchbar"
+          type="text"
+          class="searchbar"
+          placeholder="Suche nach Teilen, Marken..."
+        >
+        <img 
+        src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+        >
+        
+      </div>
+      
+  
+      <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
+  <!-- Öffnene -->
+  <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+  <!-- Schließen -->
+  <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+</button>
+<nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Navigation</div>
+        </div>
+        <div class="menu-items">
+            <a href="index.html" class="menu-item">Startseite</a>
+            <a href="/html/teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
+            <a href="/html/teilesuchen.html" class="menu-item">Teile suchen</a>
+            <a href="/html/datenschutz.html" class="menu-item">Datenschutz</a>          
+            <a href="/html/impressum.html" class="menu-item">Impressum</a>           
+            <a href="/html/übertuninghub.html" class="menu-item">Über uns</a>
+            <a href="/html/support.html" class="menu-item">Support</a>
+            <a href="/html/account.html" class="menu-item">Einstellungen</a>
+        </div>
+    </nav>
+      <div class="overlay" id="overlay"></div>
+    </header>
+
+   
+<main>
+    <!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AGB — TuningHub</title>
+  <link rel="stylesheet" href="/css/terms.css" />
+</head>
+<body>
+
+  <main class="container">
+    <h1>Allgemeine Geschäftsbedingungen (AGB)</h1>
+    <p><strong>Stand:</strong> 30. August 2025</p>
+
+    <section>
+      <h2>1. Geltungsbereich</h2>
+      <p>
+        Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der Website
+        und der Dienste der TuningHub-Plattform (nachfolgend „TuningHub“ oder
+        „wir“). Mit der Registrierung oder Nutzung der Dienste erkennen Sie
+        diese AGB an.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Vertragsgegenstand</h2>
+      <p>
+        TuningHub stellt eine Plattform bereit, auf der private Nutzer und
+        Gewerbliche Inserate für Fahrzeug- und Mopedteile einstellen, suchen
+        und miteinander kommunizieren können. Wir sind Vermittler der Plattform
+        Kaufverträge kommen ausschließlich zwischen Käufer und Verkäufer zustande.
+      </p>
+    </section>
+
+    <section>
+      <h2>3. Registrierung und Nutzerkonto</h2>
+      <ul>
+        <li>Nutzer müssen ein Konto erstellen, um bestimmte Funktionen zu nutzen.</li>
+        <li>Bei der Registrierung sind wahrheitsgemäße Angaben zu machen.</li>
+        <li>Der Nutzer ist verantwortlich für die Sicherheit seines Zugangs (Passwort).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Pflichten der Inserenten</h2>
+      <p>
+        Inserenten müssen korrekte Angaben zu Waren und Preisen machen und sind
+        selbst dafür verantwortlich, dass ihre Angebote rechtlich zulässig sind.
+      </p>
+    </section>
+
+    <section>
+      <h2>5. Haftung</h2>
+      <p>
+        Unsere Haftung ist in der Haftungsbeschränkung geregelt (siehe
+        Impressum/Haftungsbedingungen). Grundsätzlich sind wir als Plattform
+        Vermittler und haften nicht für Vertragserfüllung oder Echtheit der
+        Inserate durch Dritte.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. Datenschutz & Einwilligungen</h2>
+      <p>
+        Informationen zur Datenverarbeitung finden Sie in unserer
+        <a href="/html/datenschutz.html" target="_blank">Datenschutzerklärung</a>.
+        Bei der Registrierung müssen Sie AGB und Datenschutzerklärung aktiv zustimmen.
+      </p>
+    </section>
+
+    <section>
+      <h2>7. Vertragsdauer & Kündigung</h2>
+      <p>
+        Das Nutzerkonto kann durch den Nutzer jederzeit gelöscht werden. TuningHub
+        kann Konten bei Verstößen gegen die AGB sperren oder löschen.
+      </p>
+    </section>
+
+    <section>
+      <h2>8. Änderungen der AGB</h2>
+      <p>
+        Wir können diese AGB ändern. Änderungen werden angemessen angekündigt.
+        Bei Widerspruchsrechten wird auf die Ankündigung eingegangen.
+      </p>
+    </section>
+
+    <section>
+      <h2>9. Schlussbestimmungen</h2>
+      <p>
+        Es gilt deutsches Recht. Sollten einzelne Bestimmungen unwirksam sein,
+        bleiben die übrigen Bestimmungen davon unberührt.
+      </p>
+    </section>
+</main>
+   
+
+    <footer>
+      <div class="informations">
+        <a href="übertuninghub.html">TuningHub</a>
+      </div>
+      <div class="informations">
+        <a href="impressum.html">Impressum</a>
+      </div>
+      <div class="informations"><a href="support.html"> Support</a></div>
+      <div class="informations">
+        <a href="socialmedia.html"> Social Media</a>
+      </div>
+      <div class="informations">
+        <a href="datenschutz.html">Datenschutz</a>
+      </div>
+    </footer>
+  </body>
+</html>

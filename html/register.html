@@ -10,11 +10,9 @@
     <link rel="stylesheet" href="/css/register.css" />
     <link rel="stylesheet" href="/css/menu.css" />
     <link rel="stylesheet" href="/css/search.css" />
-    <link rel="stylesheet" href="/css/register.css">
     <script src="/js/menu.js"></script>
     <script src="/js/search.js"></script>
     <script src="/js/register.js" defer></script>
-   
   </head>
 
   <body>
@@ -134,6 +132,17 @@
                 </span>
               </label>
             </div>
+            <div class="checkbox-container">
+              <label class="checkbox-wrapper">
+                <input type="checkbox" id="agb-consent" required />
+                <span class="checkmark"></span>
+                <span class="checkbox-text">
+                  Ich stimme den
+                  <a href="agb.html" target="_blank">AGBs</a>
+                  zu
+                </span>
+              </label>
+            </div>
           </div>
 
           <!-- Schritt 2: Kontakt Präferenzen -->
@@ -182,19 +191,23 @@
             </div>
           </div>
 
-          <!-- Navigation -->
-          <div class="step-navigation">
+          <!-- Navigation - ONLY ONE SET OF BUTTONS -->
+          <div class="step-navigation" id="step-nav">
             <button type="button" class="nav-button secondary" id="prev-button" onclick="previousStep()" style="display: none;">
               Zurück
             </button>
-            <button href="login.html" type="button" class="nav-button primary" id="next-button" onclick="nextStep()">
+            <button type="button" class="nav-button primary" id="next-button" onclick="nextStep()">
               Weiter
+            </button>
+            <button type="button" class="nav-button primary" id="finish-button" onclick="finishRegistration()" style="display: none;">
+              Zum Login
             </button>
           </div>
 
-          <div class="button-group" style="display: none;" id="alternative-links">
+          <div class="button-group" id="alternative-links">
             <a href="registerbusiness.html" class="back-link">Du hast ein Gewerbe?</a>
           </div>
+          
           <p id="error"></p>
         </form>
       </div>
@@ -209,3 +222,4 @@
     </footer>
 
   </body>
+</html>

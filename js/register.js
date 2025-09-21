@@ -105,26 +105,30 @@ function showStep(step) {
   const alternativeLinks = document.getElementById('alternative-links');
   const finishButton = document.getElementById('finish-button');
   
+  // Zurück-Button anzeigen/verstecken
   prevButton.style.display = step > 1 ? 'inline-block' : 'none';
   
   if (step === maxSteps) {
-    stepNav.style.display = 'none';
-    alternativeLinks.style.display = 'none';
+    // Letzter Schritt: "Zum Login" Button anzeigen
+    nextButton.style.display = 'none';
     if (finishButton) {
-      finishButton.style.display = 'block';
+      finishButton.style.display = 'inline-block';
     }
+    alternativeLinks.style.display = 'none';
   } else {
-    stepNav.style.display = 'flex';
-    alternativeLinks.style.display = step === 1 ? 'block' : 'none';
+    // Normale Schritte: "Weiter"/"Registrieren" Button anzeigen
+    nextButton.style.display = 'inline-block';
     if (finishButton) {
       finishButton.style.display = 'none';
     }
-  }
-  
-  if (step === 2) {
-    nextButton.textContent = 'Registrieren';
-  } else {
-    nextButton.textContent = 'Weiter';
+    alternativeLinks.style.display = step === 1 ? 'block' : 'none';
+    
+    // Button-Text je nach Schritt
+    if (step === 2) {
+      nextButton.textContent = 'Registrieren';
+    } else {
+      nextButton.textContent = 'Weiter';
+    }
   }
   
   updateProgressBar();
@@ -169,7 +173,12 @@ function validateStep1() {
   const password = document.getElementById("password").value;
   const passwordConfirm = document.getElementById("password-confirm").value;
   const privacyConsent = document.getElementById("privacy-consent").checked;
+  const agbConsent = document.getElementById("agb-consent").checked;
   const errorText = document.getElementById("error");
+
+  // Debug: Log checkbox values
+  console.log("Privacy consent:", privacyConsent);
+  console.log("AGB consent:", agbConsent);
 
   if (!username || !phone || !email || !password || !passwordConfirm) {
     errorText.style.color = "red";
@@ -211,6 +220,12 @@ function validateStep1() {
     errorText.textContent = "Sie müssen der Datenschutzerklärung zustimmen.";
     return false;
   }
+  
+  if (!agbConsent) {
+    errorText.style.color = "red";
+    errorText.textContent = "Sie müssen den AGBs zustimmen.";
+    return false;
+  }
 
   if (!isValidPhoneNumber(phone)) {
     errorText.style.color = "red";
@@ -235,12 +250,15 @@ function validateStep1() {
     email,
     password,
     socialMedia,
-    privacyConsent
+    privacyConsent,
+    agbConsent // Make sure this boolean is stored correctly
   };
+
+  // Debug: Log userData
+  console.log("userData after validation:", userData);
 
   return true;
 }
-
 function validateStep2() {
   const contactMethods = document.querySelectorAll('input[name="contact-method"]:checked');
   const errorText = document.getElementById("error");
@@ -271,6 +289,7 @@ function selectContactOption(optionId) {
 }
 
 // Registrierung durchführen
+// Registrierung durchführen
 async function performRegistration() {
   const errorText = document.getElementById("error");
   errorText.style.color = "black";
@@ -282,6 +301,9 @@ async function performRegistration() {
       contact_methods: userData.contactMethods
     });
 
+    // Debug: Log the userData to see what we're sending
+    console.log("userData before sending:", userData);
+
     const { data: signupData, error: signupError } = await client.auth.signUp({
       email: userData.email,
       password: userData.password,
@@ -291,7 +313,9 @@ async function performRegistration() {
           phone: userData.phone,
           privacy_consent: userData.privacyConsent,
           privacy_consent_date: new Date().toISOString(),
-          // JSON-Daten für Supabase
+          // Convert boolean to string for Supabase compatibility
+          agb_consent: userData.agbConsent ? "true" : "false", // Note: changed to agb_consent (snake_case)
+          agb_consent_date: new Date().toISOString(),
           preferences: {
             contact_methods: userData.contactMethods,
             social_media: userData.socialMedia || null
@@ -301,8 +325,12 @@ async function performRegistration() {
     });
 
     if (signupError) {
+      console.error("Supabase signup error:", signupError);
       throw signupError;
     }
+
+    // Debug: Log the successful signup data
+    console.log("Signup successful:", signupData);
 
     await trackEvent("registration_success", {
       email: userData.email,
@@ -313,7 +341,8 @@ async function performRegistration() {
         contact_methods: userData.contactMethods,
         social_media: userData.socialMedia || null
       },
-      privacy_consent: true,
+      privacy_consent: userData.privacyConsent,
+      agb_consent: userData.agbConsent // Keep boolean for tracking
     });
 
     // E-Mail in Bestätigungsschritt anzeigen
@@ -337,11 +366,11 @@ async function performRegistration() {
 
     errorText.style.color = "red";
     
-    if (error.message.includes('already registered')) {
+    if (error.message.includes('already registered') || error.message.includes('User already registered')) {
       errorText.textContent = "Diese E-Mail-Adresse ist bereits registriert.";
-    } else if (error.message.includes('invalid email')) {
+    } else if (error.message.includes('invalid email') || error.message.includes('Invalid email')) {
       errorText.textContent = "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
-    } else if (error.message.includes('weak password')) {
+    } else if (error.message.includes('weak password') || error.message.includes('Password')) {
       errorText.textContent = "Das Passwort ist zu schwach. Verwenden Sie mindestens 8 Zeichen mit Groß-, Kleinbuchstaben und Zahlen.";
     } else {
       errorText.textContent = "Fehler: " + error.message;
