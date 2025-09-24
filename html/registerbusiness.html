@@ -8,11 +8,15 @@
     <link rel="stylesheet" href="/css/registerbusiness.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/libphonenumber-js/1.10.44/libphonenumber-js.min.js"></script>
-       <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/css/menu.css" />
     <link rel="stylesheet" href="/css/search.css" />
+    <link rel="stylesheet" href="/css/registerbusiness.css" />
     <script src="/js/menu.js"></script>
-    <script src="/js/search.js"></script>
     <script src="/js/registerbusiness.js" defer></script>
+    <script src="/js/search.js"></script>
+    
+
+
   </head>
 
   <body>
@@ -28,125 +32,147 @@
           </a>
         </div>
         <div class="searchbar-wrapper">
-        <input
-          id="searchbar"
-          type="text"
-          class="searchbar"
-          placeholder="Suche nach Teilen, Marken..."
-        >
-        <img 
-        src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
-        >
-        
-      </div>
-      
-  
-      <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
-  <!-- Öffnene -->
-  <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
-  <!-- Schließen -->
-  <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
-</button>
-<nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title">Navigation</div>
+          <input
+            id="searchbar"
+            type="text"
+            class="searchbar"
+            placeholder="Suche nach Teilen, Marken..."
+          >
+          <img 
+            src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+          >
         </div>
-                <div class="menu-items">
-           <a href="../index.html" class="menu-item">Startseite</a>
+      
+        <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
+          <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+          <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+        </button>
+        
+        <nav class="sidebar" id="sidebar">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Navigation</div>
+          </div>
+          <div class="menu-items">
+            <a href="../index.html" class="menu-item">Startseite</a>
             <a href="teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
             <a href="teilesuchen.html" class="menu-item">Teile suchen</a>
-           
             <a href="datenschutz.html" class="menu-item">Datenschutz</a>          
             <a href="impressum.html" class="menu-item">Impressum</a>           
             <a href="übertuninghub.html" class="menu-item">Über uns</a>
             <a href="support.html" class="menu-item">Support</a>
             <a href="account.html" class="menu-item">Einstellungen</a>
-        </div>
-    </nav>
-      <div class="overlay" id="overlay"></div>
+          </div>
+        </nav>
+        
+        <div class="overlay" id="overlay"></div>
+      </div>
     </header>
-<main>
-<div class="form-wrapper">
-  <form id="register-business-form">
-    
-    <!-- Step 1: Grunddaten -->
-    <div class="step-content active" id="step-1">
-      <input type="text" id="fullName" placeholder="Vollständiger Name" required />
-      <input type="tel" id="phone" placeholder="Telefonnummer (z.B. +49 123 456789)" required />
-      <input type="email" id="email" placeholder="E-Mail-Adresse" required />
 
-      <div class="password-container">
-        <input type="password" id="password" placeholder="Passwort" required />
-        <button type="button" class="password-toggle" onclick="togglePassword('password')">👁️</button>
-      </div>
-      <div class="password-container">
-        <input type="password" id="password-confirm" placeholder="Passwort bestätigen" required />
-        <button type="button" class="password-toggle" onclick="togglePassword('password-confirm')">👁️</button>
-      </div>
-    </div>
-
-    <!-- Step 2: Business Daten -->
-    <div class="step-content" id="step-2">
-      <input type="text" id="companyName" placeholder="Firmenname" required />
-      <textarea id="companyDescription" placeholder="Was bietest du an?" rows="4" required></textarea>
-
-      <!-- Logo Upload -->
-      <label class="file-upload">
-        Logo hochladen
-        <input type="file" id="companyLogo" accept="image/*" />
-      </label>
-
-      <input type="url" id="contactLink" placeholder="Kontakt (Instagram, Website...)" required />
-
-      <!-- Checkboxen -->
-      <div class="checkbox-container">
-        <label class="checkbox-wrapper">
-          <input type="checkbox" id="privacy-consent" required />
-          <span class="checkmark"></span>
-          <span class="checkbox-text">Ich stimme der <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a> zu</span>
-        </label>
-      </div>
-      <div class="checkbox-container">
-        <label class="checkbox-wrapper">
-          <input type="checkbox" id="agb-consent" required />
-          <span class="checkmark-agb"></span>
-          <span class="checkbox-text">Ich stimme den <a href="agb.html" target="_blank">AGB</a> zu</span>
-        </label>
-      </div>
-    </div>
-
-    <!-- Step 3: Bestätigung -->
-    <div class="step-content" id="step-3">
-      <div class="confirmation-content">
-        <div class="confirmation-title">Fast geschafft!</div>
-        <div class="confirmation-text">
-          Wir haben eine Bestätigungs-E-Mail an <span class="email-highlight" id="confirmation-email"></span> gesendet.  
-          Bitte bestätige deine E-Mail, um deinen Business-Account zu aktivieren.
+    <main>
+      <div class="progress-container">
+        <h1 class="main-überschrift">Business Account erstellen</h1>
+        <div class="progress-bar">
+          <div class="progress-line" id="progress-line"></div>
+          
+          <div class="step">
+            <div class="step-circle active" id="step-circle-1">1</div>
+            <div class="step-title active" id="step-title-1">Persönliche<br>Daten</div>
+          </div>
+          
+          <div class="step">
+            <div class="step-circle" id="step-circle-2">2</div>
+            <div class="step-title" id="step-title-2">Business<br>Informationen</div>
+          </div>
+          
+          <div class="step">
+            <div class="step-circle" id="step-circle-3">3</div>
+            <div class="step-title" id="step-title-3">Bestätigung</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Navigation -->
-    <div class="step-navigation" id="step-nav">
-      <button type="button" class="nav-button secondary" id="prev-button" onclick="previousStep()">Zurück</button>
-      <button type="button" class="nav-button primary" id="next-button" onclick="nextStep()">Weiter</button> <br>
-      <button type="button" class="nav-button primary" id="finish-button" onclick="finishBusinessRegistration()">Zum Login</button>
-    </div>
+      <div class="form-wrapper">
+        <form id="register-business-form">
+          
+          <!-- Step 1: Grunddaten -->
+          <div class="step-content active" id="step-1">
+            <input type="text" id="fullName" placeholder="Vollständiger Name" required />
+            <input type="tel" id="phone" placeholder="Telefonnummer (z.B. +49 123 456789)" required />
+            <input type="email" id="email" placeholder="E-Mail-Adresse" required />
 
-    <p id="error-message"></p>
-  </form>
-</div>
-</main>
-<footer>
-    <div class="informations"><a href="uebertuninghub.html">TuningHub</a></div>
-    <div class="informations"><a href="impressum.html">Impressum</a></div>
-    <div class="informations"><a href="support.html">Support</a></div>
-    <div class="informations"><a href="socialmedia.html">Social Media</a></div>
-    <div class="informations"><a href="agb.html">AGB</a></div>
-    <div class="informations"><a href="haftungsbeschränkung.html">Haftungsbeschränkung</a></div>
-    <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
-  </footer>
+            <div class="password-container">
+              <input type="password" id="password" placeholder="Passwort" required />
+             
+            </div>
+            <div class="password-container">
+              <input type="password" id="password-confirm" placeholder="Passwort bestätigen" required />
+            
+            </div>
+          </div>
 
-  
-  </body>
+          <!-- Step 2: Business Daten -->
+          <div class="step-content" id="step-2">
+            <input type="text" id="companyName" placeholder="Firmenname" required />
+            <textarea id="companyDescription" placeholder="Was bietest du an?" rows="4" required></textarea>
+
+            <!-- Logo Upload -->
+            <label class="file-upload">
+              Logo hochladen
+              <input type="file" id="companyLogo" accept="image/*" />
+            </label>
+
+            <input type="url" id="contactLink" placeholder="Kontakt (Instagram, Website...)" required />
+
+            <!-- Checkboxen -->
+            <div class="checkbox-container">
+              <label class="checkbox-wrapper">
+                <input type="checkbox" id="privacy-consent" required />
+                <span class="checkmark"></span>
+                <span class="checkbox-text">Ich stimme der <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a> zu</span>
+              </label>
+            </div>
+            <div class="checkbox-container">
+              <label class="checkbox-wrapper">
+                <input type="checkbox" id="agb-consent" required />
+                <span class="checkmark-agb"></span>
+                <span class="checkbox-text">Ich stimme den <a href="agb.html" target="_blank">AGB</a> zu</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Step 3: Bestätigung -->
+          <div class="step-content" id="step-3">
+            <div class="confirmation-content">
+              <div class="confirmation-title">Fast geschafft!</div>
+              <div class="confirmation-text">
+                Wir haben eine Bestätigungs-E-Mail an <span class="email-highlight" id="confirmation-email"></span> gesendet.  
+                Bitte bestätige deine E-Mail, um deinen Business-Account zu aktivieren.
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation -->
+          <div class="step-navigation" id="step-nav">
+            <button type="button" class="nav-button secondary" id="prev-button" onclick="previousStep()">Zurück</button>
+            <button type="button" class="nav-button primary" id="next-button" onclick="nextStep()">Weiter</button>
+            <button type="button" class="nav-button primary" id="finish-button" onclick="finishBusinessRegistration()">Zum Login</button>
+          </div>
+
+          <p id="error-message"></p>
+        </form>
+      </div>
+    </main>
+    
+    <footer>
+      <div class="informations"><a href="uebertuninghub.html">TuningHub</a></div>
+      <div class="informations"><a href="impressum.html">Impressum</a></div>
+      <div class="informations"><a href="support.html">Support</a></div>
+      <div class="informations"><a href="socialmedia.html">Social Media</a></div>
+      <div class="informations"><a href="agb.html">AGB</a></div>
+      <div class="informations"><a href="haftungsbeschränkung.html">Haftungsbeschränkung</a></div>
+      <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+    </footer>
+
+     
+    </body>
 </html>
