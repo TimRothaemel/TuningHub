@@ -283,7 +283,7 @@ async function initializePage() {
   
   const sellerId = getUrlParameter("seller");
   if (!sellerId) {
-    window.location.href = "/html/Verkäufer/verkäufer.html";
+    window.location.href = "/html/verkäufer.html";
     return;
   }
 
@@ -311,7 +311,7 @@ async function initializePage() {
           <h3>Fehler beim Laden</h3>
           <p>${error.message}</p>
           <button onclick="initializePage()" class="btn-primary">Erneut versuchen</button>
-          <a href="/html/Verkäufer/verkäufer.html" class="btn-secondary">Zurück zu allen Verkäufern</a>
+          <a href="/html/verkäufer.html" class="btn-secondary">Zurück zu allen Verkäufern</a>
         </div>
       </div>
     `;
