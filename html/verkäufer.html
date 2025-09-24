@@ -21,24 +21,26 @@
     <meta name="twitter:image" content="/img/THub-Logo-ohne-Hintergrund-500x200.png" />
 
     <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/index.css" />
     <link rel="stylesheet" href="/css/card.css" />
     <link rel="stylesheet" href="/css/search.css" />
     <link rel="stylesheet" href="/css/menu.css" />
-    <link rel="stylesheet" href="/css/card.css" />
 
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
 
+
+    <script type="module" src="/js/supabaseClient.js"></script>
     <script src="/js/search.js" defer></script>
     <script src="/js/menu.js" defer></script>
-    <script src="/js/linkCards.js" defer></script>
+    <script src="/js/verkäufer.js" defer></script>
+    <script type="module" src="/js/verkäuferDetail.js"></script>
 </head>
+
 
 <body>
     <header class="header">
         <div class="header-top">
             <div class="logo">
-                <a href="../../index.html">
+                <a href="../index.html">
                     <img src="/img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
                 </a>
             </div>
@@ -66,9 +68,6 @@
                     <a href="index.html" class="menu-item">Startseite</a>
                     <a href="/html/teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
                     <a href="/html/teilesuchen.html" class="menu-item">Teile suchen</a>
-                    <a href="#" class="menu-item" style="color: #999">Teile sofort verkaufen</a>
-                    <a href="/html/chat.html" class="menu-item" style="color: #999">Chat</a>
-                    <a href="#" class="menu-item" style="color: #999;">Benachrichtigungen</a>
                     <a href="/html/Verkäufer/verkäufer.html" class="menu-item">Verkäufer</a>
                     <a href="/html/datenschutz.html" class="menu-item">Datenschutz</a>
                     <a href="/html/impressum.html" class="menu-item">Impressum</a>
@@ -81,37 +80,19 @@
     </header>
 
     <main>
-        <div class="grid-container">
-           <button style="border-style: none;" onclick="navigateToMmPartsShop()">
-            <div class="card">
-                <img src="/html/Verkäufer/mm.parts.shop/img/mm.parts.shop.png" alt="mm.parts.shop Logo" />
-          
-            <div class="card-content">
-                <h2 >mm.parts.shop</h2>
-                <p>Shop mit großer Auswahl an Mopedteilen.</p>
-            </div>
-            <div class="card-footer">
-  
-         </div>
-  </button>
-        </div>
+
     </main>
 
 
+
     <footer>
-        <div class="informations">
-            <a href="/html/übertuninghub.html">TuningHub</a>
-        </div>
-        <div class="informations">
-            <a href="/html/impressum.html">Impressum</a>
-        </div>
-        <div class="informations"><a href="/html/support.html"> Support</a></div>
-        <div class="informations">
-            <a href="/html/socialmedia.html"> Social Media</a>
-        </div>
-        <div class="informations">
-            <a href="/html/datenschutz.html">Datenschutz</a>
-        </div>
+        <div class="informations"><a href="/html/übertuninghub.html">TuningHub</a></div>
+        <div class="informations"><a href="/html/impressum.html">Impressum</a></div>
+        <div class="informations"><a href="/html/support.html">Support</a></div>
+        <div class="informations"><a href="/html/socialmedia.html">Social Media</a></div>
+        <div class="informations"><a href="/html/agb.html">AGB</a></div>
+        <div class="informations"><a href="/html/haftungsbeschränkung.html">Haftungsbeschränkung</a></div>
+        <div class="informations"><a href="/html/datenschutz.html">Datenschutz</a></div>
     </footer>
 </body>
 
