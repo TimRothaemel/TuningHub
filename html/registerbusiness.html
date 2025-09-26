@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/css/menu.css" />
     <link rel="stylesheet" href="/css/search.css" />
     <link rel="stylesheet" href="/css/registerbusiness.css" />
+    <script type="module" src="/js/supabaseClient.js"></script>
     <script src="/js/menu.js"></script>
     <script src="/js/registerbusiness.js" defer></script>
     <script src="/js/search.js"></script>
@@ -53,14 +54,7 @@
             <div class="sidebar-title">Navigation</div>
           </div>
           <div class="menu-items">
-            <a href="../index.html" class="menu-item">Startseite</a>
-            <a href="teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
-            <a href="teilesuchen.html" class="menu-item">Teile suchen</a>
-            <a href="datenschutz.html" class="menu-item">Datenschutz</a>          
-            <a href="impressum.html" class="menu-item">Impressum</a>           
-            <a href="übertuninghub.html" class="menu-item">Über uns</a>
-            <a href="support.html" class="menu-item">Support</a>
-            <a href="account.html" class="menu-item">Einstellungen</a>
+            
           </div>
         </nav>
         
@@ -155,7 +149,6 @@
           <div class="step-navigation" id="step-nav">
             <button type="button" class="nav-button secondary" id="prev-button" onclick="previousStep()">Zurück</button>
             <button type="button" class="nav-button primary" id="next-button" onclick="nextStep()">Weiter</button>
-            <button type="button" class="nav-button primary" id="finish-button" onclick="finishBusinessRegistration()">Zum Login</button>
           </div>
 
           <p id="error-message"></p>

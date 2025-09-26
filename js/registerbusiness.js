@@ -1,20 +1,49 @@
-console.log("registerbusiness.js geladen");
-
-// Supabase Verbindungen
-const trackingUrl = "https://lhxcnrogjjskgaclqxtm.supabase.co";
-const trackingKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww";
-
-const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
-
-const trackingClient = supabase.createClient(trackingUrl, trackingKey);
-const client = supabase.createClient(supabaseUrl, supabaseKey);
-
+// Initialize global variables FIRST
 let currentStep = 1;
 const maxSteps = 3;
 let businessData = {};
 let logoFile = null;
 let isProcessing = false;
+
+// Use existing Supabase clients from supabaseClient.js
+let trackingClient = null;
+let client = null;
+
+// Function to get Supabase clients from window object
+function getSupabaseClients() {
+  if (window.supabase && window.trackingSupabase) {
+    client = window.supabase;
+    trackingClient = window.trackingSupabase;
+    console.log("Using existing Supabase clients from window object");
+    return true;
+  }
+  return false;
+}
+
+// Wait for Supabase clients to be available
+function waitForSupabase() {
+  return new Promise((resolve) => {
+    if (getSupabaseClients()) {
+      resolve();
+      return;
+    }
+    
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds maximum wait
+    const interval = setInterval(() => {
+      attempts++;
+      if (getSupabaseClients()) {
+        clearInterval(interval);
+        resolve();
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval);
+        console.error("Supabase clients not available after 5 seconds");
+        showErrorMessage("Fehler beim Laden der Anwendung. Bitte laden Sie die Seite neu.");
+        resolve(); // Resolve anyway to prevent hanging
+      }
+    }, 100);
+  });
+}
 
 // Sanitize Functions
 function sanitizeInput(input) {
@@ -167,7 +196,8 @@ function createLogoPreview(file) {
   reader.readAsDataURL(file);
 }
 
-function removeLogo() {
+// Make removeLogo globally accessible
+window.removeLogo = function removeLogo() {
   logoFile = null;
   const logoInput = document.getElementById("companyLogo");
   const previewContainer = document.getElementById("logoPreview");
@@ -281,8 +311,8 @@ function showStep(step) {
   updateProgressBar();
 }
 
-// Navigation Functions - MOVED TO GLOBAL SCOPE
-function nextStep() {
+// Navigation Functions - Make them globally accessible
+window.nextStep = function nextStep() {
   console.log(`Next step called, current step: ${currentStep}`);
   
   if (validateCurrentStep()) {
@@ -295,13 +325,28 @@ function nextStep() {
   }
 }
 
-function previousStep() {
+window.previousStep = function previousStep() {
   console.log(`Previous step called, current step: ${currentStep}`);
   
   if (currentStep > 1) {
     currentStep--;
     showStep(currentStep);
   }
+}
+
+// Finish Registration - Make globally accessible
+window.finishBusinessRegistration = function finishBusinessRegistration() {
+  console.log("Finishing business registration...");
+  vibrateDevice();
+  
+  trackEvent("business_registration_completed", {
+    email: businessData.email,
+    companyName: businessData.companyName,
+  });
+  
+  setTimeout(() => {
+    window.location.href = "login.html";
+  }, 1000);
 }
 
 // Error/Success Messages
@@ -466,6 +511,12 @@ async function performBusinessRegistration() {
     return;
   }
 
+  // Ensure Supabase is available
+  if (!client) {
+    showErrorMessage("Supabase ist nicht verfügbar. Bitte laden Sie die Seite neu.");
+    return;
+  }
+
   try {
     isProcessing = true;
     showLoading(true);
@@ -532,7 +583,7 @@ async function performBusinessRegistration() {
           throw new Error(`Logo Upload Fehler: ${uploadError.message}`);
         }
 
-        logoUrl = `${supabaseUrl}/storage/v1/object/public/business-logos/${uploadData.path || fileName}`;
+        logoUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/business-logos/${uploadData.path || fileName}`;
         console.log("Logo uploaded successfully:", logoUrl);
         
       } catch (logoError) {
@@ -619,24 +670,14 @@ async function performBusinessRegistration() {
   }
 }
 
-// Finish Registration - MOVED TO GLOBAL SCOPE
-function finishBusinessRegistration() {
-  console.log("Finishing business registration...");
-  vibrateDevice();
-  
-  trackEvent("business_registration_completed", {
-    email: businessData.email,
-    companyName: businessData.companyName,
-  });
-  
-  setTimeout(() => {
-    window.location.href = "login.html";
-  }, 1000);
-}
-
 // Tracking
 async function trackEvent(eventType, metadata = {}) {
   try {
+    if (!trackingClient) {
+      console.warn("Tracking client not available");
+      return;
+    }
+    
     const { error } = await trackingClient
       .from("tracking_events")
       .insert({ event_type: eventType, metadata });
@@ -667,9 +708,12 @@ function formatPhoneNumber(value) {
   return value;
 }
 
-// Initialize
-document.addEventListener("DOMContentLoaded", () => {
+// DOM Content Loaded Event
+document.addEventListener("DOMContentLoaded", async () => {
   console.log("DOM Content Loaded - Initializing business registration");
+  
+  // Wait for Supabase to be available
+  await waitForSupabase();
   
   // Phone input formatting
   const phoneInput = document.getElementById("phone");

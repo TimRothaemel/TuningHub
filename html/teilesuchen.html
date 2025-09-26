@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/teilesuchen.css" />
        <link rel="stylesheet" href="/css/menu.css" />
     <link rel="stylesheet" href="/css/search.css" />
+    <script type="module" src="/js/supabaseClient.js"></script>
     <script src="/js/menu.js"></script>
     <script src="/js/search.js"></script>
   </head>
@@ -49,15 +50,7 @@
             <div class="sidebar-title">Navigation</div>
         </div>
             <div class="menu-items">
-            <a href="../index.html" class="menu-item">Startseite</a>
-            <a href="teilehinzufügen.html" class="menu-item">Teile verkaufen</a>
-            <a href="teilesuchen.html" class="menu-item">Teile suchen</a>
             
-            <a href="datenschutz.html" class="menu-item">Datenschutz</a>          
-            <a href="impressum.html" class="menu-item">Impressum</a>           
-            <a href="übertuninghub.html" class="menu-item">Über uns</a>
-            <a href="support.html" class="menu-item">Support</a>
-            <a href="account.html" class="menu-item">Einstellungen</a>
         </div>
     </nav>
       <div class="overlay" id="overlay"></div>
@@ -143,7 +136,6 @@
     <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
   </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       "use strict";
 
@@ -155,28 +147,9 @@
 
       function initializeSupabase() {
         try {
-          supabase = window.supabase.createClient(
-            "https://yvdptnkmgfxkrszitweo.supabase.co",
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo",
-            {
-              auth: {
-                autoRefreshToken: true,
-                persistSession: true,
-                detectSessionInUrl: true,
-              },
-            }
-          );
+           import { supabase, trackingSupabase } from "/js/supabaseClient.js";
+          
 
-          trackingSupabase = window.supabase.createClient(
-            "https://lhxcnrogjjskgaclqxtm.supabase.co",
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww",
-            {
-              auth: {
-                autoRefreshToken: false,
-                persistSession: false,
-              },
-            }
-          );
 
           console.log("Supabase erfolgreich initialisiert");
           return true;

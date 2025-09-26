@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shop Einstellungen - TuningHub</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/card.css" />
+    <link rel="stylesheet" href="/css/search.css" />
+    <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/css/businessShopEinstellungen.css" /> 
+</head>
+<script type="module" src="/js/supabaseClient.js"></script>
+    <script src="/js/search.js"></script>
+    <script src="/js/menu.js"></script>
+    <script src="/js/businessShopEinstellung.js" defer></script>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div style="text-align: center;">
+            <div class="loading-spinner"></div>
+            <div>Wird geladen...</div>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="header-top">
+            <div class="logo">
+                <a href="../index.html">
+                    <img src="/img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+                </a>
+            </div>
+            <div class="searchbar-wrapper">
+                <input id="searchbar" type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
+                <img src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" />
+            </div>
+            <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
+                <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open" />
+                <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close" />
+            </button>
+            <nav class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">Navigation</div>
+                </div>
+                <div class="menu-items"></div>
+            </nav>
+            <div class="overlay" id="overlay"></div>
+        </div>
+    </header>
+
+    <main class="shop-settings-container">
+        <h1 class="main-title">Shop Einstellungen</h1>
+        
+        <div class="success-message" id="successMessage"></div>
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="settings-tabs">
+            <button class="tab-button active" data-tab="shop-info">
+                <span>Shop Informationen</span>
+            </button>
+            <button class="tab-button" data-tab="categories">
+                <span>Kategorien verwalten</span>
+            </button>
+        </div>
+
+        <!-- Shop Informationen Tab -->
+        <div id="shop-info" class="tab-content active">
+            <div class="card">
+                <h2>Shop Grunddaten</h2>
+                <form id="shopInfoForm">
+                    <div class="form-group">
+                        <label for="shopName">Shop Name</label>
+                        <input type="text" id="shopName" required maxlength="100" placeholder="Geben Sie Ihren Shop-Namen ein" />
+                    </div>
+                    <div class="form-group">
+                        <label for="shopDescription">Shop Beschreibung</label>
+                        <textarea id="shopDescription" required rows="4" maxlength="500" placeholder="Beschreiben Sie Ihren Shop..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="shopWebsite">Website (optional)</label>
+                        <input type="url" id="shopWebsite" required placeholder="https://ihre-website.de" />
+                    </div>
+                    <div class="form-group">
+                        <label for="shopLogo">Shop Logo</label>
+                        <input type="file" id="shopLogo" required accept="image/*" />
+                        <div id="logoPreview"></div>
+                    </div>
+                    <button type="submit" class="btn">Shop Informationen speichern</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Kategorien Tab -->
+        <div id="categories" class="tab-content">
+            <div class="card">
+                <h2>Neue Kategorie hinzufügen</h2>
+                <form id="categoryForm">
+                    <div class="form-group">
+                        <label for="categoryName">Kategorie Name</label>
+                        <input type="text" id="categoryName" required maxlength="50" placeholder="z.B. Auspuffanlagen" />
+                    </div>
+                    <div class="form-group">
+                        <label for="categoryDescription">Beschreibung (optional)</label>
+                        <input type="text" id="categoryDescription" maxlength="200" placeholder="Kurze Beschreibung der Kategorie" />
+                    </div>
+                    <button type="submit" class="btn">Kategorie hinzufügen</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Meine Kategorien</h2>
+                <div id="categoriesList" class="categories-grid">
+                    <!-- Categories will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="informations"><a href="/html/übertuninghub.html">TuningHub</a></div>
+        <div class="informations"><a href="/html/impressum.html">Impressum</a></div>
+        <div class="informations"><a href="/html/support.html">Support</a></div>
+        <div class="informations"><a href="/html/socialmedia.html">Social Media</a></div>
+        <div class="informations"><a href="/html/agb.html">AGB</a></div>
+        <div class="informations"><a href="/html/haftungsbeschränkung.html">Haftungsbeschränkung</a></div>
+        <div class="informations"><a href="/html/datenschutz.html">Datenschutz</a></div>
+    </footer>
+</body>
+</html>
