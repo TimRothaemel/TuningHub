@@ -42,53 +42,63 @@ export function showEmpty() {
   }
 }
 
-export  function createCard(teil) {
-            const { name, preis, beschreibung, bild, typ } = extractData(teil);
+export function createCard(teil) {
+  const { name, preis, beschreibung, bild, typ } = extractData(teil);
 
-            const card = document.createElement("div");
-            const isSearch = typ === "teilesuche";
-            card.className = isSearch ? "card search-card" : "card";
+  const card = document.createElement("div");
+  const isSearch = typ === "teilesuche";
+  card.className = isSearch ? "card search-card" : "card";
 
-            const imageUrl =
-                bild ||
-                "/img/search.png";
-            const fallbackUrl = "/img/search.png";
-
-            let preisText = preis;
-            if (typeof preis === "number") {
-                preisText = `${preis.toLocaleString("de-DE")}€`;
-            } else if (typeof preis === "string" && !isNaN(parseFloat(preis))) {
-                preisText = `${parseFloat(preis).toLocaleString("de-DE")}€`;
-            }
-
-            const kurzbeschreibung = truncateDescription(beschreibung, 120);
-
-            card.innerHTML = `
-                    ${isSearch ? '<span class="search-badge">🔍 SUCHE</span>' : ""}
-                    <img src="${imageUrl}" 
-                         alt="${name}" 
-                         onerror="this.src='${fallbackUrl}'" 
-                         loading="lazy" />
-                    <div class="card-content">
-                        <h2>${name}</h2>
-                        ${
-                            kurzbeschreibung
-                                ? `<p class="card-description">${kurzbeschreibung}</p>`
-                                : ""
-                        }
-                        <div class="card-footer">
-                            <p><strong>${preisText}</strong></p>
-                        </div>
-                    </div>
-                `;
-
-            card.addEventListener("click", function () {
-                openDetailView(teil);
-            });
-
-            return card;
-        }
+  // Prüfen ob Teil einen Link hat
+  const hasExternalLink = teil.link && teil.link.trim().length > 0;
   
+  // External link badge hinzufügen wenn Link vorhanden
+  if (hasExternalLink) {
+    card.classList.add("external-link-card");
+  }
+
+  const imageUrl = bild || "/img/search.png";
+  const fallbackUrl = "/img/search.png";
+
+  let preisText = preis;
+  if (typeof preis === "number") {
+    preisText = `${preis.toLocaleString("de-DE")}€`;
+  } else if (typeof preis === "string" && !isNaN(parseFloat(preis))) {
+    preisText = `${parseFloat(preis).toLocaleString("de-DE")}€`;
+  }
+
+  const kurzbeschreibung = truncateDescription(beschreibung, 120);
+
+  card.innerHTML = `
+    <img src="${imageUrl}" 
+         alt="${name}" 
+         onerror="this.src='${fallbackUrl}'" 
+         loading="lazy" />
+    <div class="card-content">
+        <h2>${name}</h2>
+        ${kurzbeschreibung ? `<p class="card-description">${kurzbeschreibung}</p>` : ""}
+        <div class="card-footer">
+            <p><strong>${preisText}</strong></p>
+        </div>
+    </div>
+  `;
+
+  // Click-Handler: Link oder Detail-View je nach Teil
+  card.addEventListener("click", function (e) {
+    e.preventDefault();
+    
+    if (hasExternalLink) {
+      // Externen Link in neuem Tab öffnen
+      window.open(teil.link, '_blank');
+      log(`Externen Link geöffnet: ${teil.link}`);
+    } else {
+      // Detail-View für Teile ohne Link
+      openDetailView(teil);
+    }
+  });
+
+  return card;
+}
 
 export function createLinkCard(name, beschreibung, imageUrl, preis, targetUrl) {
   const card = document.createElement('div');
@@ -121,26 +131,18 @@ export function createLinkCard(name, beschreibung, imageUrl, preis, targetUrl) {
 }
 
 export function extractData(teil) {
-  const name =
-    teil.title
-    "Unbekanntes Teil";
-  const preis =
-    teil.price
-    "Preis auf Anfrage";
-  const beschreibung =
-   teil.description;
-  const bild =
-    teil.image_url;
-  const kategorie =
-   teil.type;
-  const zustand =
-    teil.condition;
+  const name = teil.title || "Unbekanntes Teil";
+  const preis = teil.price || "Preis auf Anfrage";
+  const beschreibung = teil.description;
+  const bild = teil.image_url;
+  const kategorie = teil.type;
+  const zustand = teil.condition;
   const telefon = teil.contact_number;
-  const verkäufer =
-   "Privater Verkäufer";
+  const verkäufer = "Privater Verkäufer";
   const datum = teil.created_at;
   const id = teil.id;
   const typ = teil.type;
+  const link = teil.link; // Link extrahieren
 
   const bilder = [];
   for (let i = 1; i <= 5; i++) {
@@ -163,6 +165,7 @@ export function extractData(teil) {
     id,
     typ,
     bilder,
+    link, // Link zurückgeben
   };
 }
 
@@ -343,6 +346,7 @@ export function openDetailView(teil) {
     typ,
     id,
     bilder,
+    link,
   } = extractData(teil);
 
   currentPart = teil;
@@ -408,6 +412,19 @@ export function openDetailView(teil) {
     typeContainer.style.display = "none";
   }
 
+  // Link-Button in Detail-View hinzufügen/aktualisieren
+  const linkContainer = document.getElementById("detail-link-container") || createLinkContainer();
+  const linkButton = document.getElementById("visit-link-btn");
+  
+  if (link && link.trim().length > 0) {
+    linkContainer.style.display = "block";
+    linkButton.onclick = function () {
+      window.open(link, '_blank');
+    };
+  } else {
+    linkContainer.style.display = "none";
+  }
+
   const contactBtn = document.getElementById("contact-seller-btn");
   contactBtn.onclick = function () {
     contactSeller(telefon);
@@ -430,6 +447,26 @@ export function openDetailView(teil) {
   document.body.style.overflow = "hidden";
 
   log("Detailansicht geöffnet für:", name);
+}
+
+// Funktion zum Erstellen des Link-Containers in der Detail-View (falls nicht vorhanden)
+function createLinkContainer() {
+  const modal = document.getElementById("detail-modal");
+  const actionsContainer = modal.querySelector('.modal-actions') || modal.querySelector('.detail-actions');
+  
+  if (actionsContainer && !document.getElementById("detail-link-container")) {
+    const linkContainer = document.createElement('div');
+    linkContainer.id = "detail-link-container";
+    linkContainer.style.display = "none";
+    linkContainer.innerHTML = `
+      <button id="visit-link-btn" class="action-btn link-btn">
+        🔗 Zur Webseite
+      </button>
+    `;
+    actionsContainer.insertBefore(linkContainer, actionsContainer.firstChild);
+  }
+  
+  return document.getElementById("detail-link-container");
 }
 
 export function closeDetailView() {

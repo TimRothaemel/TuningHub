@@ -1,3 +1,7 @@
+:root{
+    --link-color: #0077cc;
+}
+
 /* Reset */
 * {
   box-sizing: border-box;

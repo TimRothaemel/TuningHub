@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="/css/search.css" />
     <link rel="stylesheet" href="/css/menu.css" />
     <link rel="stylesheet" href="/css/shopCards.css" />
+    <link rel="stylesheet" href="/css/shopKategorien.css" />
 
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
 
@@ -32,7 +33,7 @@
     <script type="module" src="/js/supabaseClient.js"></script>
     <script src="/js/search.js" defer></script>
     <script src="/js/menu.js" defer></script>
-    <script src="/js/verkäufer.js" defer></script>
+    <script src="/js/verkäuferKategorien.js" defer></script>
 </head>
 
 
@@ -71,11 +72,21 @@
             <div class="overlay" id="overlay"></div>
     </header>
 
-    <main class="shops-container">
-    <div id="shopsGrid" class="shops-grid">
-        <!-- Verkäufer-Karten werden hier dynamisch eingefügt -->
+     <main class="shops-main">
+        <div class="page-header">
+            <h1 id="shopTitle">Shop Kategorien</h1>
+            <p id="shopDescription">Wähle eine Kategorie aus</p>
+        </div>
+        
+        <div id="errorMessage"></div>
+        
+        <div id="categoriesGrid" class="shops-grid">
+            <!-- Kategorien-Karten werden hier eingefügt -->
+        </div>
+         <div id="loadingOverlay">
+        <div style="color: white; font-size: 1.2rem;">Lädt...</div>
     </div>
-</main>
+    </main>
 
 
 
