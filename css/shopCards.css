@@ -17,7 +17,9 @@
     color: white;
     text-align: center;
 }
-
+img.shop-logo {
+  margin-top: 16px;
+}
 .shop-card {
     border: 1px solid #e5e7eb;
     border-radius: 8px;
