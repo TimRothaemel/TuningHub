@@ -34,7 +34,34 @@
     <script src="/js/kategorieTeile.js" defer></script>
 </head>
 
+<style>
+    .parts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+        padding: 16px;
+    }
 
+    #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5em;
+        z-index: 1000;
+    }
+
+    #errorMessage {
+        color: red;
+        text-align: center;
+        margin-top: 20px;
+    }
+</style>
 <body>
     <header class="header">
         <div class="header-top">
