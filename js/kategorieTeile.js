@@ -240,7 +240,6 @@ function createPartCard(part, defaultCategoryName) {
                 <h3>${escapeHtml(part.title || part.name || 'Unbenanntes Teil')}</h3>
                 <div class="part-meta">
                     <small>Kategorie: ${escapeHtml(categoryName)}</small>
-                    ${hasLink ? '<small style="display: block; color: #28a745; font-weight: bold;">🔗 Zur Webseite</small>' : ''}
                 </div>
                 <p class="card-description">
                     ${escapeHtml(part.description || 'Keine Beschreibung verfügbar')}
