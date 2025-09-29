@@ -443,26 +443,30 @@ function validateStep2() {
   const privacyConsent = document.getElementById("privacy-consent")?.checked || false;
   const agbConsent = document.getElementById("agb-consent")?.checked || false;
 
-  if (!companyName || !companyDescription || !contactLink) {
-    showErrorMessage("Bitte füllen Sie alle Felder aus.");
+  // Validierung: Firmenname und Beschreibung sind Pflichtfelder
+  if (!companyName || !companyDescription) {
+    showErrorMessage("Bitte füllen Sie Firmenname und Beschreibung aus.");
     return false;
   }
   
+  // Validierung: Datenschutzerklärung muss akzeptiert werden
   if (!privacyConsent) {
     showErrorMessage("Sie müssen der Datenschutzerklärung zustimmen.");
     return false;
   }
   
+  // Validierung: AGB muss akzeptiert werden
   if (!agbConsent) {
     showErrorMessage("Sie müssen den AGBs zustimmen.");
     return false;
   }
 
+  // Alle Daten speichern
   businessData = {
     ...businessData,
     companyName,
     companyDescription,
-    contactLink,
+    contactLink: contactLink || "", // Leerer String wenn nicht ausgefüllt
     privacyConsent,
     agbConsent,
   };

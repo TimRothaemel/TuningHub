@@ -264,7 +264,7 @@
           await trackEvent("password_reset_attempt", { email });
 
           const { error } = await client.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password.html`,
+            redirectTo: `${window.location.origin}/html/reset-password.html`,
           });
 
           if (error) {
