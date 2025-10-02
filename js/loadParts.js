@@ -2,6 +2,23 @@ console.log("loadParts.js geladen");
 
 import { supabase, trackingSupabase } from "./supabaseClient.js";
 
+// Import Chat-Modul dynamisch
+let ChatModule = null;
+
+// Lade Chat-Modul asynchron
+async function loadChatModule() {
+  if (!ChatModule) {
+    try {
+      ChatModule = await import('./chat.js');
+      console.log('Chat-Modul erfolgreich geladen');
+    } catch (error) {
+      console.warn('Chat-Modul konnte nicht geladen werden:', error);
+    }
+  }
+  return ChatModule;
+}
+import { openChat } from "./chat.js";
+
 // Utility functions
 export function log(message, data = '') {
   console.log(`[TuningHub] ${message}`, data);
@@ -43,16 +60,17 @@ export function showEmpty() {
 }
 
 export function createCard(teil) {
-  const { name, preis, beschreibung, bild, typ } = extractData(teil);
+  const { name, preis, beschreibung, bild, typ, id } = extractData(teil);
 
   const card = document.createElement("div");
-  const isSearch = typ === "teilesuche";
-  card.className = isSearch ? "card search-card" : "card";
+  card.className = typ === "teilesuche" ? "card search-card" : "card";
+  
+  // WICHTIG für Anker-Link
+  card.setAttribute("data-id", id);
+  card.id = `teil-${id}`;
 
-  // Prüfen ob Teil einen Link hat
   const hasExternalLink = teil.link && teil.link.trim().length > 0;
   
-  // External link badge hinzufügen wenn Link vorhanden
   if (hasExternalLink) {
     card.classList.add("external-link-card");
   }
@@ -83,16 +101,13 @@ export function createCard(teil) {
     </div>
   `;
 
-  // Click-Handler: Link oder Detail-View je nach Teil
   card.addEventListener("click", function (e) {
     e.preventDefault();
     
     if (hasExternalLink) {
-      // Externen Link in neuem Tab öffnen
       window.open(teil.link, '_blank');
       log(`Externen Link geöffnet: ${teil.link}`);
     } else {
-      // Detail-View für Teile ohne Link
       openDetailView(teil);
     }
   });
@@ -122,7 +137,6 @@ export function createLinkCard(name, beschreibung, imageUrl, preis, targetUrl) {
     </div>
   `;
   
-  // Add click event to open external link
   card.addEventListener('click', () => {
     window.open(targetUrl, '_blank');
   });
@@ -137,12 +151,15 @@ export function extractData(teil) {
   const bild = teil.image_url;
   const kategorie = teil.type;
   const zustand = teil.condition;
-  const telefon = teil.contact_number;
+  const telefon = teil.contact_number || teil.seller_phone;
   const verkäufer = "Privater Verkäufer";
   const datum = teil.created_at;
   const id = teil.id;
   const typ = teil.type;
-  const link = teil.link; // Link extrahieren
+  const link = teil.link;
+  const verkäuferId = teil.user_id || teil.seller_id;
+  const sellerContactMethods = teil.seller_contact_methods || ['phone'];
+  const sellerSocialMedia = teil.seller_social_media;
 
   const bilder = [];
   for (let i = 1; i <= 5; i++) {
@@ -165,7 +182,10 @@ export function extractData(teil) {
     id,
     typ,
     bilder,
-    link, // Link zurückgeben
+    link,
+    verkäuferId,
+    sellerContactMethods,
+    sellerSocialMedia,
   };
 }
 
@@ -175,9 +195,261 @@ export function truncateDescription(text, maxLength = 120) {
   return text.substr(0, maxLength).trim() + "...";
 }
 
-export function contactSeller(telefon) {
+// Helper functions für Kontaktdialog (müssen AUSSERHALB von contactSeller sein)
+function generateContactOptions(methods, phone, verkäuferId, teilId) {
+  let html = '';
+
+  methods.forEach(method => {
+    switch(method) {
+      case 'phone':
+        if (phone) {
+          html += `
+            <button class="contact-option call" data-method="call">
+              <span class="icon">📞</span>
+              <span>Anrufen</span>
+            </button>
+            <button class="contact-option whatsapp" data-method="whatsapp">
+              <span class="icon">💬</span>
+              <span>WhatsApp</span>
+            </button>
+            <button class="contact-option sms" data-method="sms">
+              <span class="icon">📱</span>
+              <span>SMS</span>
+            </button>
+          `;
+        }
+        break;
+      
+      case 'chat':
+        html += `
+          <button class="contact-option chat" data-method="chat" data-seller="${verkäuferId}" data-teil="${teilId}">
+            <span class="icon">💬</span>
+            <span>Chat starten</span>
+          </button>
+        `;
+        break;
+      
+      case 'social':
+        html += `
+          <button class="contact-option social" data-method="social">
+            <span class="icon">📱</span>
+            <span>Social Media</span>
+          </button>
+        `;
+        break;
+    }
+  });
+
+  if (html === '') {
+    html = '<p class="no-contact-methods">Keine Kontaktmethoden verfügbar</p>';
+  }
+
+  return html;
+}
+
+function setupContactEventListeners(dialog, methods, phone, verkäuferId, teilId, socialMedia) {
+  const container = dialog.querySelector("#contact-options-container");
+
+  if (methods.includes('phone') && phone) {
+    const callBtn = container.querySelector('[data-method="call"]');
+    const whatsappBtn = container.querySelector('[data-method="whatsapp"]');
+    const smsBtn = container.querySelector('[data-method="sms"]');
+
+    if (callBtn) {
+      callBtn.addEventListener("click", () => {
+        window.location.href = `tel:${phone}`;
+        dialog.remove();
+      });
+    }
+
+    if (whatsappBtn) {
+      whatsappBtn.addEventListener("click", () => {
+        window.open(`https://wa.me/${phone.replace(/[^\d]/g, "")}`, "_blank");
+        dialog.remove();
+      });
+    }
+
+    if (smsBtn) {
+      smsBtn.addEventListener("click", () => {
+        window.location.href = `sms:${phone}`;
+        dialog.remove();
+      });
+    }
+  }
+
+  if (methods.includes('chat')) {
+    const chatBtn = container.querySelector('[data-method="chat"]');
+    if (chatBtn) {
+      chatBtn.addEventListener("click", async () => {
+        dialog.remove();
+        await openChatHandler(verkäuferId, teilId);
+      });
+    }
+  }
+
+  if (methods.includes('social')) {
+    const socialBtn = container.querySelector('[data-method="social"]');
+    if (socialBtn) {
+      socialBtn.addEventListener("click", () => {
+        dialog.remove();
+        if (socialMedia) {
+          showSocialMediaDialog(socialMedia);
+        } else {
+          alert("Keine Social Media Informationen verfügbar");
+        }
+      });
+    }
+  }
+}
+
+function showSocialMediaDialog(socialMedia) {
+  const dialog = document.createElement("div");
+  dialog.className = "contact-dialog-overlay";
+  
+  let socialLinks = '';
+  
+  if (socialMedia.instagram) {
+    socialLinks += `
+      <a href="https://instagram.com/${socialMedia.instagram}" target="_blank" class="social-link">
+        <span class="icon">📷</span>
+        <span>Instagram: @${socialMedia.instagram}</span>
+      </a>
+    `;
+  }
+  
+  if (socialMedia.facebook) {
+    socialLinks += `
+      <a href="${socialMedia.facebook}" target="_blank" class="social-link">
+        <span class="icon">👤</span>
+        <span>Facebook</span>
+      </a>
+    `;
+  }
+  
+  if (socialMedia.twitter) {
+    socialLinks += `
+      <a href="https://twitter.com/${socialMedia.twitter}" target="_blank" class="social-link">
+        <span class="icon">🐦</span>
+        <span>Twitter: @${socialMedia.twitter}</span>
+      </a>
+    `;
+  }
+  
+  if (!socialLinks) {
+    alert("Keine Social Media Informationen verfügbar");
+    return;
+  }
+  
+  dialog.innerHTML = `
+    <div class="contact-dialog-content">
+      <h3>Social Media</h3>
+      <div class="social-media-options">
+        ${socialLinks}
+      </div>
+      <button class="contact-cancel">Schließen</button>
+    </div>
+  `;
+
+  document.body.appendChild(dialog);
+
+  dialog.querySelector(".contact-cancel").addEventListener("click", () => dialog.remove());
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) dialog.remove();
+  });
+}
+
+// ERWEITERTE KONTAKTFUNKTION MIT USER PREFERENCES
+export async function contactSeller(teilId, verkäuferId, telefon) {
+  if (!verkäuferId && !telefon) {
+    alert("Keine Kontaktinformationen verfügbar");
+    return;
+  }
+
+  try {
+    let contactMethods = ['phone'];
+    let socialMedia = null;
+    let verkäuferTelefon = telefon;
+    
+    // Hole die Kontaktpräferenzen direkt aus dem part
+    if (teilId) {
+      try {
+        const { data: partData, error } = await supabase
+          .from('parts')
+          .select('seller_contact_methods, seller_social_media, seller_phone')
+          .eq('id', teilId)
+          .single();
+        
+        if (!error && partData) {
+          console.log('Verkäufer Präferenzen aus part geladen:', partData);
+          
+          if (partData.seller_contact_methods && Array.isArray(partData.seller_contact_methods)) {
+            contactMethods = partData.seller_contact_methods;
+          }
+          
+          if (partData.seller_social_media) {
+            socialMedia = partData.seller_social_media;
+          }
+          
+          // Hole Telefonnummer aus part falls nicht übergeben
+          if (!verkäuferTelefon && partData.seller_phone) {
+            verkäuferTelefon = partData.seller_phone;
+          }
+        }
+      } catch (dbError) {
+        console.warn('Fehler beim Laden der Verkäufer-Präferenzen:', dbError);
+      }
+    }
+
+    const cleanedPhone = verkäuferTelefon ? verkäuferTelefon.replace(/[^\d+]/g, "") : null;
+
+    const dialog = document.createElement("div");
+    dialog.className = "contact-dialog-overlay";
+    dialog.innerHTML = `
+      <div class="contact-dialog-content">
+        <h3>Verkäufer kontaktieren</h3>
+        <p class="contact-subtitle">Wähle eine Kontaktmethode:</p>
+        ${verkäuferTelefon ? `<p class="contact-phone">${verkäuferTelefon}</p>` : ''}
+        <div class="contact-options" id="contact-options-container">
+          ${generateContactOptions(contactMethods, cleanedPhone, verkäuferId, teilId)}
+        </div>
+        <button class="contact-cancel">Abbrechen</button>
+      </div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    setupContactEventListeners(dialog, contactMethods, cleanedPhone, verkäuferId, teilId, socialMedia);
+
+    dialog.querySelector(".contact-cancel").addEventListener("click", () => dialog.remove());
+    dialog.addEventListener("click", (e) => {
+      if (e.target === dialog) dialog.remove();
+    });
+
+    document.addEventListener("keydown", function escHandler(e) {
+      if (e.key === "Escape") {
+        dialog.remove();
+        document.removeEventListener("keydown", escHandler);
+      }
+    });
+
+  } catch (error) {
+    console.error("Fehler beim Laden der Verkäufer-Präferenzen:", error);
+    showBasicContactDialog(verkäuferTelefon || telefon);
+  }
+}
+
+async function openChatHandler(verkäuferId, teilId) {
+  try {
+    await openChat(verkäuferId, teilId);
+  } catch (error) {
+    console.error("Fehler beim Öffnen des Chats:", error);
+    alert("Chat konnte nicht geöffnet werden: " + error.message);
+  }
+}
+
+function showBasicContactDialog(telefon) {
   if (!telefon) {
-    alert("Keine Telefonnummer verfügbar");
+    alert("Keine Kontaktdaten verfügbar");
     return;
   }
 
@@ -211,42 +483,23 @@ export function contactSeller(telefon) {
 
   dialog.querySelector(".call").addEventListener("click", () => {
     window.location.href = `tel:${cleanedPhone}`;
-    removeDialog();
+    dialog.remove();
   });
 
   dialog.querySelector(".whatsapp").addEventListener("click", () => {
-    window.open(
-      `https://wa.me/${cleanedPhone.replace(/[^\d]/g, "")}`,
-      "_blank"
-    );
-    removeDialog();
+    window.open(`https://wa.me/${cleanedPhone.replace(/[^\d]/g, "")}`, "_blank");
+    dialog.remove();
   });
 
   dialog.querySelector(".sms").addEventListener("click", () => {
     window.location.href = `sms:${cleanedPhone}`;
-    removeDialog();
-  });
-
-  dialog
-    .querySelector(".contact-cancel")
-    .addEventListener("click", removeDialog);
-
-  dialog.addEventListener("click", (e) => {
-    if (e.target === dialog) {
-      removeDialog();
-    }
-  });
-
-  document.addEventListener("keydown", function escHandler(e) {
-    if (e.key === "Escape") {
-      removeDialog();
-      document.removeEventListener("keydown", escHandler);
-    }
-  });
-
-  function removeDialog() {
     dialog.remove();
-  }
+  });
+
+  dialog.querySelector(".contact-cancel").addEventListener("click", () => dialog.remove());
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) dialog.remove();
+  });
 }
 
 export function fallbackCopyToClipboard(text) {
@@ -303,9 +556,7 @@ export function showImage(index) {
 
   updateImageIndicators();
 
-  document.getElementById("image-counter").textContent = `${index + 1}/${
-    imageUrls.length
-  }`;
+  document.getElementById("image-counter").textContent = `${index + 1}/${imageUrls.length}`;
 }
 
 export function nextImage() {
@@ -324,9 +575,7 @@ export function updateImageIndicators() {
 
   for (let i = 0; i < imageUrls.length; i++) {
     const indicator = document.createElement("div");
-    indicator.className = `image-indicator ${
-      i === currentImageIndex ? "active" : ""
-    }`;
+    indicator.className = `image-indicator ${i === currentImageIndex ? "active" : ""}`;
     indicator.addEventListener("click", () => showImage(i));
     indicatorsContainer.appendChild(indicator);
   }
@@ -347,17 +596,12 @@ export function openDetailView(teil) {
     id,
     bilder,
     link,
+    verkäuferId,
   } = extractData(teil);
 
   currentPart = teil;
 
-  imageUrls =
-    bilder.length > 0
-      ? bilder
-      : [
-          bild ||
-            "/img/no-image.png",
-        ];
+  imageUrls = bilder.length > 0 ? bilder : [bild || "/img/no-image.png"];
   currentImageIndex = 0;
 
   document.getElementById("detail-title").textContent = name;
@@ -372,12 +616,8 @@ export function openDetailView(teil) {
 
   showImage(0);
 
-  document
-    .getElementById("prev-image")
-    .addEventListener("click", prevImage);
-  document
-    .getElementById("next-image")
-    .addEventListener("click", nextImage);
+  document.getElementById("prev-image").addEventListener("click", prevImage);
+  document.getElementById("next-image").addEventListener("click", nextImage);
 
   function handleKeydown(e) {
     if (e.key === "ArrowLeft") prevImage();
@@ -400,8 +640,6 @@ export function openDetailView(teil) {
   document.getElementById("detail-category").textContent = kategorie;
   document.getElementById("detail-condition").textContent = zustand;
   document.getElementById("detail-seller").textContent = verkäufer;
-  document.getElementById("detail-phone").textContent =
-    telefon || "Nicht verfügbar";
 
   const typeContainer = document.getElementById("detail-type-container");
   const typeElement = document.getElementById("detail-type");
@@ -412,7 +650,6 @@ export function openDetailView(teil) {
     typeContainer.style.display = "none";
   }
 
-  // Link-Button in Detail-View hinzufügen/aktualisieren
   const linkContainer = document.getElementById("detail-link-container") || createLinkContainer();
   const linkButton = document.getElementById("visit-link-btn");
   
@@ -427,10 +664,10 @@ export function openDetailView(teil) {
 
   const contactBtn = document.getElementById("contact-seller-btn");
   contactBtn.onclick = function () {
-    contactSeller(telefon);
+    contactSeller(id, verkäuferId, telefon);
   };
 
-  if (!telefon) {
+  if (!verkäuferId && !telefon) {
     contactBtn.disabled = true;
     contactBtn.textContent = "Keine Kontaktdaten verfügbar";
   } else {
@@ -449,7 +686,6 @@ export function openDetailView(teil) {
   log("Detailansicht geöffnet für:", name);
 }
 
-// Funktion zum Erstellen des Link-Containers in der Detail-View (falls nicht vorhanden)
 function createLinkContainer() {
   const modal = document.getElementById("detail-modal");
   const actionsContainer = modal.querySelector('.modal-actions') || modal.querySelector('.detail-actions');
@@ -536,7 +772,7 @@ export async function loadParts() {
 
     const { data, error } = await supabase
       .from("parts")
-      .select("*")
+      .select("*, seller_contact_methods, seller_social_media, seller_phone")
       .order("created_at", { ascending: false })
       .limit(20);
 
@@ -599,7 +835,6 @@ export async function loadParts() {
   }
 }
 
-// Auto-load parts when module is imported
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     loadParts().catch((error) => {
@@ -608,9 +843,21 @@ if (document.readyState === 'loading') {
     });
   });
 } else {
-  // DOM already loaded
   loadParts().catch((error) => {
     log("Fallback: Zeige Test-Daten wegen Fehler:", error);
     showError("Fehler beim Laden der Daten: " + error.message);
   });
 }
+document.addEventListener("DOMContentLoaded", () => {
+  const mehrLink = document.getElementById("mehr-link");
+  if (!mehrLink) return;
+
+  mehrLink.addEventListener("click", () => {
+    const allParts = document.querySelectorAll("#angebot-container .card");
+    if (allParts.length > 0) {
+      const lastPart = allParts[allParts.length - 1];
+      const partId = lastPart.getAttribute("data-id");
+      mehrLink.href = `/html/teileübersicht.html#teil-${partId}`;
+    }
+  });
+});

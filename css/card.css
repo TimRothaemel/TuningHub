@@ -75,4 +75,310 @@
   font-weight: 700;
   color: #2c3e50;
 }
+/* Contact Dialog Overlay */
+.contact-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Dialog Content */
+.contact-dialog-content {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.contact-dialog-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.contact-subtitle {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.contact-phone {
+  background: #f5f5f5;
+  padding: 12px 16px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+}
+
+/* Contact Options Grid */
+.contact-options {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.contact-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  width: 100%;
+}
+
+.contact-option:hover {
+  background: #e9ecef;
+  border-color: #007bff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.contact-option:active {
+  transform: translateY(0);
+}
+
+.contact-option .icon {
+  font-size: 24px;
+  width: 32px;
+  text-align: center;
+}
+
+/* Spezifische Button-Farben */
+.contact-option.call {
+  background: white;
+  border-color: black;
+  color: black;
+}
+
+.contact-option.call:hover {
+  background: white;
+  border-color: black;
+  color: black;
+}
+
+.contact-option.whatsapp {
+   background: white;
+  border-color: black;
+  color: black;
+}
+
+.contact-option.whatsapp:hover {
+   background: white;
+  border-color: black;
+  color: black;
+}
+
+.contact-option.sms {
+  background: white;
+  border-color: black;
+  color: black;
+}
+
+.contact-option.sms:hover {
+   background: white;
+  border-color: black;
+  color: black;
+}
+
+.contact-option.chat {
+  background: white;
+  border-color: black;
+  color: black;
+}
+
+.contact-option.chat:hover {
+  background: white;
+  border-color: black;
+  color: black;
+}
+
+.contact-option.social {
+  background: white;
+  border-color: black;
+  color: black;
+}
+
+.contact-option.social:hover {
+  background: white;
+  border-color: black;
+  color: black;
+
+
+/* Cancel Button */
+.contact-cancel {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 2px solid #dee2e6;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.contact-cancel:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+  color: #333;
+}
+
+/* No Contact Methods Message */
+.no-contact-methods {
+  text-align: center;
+  padding: 24px;
+  color: #999;
+  font-size: 14px;
+}
+
+/* Social Media Options */
+.social-media-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.social-link:hover {
+  background: #e9ecef;
+  border-color: #007bff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.social-link .icon {
+  font-size: 24px;
+  width: 32px;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .contact-dialog-content {
+    padding: 24px 20px;
+    max-width: 95%;
+  }
+
+  .contact-dialog-content h3 {
+    font-size: 20px;
+  }
+
+  .contact-option {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+
+  .contact-phone {
+    font-size: 16px;
+    padding: 10px 14px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .contact-dialog-content {
+    background: #2a2a2a;
+    color: #ffffff;
+  }
+
+  .contact-dialog-content h3 {
+    color: #ffffff;
+  }
+
+  .contact-subtitle {
+    color: #aaa;
+  }
+
+  .contact-phone {
+    background: #3a3a3a;
+    color: #ffffff;
+  }
+
+  .contact-option {
+    background: #3a3a3a;
+    border-color: #4a4a4a;
+    color: #ffffff;
+  }
+
+  .contact-option:hover {
+    background: #4a4a4a;
+  }
+
+  .social-link {
+    background: #3a3a3a;
+    border-color: #4a4a4a;
+    color: #ffffff;
+  }
+
+  .social-link:hover {
+    background: #4a4a4a;
+  }
+
+  .contact-cancel {
+    border-color: #4a4a4a;
+    color: #aaa;
+  }
+
+  .contact-cancel:hover {
+    background: #3a3a3a;
+    color: #ffffff;
+  }
+}

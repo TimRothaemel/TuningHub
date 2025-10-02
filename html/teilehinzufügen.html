@@ -254,20 +254,19 @@
       let isProcessing = false;
       let imageInputCount = 1;
 
-      function initializeSupabase() {
-        try {
-           import { supabase, trackingSupabase } from "/js/supabaseClient.js";
-          
-
-
-          console.log("Supabase erfolgreich initialisiert");
-          return true;
-        } catch (error) {
-          console.error("Fehler bei Supabase-Initialisierung:", error);
-          showError("Verbindungsfehler. Bitte Seite neu laden.");
-          return false;
-        }
-      }
+      async function initializeSupabase() {
+  try {
+    const module = await import("/js/supabaseClient.js");
+    supabase = module.supabase;
+    trackingSupabase = module.trackingSupabase;
+    console.log("Supabase erfolgreich initialisiert");
+    return true;
+  } catch (error) {
+    console.error("Fehler bei Supabase-Initialisierung:", error);
+    showError("Verbindungsfehler. Bitte Seite neu laden.");
+    return false;
+  }
+}
       function showLoading(show = true) {
         const overlay = document.getElementById("loadingOverlay");
         if (overlay) {
@@ -877,15 +876,18 @@
         }
       }
 
-      document.addEventListener("DOMContentLoaded", function () {
-        console.log("DOM geladen, initialisiere App...");
+  document.addEventListener("DOMContentLoaded", async function () {
+  console.log("DOM geladen, initialisiere App...");
 
-        if (!initializeSupabase()) {
-          return;
-        }
+  if (!(await initializeSupabase())) {
+    return;
+  }
+
+
 
         loadPhoneNumber();
 
+ 
         const addButton = document.getElementById("addPartBtn");
         if (addButton) {
           addButton.addEventListener("click", addPart);
