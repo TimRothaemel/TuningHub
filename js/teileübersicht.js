@@ -2,7 +2,6 @@
 console.log("teileübersicht.js geladen");
 
 // ===== SUPABASE CLIENT =====
-// Warte auf Supabase Client von supabaseClient.js
 let supabase = null;
 
 // Funktion zum Warten auf Supabase
@@ -407,7 +406,7 @@ function sharePart(id) {
         return;
     }
 
-    const url = `${window.location.origin}../index.html?part=${encodeURIComponent(id)}`;
+    const url = `${window.location.origin}/../index.html?part=${encodeURIComponent(id)}`;
 
     if (navigator.share) {
         navigator.share({
@@ -642,6 +641,7 @@ function closeDetailView() {
     const savedPosition = sessionStorage.getItem('tuninghub_scroll_position');
     if (savedPosition) {
         window.scrollTo(0, parseInt(savedPosition));
+        console.log('Scroll-Position wiederhergestellt:', savedPosition);
         sessionStorage.removeItem('tuninghub_scroll_position');
     }
 
@@ -655,7 +655,6 @@ function createCard(teil) {
     const isSearch = typ === "teilesuche";
     card.className = isSearch ? "card search-card" : "card";
 
-    // Setze eindeutige ID, wichtig für Fragment-Links (#teil-123)
     if (id !== undefined && id !== null) {
         card.id = `teil-${id}`;
         card.setAttribute('data-id', id);
@@ -857,7 +856,6 @@ async function ladeAngebote() {
         });
 
         log(`✅ ${displayData.length} Teile erfolgreich angezeigt`);
-        restoreScrollPosition();
         
     } catch (error) {
         log("Unerwarteter Fehler:", error);
@@ -905,13 +903,19 @@ function setupSearch() {
 }
 
 function setupDetailView() {
-    document.getElementById("close-detail").addEventListener("click", closeDetailView);
+    const closeBtn = document.getElementById("close-detail");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", closeDetailView);
+    }
 
-    document.getElementById("detail-modal").addEventListener("click", function (e) {
-        if (e.target === this) {
-            closeDetailView();
-        }
-    });
+    const modal = document.getElementById("detail-modal");
+    if (modal) {
+        modal.addEventListener("click", function (e) {
+            if (e.target === this) {
+                closeDetailView();
+            }
+        });
+    }
 
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
@@ -960,15 +964,27 @@ function handleSharedPartLink() {
     }
 }
 
-function restoreScrollPosition() {
-    const savedPosition = sessionStorage.getItem('tuninghub_scroll_position');
-    
-    if (savedPosition !== null) {
+function handleHashScroll() {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#teil-')) {
+        log("Hash erkannt:", hash);
+        
         setTimeout(() => {
-            window.scrollTo(0, parseInt(savedPosition));
-            console.log('Scroll-Position wiederhergestellt:', savedPosition);
-            sessionStorage.removeItem('tuninghub_scroll_position');
-        }, 100);
+            const element = document.querySelector(hash);
+            if (element) {
+                log("Scrolle zu Element:", element);
+                element.scrollIntoView({ 
+                    behavior: "smooth",
+                    block: "center"
+                });
+                element.style.boxShadow = "0 0 0 3px #007bff";
+                setTimeout(() => {
+                    element.style.boxShadow = "";
+                }, 2000);
+            } else {
+                log("Element nicht gefunden:", hash);
+            }
+        }, 800);
     }
 }
 
@@ -976,7 +992,6 @@ function restoreScrollPosition() {
 async function initializePage() {
     log("DOM geladen, starte Initialisierung...");
 
-    // Warte auf Supabase
     supabase = await waitForSupabase();
     log("Supabase Client bereit");
 
@@ -984,13 +999,12 @@ async function initializePage() {
     setupSearch();
     setupDetailView();
 
-    setTimeout(() => {
-        ladeAngebote().catch((error) => {
-            log("Fallback: Zeige Test-Daten wegen Fehler:", error);
-            showError("Fehler beim Laden der Daten: " + error.message);
-        });
-    }, 300);
+    await ladeAngebote().catch((error) => {
+        log("Fallback: Zeige Test-Daten wegen Fehler:", error);
+        showError("Fehler beim Laden der Daten: " + error.message);
+    });
 
+    handleHashScroll();
     handleSharedPartLink();
 }
 
@@ -1008,15 +1022,4 @@ window.TuningHub = {
     sharePart,
     ladeAngebote,
     clearSearchAndReload
-}
-document.addEventListener("DOMContentLoaded", () => {
-  const hash = window.location.hash;
-  if (hash) {
-    setTimeout(() => {
-      const element = document.querySelector(hash);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 500); // etwas warten, bis Teile geladen sind
-  }
-})
+};
