@@ -5,19 +5,7 @@ import { supabase, trackingSupabase } from "./supabaseClient.js";
 // Import Chat-Modul dynamisch
 let ChatModule = null;
 
-// Lade Chat-Modul asynchron
-async function loadChatModule() {
-  if (!ChatModule) {
-    try {
-      ChatModule = await import('./chat.js');
-      console.log('Chat-Modul erfolgreich geladen');
-    } catch (error) {
-      console.warn('Chat-Modul konnte nicht geladen werden:', error);
-    }
-  }
-  return ChatModule;
-}
-import { openChat } from "./chat.js";
+
 
 // Utility functions
 export function log(message, data = '') {
