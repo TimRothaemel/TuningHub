@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Mail Bestätigung</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: white;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .icon.success {
+      color: #4caf50;
+    }
+
+    .icon.error {
+      color: #f44336;
+    }
+
+    .icon.loading {
+      color: #667eea;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    p {
+      color: #666;
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .button {
+      display: inline-block;
+      background: #0077cc;;
+      color: white;
+      padding: 14px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .error-details {
+      background: #ffebee;
+      border: 1px solid #ef5350;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #c62828;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="content">
+    <div class="icon loading">⏳</div>
+    <h1>E-Mail wird bestätigt...</h1>
+    <p>Bitte warten Sie einen Moment.</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Supabase Configuration
+    const SUPABASE_URL = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
+    
+    const TRACKING_SUPABASE_URL = 'https://izjsyfovffakfwmwktzj.supabase.co';
+    const TRACKING_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww';
+    let supabaseClient = null;
+    let trackingClient = null;
+
+    async function initSupabase() {
+      try {
+        // Wait for Supabase to be loaded
+        if (typeof supabase === 'undefined') {
+          throw new Error('Supabase library not loaded');
+        }
+
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        trackingClient = supabase.createClient(TRACKING_SUPABASE_URL, TRACKING_SUPABASE_ANON_KEY);
+        
+        console.log('Supabase clients initialized');
+        return true;
+      } catch (error) {
+        console.error('Failed to initialize Supabase:', error);
+        return false;
+      }
+    }
+
+    async function trackEvent(eventType, metadata = {}) {
+      try {
+        if (!trackingClient) return;
+        
+        const { error } = await trackingClient
+          .from('tracking_events')
+          .insert({ event_type: eventType, metadata });
+        
+        if (error) {
+          console.error('[Tracking Error]:', error);
+        } else {
+          console.log('[Tracking Success]:', eventType);
+        }
+      } catch (err) {
+        console.error('[Tracking Unexpected]:', err);
+      }
+    }
+
+    async function handleEmailConfirmation() {
+      const content = document.getElementById('content');
+      
+      try {
+        // Initialize Supabase
+        const initialized = await initSupabase();
+        if (!initialized) {
+          throw new Error('Supabase konnte nicht initialisiert werden');
+        }
+
+        // Get hash parameters from URL
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const type = hashParams.get('type');
+        const error = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
+
+        console.log('Auth callback params:', { 
+          type, 
+          hasToken: !!accessToken, 
+          error,
+          fullHash: window.location.hash 
+        });
+
+        // Check for errors in URL
+        if (error) {
+          throw new Error(errorDescription || error);
+        }
+
+        // Check if this is an email confirmation
+        if (!type || (type !== 'signup' && type !== 'invite' && type !== 'recovery' && type !== 'email_change')) {
+          throw new Error('Ungültiger Bestätigungstyp: ' + (type || 'keine Typ angegeben'));
+        }
+
+        // Verify the session
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          throw sessionError;
+        }
+
+        if (!session) {
+          // Try to set the session from the hash
+          if (accessToken) {
+            const { data, error: setSessionError } = await supabaseClient.auth.setSession({
+              access_token: accessToken,
+              refresh_token: hashParams.get('refresh_token')
+            });
+            
+            if (setSessionError) {
+              throw setSessionError;
+            }
+            
+            console.log('Session set from hash:', data);
+          } else {
+            throw new Error('Keine aktive Sitzung und kein Access Token gefunden');
+          }
+        }
+
+        // Get the current session again to verify
+        const { data: { session: verifiedSession } } = await supabaseClient.auth.getSession();
+        
+        if (!verifiedSession) {
+          throw new Error('Sitzung konnte nicht verifiziert werden');
+        }
+
+        // Success!
+        content.innerHTML = `
+          <div class="icon success">✅</div>
+          <h1>E-Mail erfolgreich bestätigt!</h1>
+          <p>Ihre E-Mail-Adresse wurde erfolgreich bestätigt. Sie werden automatisch zur Login-Seite weitergeleitet.</p>
+          <a href="login.html" class="button">Jetzt anmelden</a>
+        `;
+
+        // Track success
+        await trackEvent('email_confirmation_success', {
+          user_id: verifiedSession.user.id,
+          email: verifiedSession.user.email,
+          account_type: verifiedSession.user.user_metadata?.account_type,
+          confirmation_type: type
+        });
+
+        // Redirect after 3 seconds
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 3000);
+
+      } catch (error) {
+        console.error('Email confirmation error:', error);
+        
+        // Track error
+        await trackEvent('email_confirmation_error', {
+          error_message: error.message,
+          error_details: error.toString(),
+          url_hash: window.location.hash
+        });
+
+        content.innerHTML = `
+          <div class="icon error">❌</div>
+          <h1>Bestätigung fehlgeschlagen</h1>
+          <p>Ihre E-Mail konnte nicht bestätigt werden. Mögliche Gründe:</p>
+          <ul style="text-align: left; margin: 20px 0; padding-left: 20px;">
+            <li>Der Bestätigungslink ist abgelaufen</li>
+            <li>Der Link wurde bereits verwendet</li>
+            <li>Technisches Problem</li>
+          </ul>
+          <div class="error-details">
+            <strong>Technische Details:</strong><br>
+            ${error.message}
+          </div>
+          <br><br>
+          <a href="register-business.html" class="button" style="margin-right: 10px;">Neu registrieren</a>
+          <a href="login.html" class="button">Zur Login-Seite</a>
+        `;
+      }
+    }
+
+    // Start confirmation process when page loads
+    window.addEventListener('load', () => {
+      // Small delay to ensure Supabase library is loaded
+      setTimeout(handleEmailConfirmation, 100);
+    });
+  </script>
+</body>
+</html>
