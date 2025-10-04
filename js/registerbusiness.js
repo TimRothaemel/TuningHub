@@ -508,7 +508,7 @@ function togglePassword(fieldId) {
   }
 }
 
-// Business Registration
+// Business Registration - NUR USER METADATA (keine profiles Tabelle)
 async function performBusinessRegistration() {
   if (isProcessing) {
     console.log("Registration already in progress...");
@@ -551,43 +551,21 @@ async function performBusinessRegistration() {
         const randomString = Math.random().toString(36).substring(2, 8);
         const fileName = `business_logo_${timestamp}_${randomString}.jpg`;
 
-        // Try uploading with different approaches
-        let uploadData, uploadError;
-        
-        // First attempt: Try with public upload
-        try {
-          const { data, error } = await client.storage
-            .from("business-logos")
-            .upload(`public/${fileName}`, compressedLogo, {
-              cacheControl: "3600",
-              upsert: false,
-              contentType: "image/jpeg",
-            });
-          uploadData = data;
-          uploadError = error;
-        } catch (err) {
-          uploadError = err;
-        }
-        
-        // If that fails, try without public folder
-        if (uploadError) {
-          const { data, error } = await client.storage
-            .from("business-logos")
-            .upload(fileName, compressedLogo, {
-              cacheControl: "3600",
-              upsert: false,
-              contentType: "image/jpeg",
-            });
-          uploadData = data;
-          uploadError = error;
-        }
+        // Upload logo
+        const { data: uploadData, error: uploadError } = await client.storage
+          .from("business-logos")
+          .upload(`public/${fileName}`, compressedLogo, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: "image/jpeg",
+          });
 
         if (uploadError) {
           console.error("Logo upload error:", uploadError);
           throw new Error(`Logo Upload Fehler: ${uploadError.message}`);
         }
 
-        logoUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/business-logos/${uploadData.path || fileName}`;
+        logoUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/business-logos/${uploadData.path}`;
         console.log("Logo uploaded successfully:", logoUrl);
         
       } catch (logoError) {
@@ -596,7 +574,7 @@ async function performBusinessRegistration() {
       }
     }
 
-    // Register user with Supabase Auth
+    // Register user - ALLE Daten in user_metadata
     const { data: signupData, error: signupError } = await client.auth.signUp({
       email: businessData.email,
       password: businessData.password,
@@ -604,16 +582,18 @@ async function performBusinessRegistration() {
         data: {
           full_name: businessData.fullName,
           phone: businessData.phone,
+          email: businessData.email,
           company_name: businessData.companyName,
-          contact_link: businessData.contactLink,
           description: businessData.companyDescription,
-          logo_url: logoUrl,
+          contact_link: businessData.contactLink || "",
+          logo_url: logoUrl || "",
+          account_type: "business",
           privacy_consent: businessData.privacyConsent,
           privacy_consent_date: new Date().toISOString(),
           agb_consent: businessData.agbConsent,
           agb_consent_date: new Date().toISOString(),
-          account_type: "business",
         },
+        emailRedirectTo: window.location.origin + '/login.html'
       },
     });
 
@@ -624,7 +604,7 @@ async function performBusinessRegistration() {
       if (logoUrl) {
         try {
           const fileName = logoUrl.split('/').pop();
-          await client.storage.from("business-logos").remove([fileName]);
+          await client.storage.from("business-logos").remove([`public/${fileName}`]);
         } catch (cleanupError) {
           console.error("Logo cleanup error:", cleanupError);
         }
@@ -661,12 +641,20 @@ async function performBusinessRegistration() {
     await trackEvent("business_registration_error", {
       email: businessData.email,
       error_message: error.message,
+      error_details: error.toString(),
     });
 
+    // Bessere Fehlermeldungen
     if (error.message.includes("already registered") || error.message.includes("User already registered")) {
       showErrorMessage("Diese E-Mail-Adresse ist bereits registriert.");
+    } else if (error.message.includes("Invalid login credentials")) {
+      showErrorMessage("Ungültige Anmeldedaten.");
+    } else if (error.message.includes("Email not confirmed")) {
+      showErrorMessage("Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse.");
+    } else if (error.message.includes("profiles")) {
+      showErrorMessage("Datenbankfehler: Bitte kontaktieren Sie den Support.");
     } else {
-      showErrorMessage("Fehler: " + error.message);
+      showErrorMessage("Registrierung fehlgeschlagen: " + error.message);
     }
   } finally {
     isProcessing = false;
