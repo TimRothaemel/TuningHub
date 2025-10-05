@@ -396,7 +396,6 @@ export async function contactSeller(teilId, verkäuferId, telefon) {
       <div class="contact-dialog-content">
         <h3>Verkäufer kontaktieren</h3>
         <p class="contact-subtitle">Wähle eine Kontaktmethode:</p>
-        ${verkäuferTelefon ? `<p class="contact-phone">${verkäuferTelefon}</p>` : ''}
         <div class="contact-options" id="contact-options-container">
           ${generateContactOptions(contactMethods, cleanedPhone, verkäuferId, teilId)}
         </div>
@@ -448,7 +447,6 @@ function showBasicContactDialog(telefon) {
   dialog.innerHTML = `
     <div class="contact-dialog-content">
       <h3>Kontaktoptionen</h3>
-      <p class="contact-phone">${telefon}</p>
       <div class="contact-options">
         <button class="contact-option call">
           <span class="icon">📞</span>

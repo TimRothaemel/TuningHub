@@ -10,20 +10,21 @@
     <link rel="stylesheet" href="/css/search.css" />
     <link rel="stylesheet" href="/css/menu.css" />
     
-    <!-- Supabase Client MUSS ZUERST geladen werden -->
+
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Fuse.js für Suche -->
+
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
     
-    <!-- WICHTIG: supabaseClient.js MUSS VOR teileOverview.js geladen werden -->
+
     <script type="module" src="/js/supabaseClient.js"></script>
     
     <!-- Andere Scripts -->
     <script src="/js/search.js" defer></script>
     <script src="/js/menu.js" defer></script>
     
-    <script src="/js/teileübersicht.js" defer></script>
+    <script type="module" src="/js/teileübersicht.js" defer></script>
 </head>
 
 <body>
