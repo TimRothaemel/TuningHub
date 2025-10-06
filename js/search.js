@@ -1,4 +1,4 @@
-// TuningHub Universal Search System
+// TuningHub Universal Search System - KORRIGIERT
 // Funktioniert auf allen Seiten und leitet zur Teileübersicht weiter
 
 (function() {
@@ -13,12 +13,6 @@
     let searchLoading = false;
     let searchSupabase;
 
-    // Supabase-Konfiguration
-    const SEARCH_CONFIG = {
-        supabaseUrl: "https://yvdptnkmgfxkrszitweo.supabase.co",
-        supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo"
-    };
-
     // Debug-Logging
     function searchLog(message, data = null) {
         console.log(`[TuningHub-Search] ${message}`, data || "");
@@ -27,15 +21,18 @@
     // Supabase-Client für Suche initialisieren
     function initSearchSupabase() {
         try {
-            if (window.supabase && typeof window.supabase.createClient === 'function') {
-                searchSupabase = window.supabase.createClient(SEARCH_CONFIG.supabaseUrl, SEARCH_CONFIG.supabaseKey);
-                searchLog("Search-Supabase Client erstellt");
+            // Versuche den globalen supabase Client zu nutzen
+            if (window.supabase) {
+                searchSupabase = window.supabase;
+                searchLog("Nutze globalen Supabase Client");
                 return true;
-            } else {
-                throw new Error("Globaler Supabase Client nicht verfügbar");
             }
+            
+            // Fallback: Warte auf supabaseClient.js
+            searchLog("Warte auf globalen Supabase Client...");
+            return false;
         } catch (error) {
-            searchLog("Fehler beim Erstellen des Search-Supabase Clients:", error);
+            searchLog("Fehler beim Zugriff auf Supabase Client:", error);
             return false;
         }
     }
@@ -48,7 +45,7 @@
                     keys: [
                         { name: 'name', weight: 0.4 },
                         { name: 'title', weight: 0.4 },
-                        { name: 'description', weight: 0.3 },
+                        { name: 'description', weight: 0.2 },
                         { name: 'searchText', weight: 0.2 },
                         { name: 'condition', weight: 0.1 },
                         { name: 'type', weight: 0.1 }
@@ -86,15 +83,23 @@
         searchLog("Lade Teile für Suche...");
 
         try {
-            // Falls kein globaler Supabase Client verfügbar, versuche eigenen
+            // Prüfe ob Supabase Client verfügbar ist
             if (!searchSupabase) {
-                initSearchSupabase();
+                const initialized = initSearchSupabase();
+                if (!initialized) {
+                    // Warte kurz und versuche nochmal
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    initSearchSupabase();
+                }
             }
 
             if (!searchSupabase) {
-                throw new Error("Kein Supabase Client verfügbar");
+                searchLog("WARNUNG: Kein Supabase Client verfügbar - verwende leere Daten");
+                searchParts = [];
+                return searchParts;
             }
 
+            searchLog("Starte Datenbank-Abfrage...");
             const { data, error } = await searchSupabase
                 .from('parts')
                 .select(`
@@ -110,14 +115,21 @@
                     image_url3,
                     image_url4,
                     image_url5,
-                    created_at
+                    created_at,
+                    seller_contact_methods,
+                    seller_social_media,
+                    seller_phone,
+                    user_id,
+                    link
                 `)
                 .order('created_at', { ascending: false });
 
             if (error) {
+                searchLog("Supabase Abfrage-Fehler:", error);
                 throw error;
             }
 
+            searchLog(`${data?.length || 0} Teile von Datenbank erhalten`);
             searchParts = normalizePartsData(data);
             initSearchFuse();
             searchLog(`${searchParts.length} Teile für Suche geladen`);
@@ -125,8 +137,7 @@
 
         } catch (error) {
             searchLog("Fehler beim Laden der Suchteile:", error);
-            searchParts = createSearchFallbackData();
-            initSearchFuse();
+            searchParts = [];
             return searchParts;
         } finally {
             searchLoading = false;
@@ -156,28 +167,15 @@
                 image_url: part.image_url || part.bild_url || null,
                 images: images,
                 created_at: part.created_at || part.datum,
-                searchText: `${part.title || part.name || ''} ${part.description || part.beschreibung || ''}`.toLowerCase()
+                searchText: `${part.title || part.name || ''} ${part.description || part.beschreibung || ''}`.toLowerCase(),
+                seller_contact_methods: part.seller_contact_methods,
+                seller_social_media: part.seller_social_media,
+                seller_phone: part.seller_phone,
+                user_id: part.user_id,
+                seller_id: part.user_id,
+                link: part.link
             };
         });
-    }
-
-    // Fallback-Daten
-    function createSearchFallbackData() {
-        return [
-            {
-                id: "search-fallback-1",
-                name: "Simson S51 Auspuff",
-                title: "Simson S51 Auspuff",
-                description: "Sportauspuff für Simson S51, neuwertig",
-                price: 89.99,
-                condition: "Sehr gut",
-                type: "angebot",
-                contact_number: "+49 123 456789",
-                image_url: "https://via.placeholder.com/300x200/e9ecef/666?text=Auspuff",
-                images: ["https://via.placeholder.com/300x200/e9ecef/666?text=Auspuff"],
-                searchText: "simson s51 auspuff sportauspuff"
-            }
-        ];
     }
 
     // Suchfunktion
@@ -232,107 +230,6 @@
         }
     }
 
-    // Universelle Such-Karte erstellen (identisch zu index.html createCard)
-    function createUnifiedCard(teil) {
-        const name = teil.name || teil.title || 'Unbekanntes Teil';
-        const preis = teil.price || teil.preis || 'Preis auf Anfrage';
-        const beschreibung = teil.description || teil.beschreibung || '';
-        const bild = teil.image_url || teil.bild_url || null;
-        const typ = teil.type || teil.typ || '';
-
-        const card = document.createElement("div");
-        const isSearch = typ === "teilesuche";
-        card.className = isSearch ? "card search-card" : "card";
-
-        if (teil.id) {
-            card.dataset.partId = teil.id;
-        }
-
-        const imageUrl = bild || "/img/no-image.png";
-        const fallbackUrl = "/img/search.png";
-
-        let preisText = preis;
-        if (typeof preis === "number") {
-            preisText = `${preis.toLocaleString("de-DE")}€`;
-        } else if (typeof preis === "string" && !isNaN(parseFloat(preis))) {
-            preisText = `${parseFloat(preis).toLocaleString("de-DE")}€`;
-        }
-
-        // Beschreibung kürzen
-        function truncateDescription(text, maxLength = 120) {
-            if (!text) return "";
-            if (text.length <= maxLength) return text;
-            return text.substr(0, maxLength).trim() + "...";
-        }
-
-        const kurzbeschreibung = truncateDescription(beschreibung, 120);
-
-        // Identische HTML-Struktur wie in index.html
-        card.innerHTML = `
-            ${isSearch ? '<span class="search-badge">🔍 SUCHE</span>' : ""}
-            <img src="${imageUrl}" 
-                 alt="${name}" 
-                 onerror="this.src='${fallbackUrl}'" 
-                 loading="lazy" />
-            <div class="card-content">
-                <h2>${name}</h2>
-                ${kurzbeschreibung ? `<p class="card-description">${kurzbeschreibung}</p>` : ""}
-                <div class="card-footer">
-                    <p><strong>${preisText}</strong></p>
-                </div>
-            </div>
-        `;
-
-        card.addEventListener("click", function () {
-            // Prüfe ob openDetailView verfügbar ist (auf teileübersicht.html)
-            if (typeof openDetailView === 'function') {
-                openDetailView(teil);
-            } else {
-                // Fallback: Alert mit Grundinformationen
-                alert(`${name}\n\nPreis: ${preisText}\nZustand: ${teil.condition}\n\n${beschreibung || 'Keine Beschreibung verfügbar'}`);
-            }
-        });
-
-        return card;
-    }
-
-    // Suchergebnisse rendern (nur auf teileübersicht.html)
-    function renderSearchResults(results, container) {
-        if (!container) {
-            searchLog("Container nicht gefunden");
-            return;
-        }
-
-        container.classList.remove('loading');
-
-        if (!results || results.length === 0) {
-            container.innerHTML = `
-                <div class="search-empty" style="text-align: center; padding: 40px; color: #666; grid-column: 1 / -1;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">🔍</div>
-                    <h3>Keine Ergebnisse gefunden</h3>
-                    <p>Versuche andere Suchbegriffe oder durchstöbere alle verfügbaren Teile.</p>
-                    <button onclick="TuningHubSearch.clearSearch()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px;">
-                        Suche zurücksetzen
-                    </button>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = '';
-
-        results.forEach((part, index) => {
-            try {
-                const card = createUnifiedCard(part);
-                container.appendChild(card);
-            } catch (error) {
-                searchLog(`Fehler beim Erstellen der Karte ${index}:`, error);
-            }
-        });
-
-        searchLog(`${results.length} Suchergebnisse gerendert`);
-    }
-
     // Suchparameter in URL speichern
     function saveSearchToURL(query) {
         const url = new URL(window.location);
@@ -350,6 +247,38 @@
         return urlParams.get('search') || '';
     }
 
+    // NEUE FUNKTION: Prüfe ob wir auf der Übersichtsseite sind
+    function isOnOverviewPage() {
+        const currentPage = window.location.pathname;
+        return currentPage.includes('teileübersicht.html') || 
+               currentPage.includes('teileubersicht.html') ||
+               currentPage.endsWith('/');
+    }
+
+    // NEUE FUNKTION: Suche auf aktueller Seite durchführen
+    async function performLocalSearch(query) {
+        searchLog(`Führe lokale Suche aus: "${query}"`);
+        
+        // Lade Daten falls noch nicht verfügbar
+        if (searchParts.length === 0) {
+            await loadSearchParts();
+        }
+
+        const results = executeSearch(query);
+        
+        // Event auslösen für teileübersicht.html.js
+        const event = new CustomEvent('tuninghub:search', {
+            detail: {
+                query: query,
+                results: results
+            }
+        });
+        window.dispatchEvent(event);
+        
+        saveSearchToURL(query);
+        return results;
+    }
+
     // Suche ausführen und zur Teileübersicht weiterleiten
     async function performSearch(query) {
         if (!query || !query.trim()) {
@@ -360,27 +289,9 @@
         const trimmedQuery = query.trim();
         searchLog(`Führe Suche aus: "${trimmedQuery}"`);
 
-        // Lade Daten falls noch nicht verfügbar
-        if (searchParts.length === 0) {
-            await loadSearchParts();
-        }
-
-        // Prüfe ob wir bereits auf der Teileübersicht sind
-        const currentPage = window.location.pathname;
-        const isOnOverviewPage = currentPage.includes('teileübersicht.html') || currentPage.includes('teileubersicht.html');
-
-        if (isOnOverviewPage) {
-            // Bereits auf der Übersichtsseite - direkt suchen
-            const results = executeSearch(trimmedQuery);
-            const container = document.getElementById('angebot-container');
-            
-            if (container) {
-                renderSearchResults(results, container);
-                saveSearchToURL(trimmedQuery);
-                
-                // Scroll zum Anfang der Ergebnisse
-                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+        if (isOnOverviewPage()) {
+            // Bereits auf der Übersichtsseite - lokale Suche
+            await performLocalSearch(trimmedQuery);
         } else {
             // Auf anderer Seite - zur Teileübersicht weiterleiten
             const targetUrl = '/html/teileübersicht.html';
@@ -434,7 +345,6 @@
 
         // Such-Button Handler
         if (searchButton) {
-            // Bestehende Event-Listener entfernen
             const newSearchButton = searchButton.cloneNode(true);
             searchButton.parentNode.replaceChild(newSearchButton, searchButton);
 
@@ -446,24 +356,21 @@
                 }
             });
 
-            // Cursor pointer für Button
             newSearchButton.style.cursor = 'pointer';
         }
 
-        // Wenn wir auf der Teileübersicht sind, lade eventuell gespeicherte Suche
-        const currentPage = window.location.pathname;
-        const isOnOverviewPage = currentPage.includes('teileübersicht.html') || currentPage.includes('teileubersicht.html');
-        
-        if (isOnOverviewPage) {
+        // Wenn wir auf der Teileübersicht sind, URL-Parameter prüfen
+        if (isOnOverviewPage()) {
             const savedSearch = loadSearchFromURL();
             if (savedSearch) {
                 newSearchInput.value = savedSearch;
-                searchLog(`Gespeicherte Suche geladen: "${savedSearch}"`);
+                searchLog(`Gespeicherte Suche in Input gesetzt: "${savedSearch}"`);
                 
-                // Führe Suche automatisch aus
-                setTimeout(() => {
-                    performSearch(savedSearch);
-                }, 500);
+                // WICHTIG: Führe Suche erst aus wenn teileübersicht.html.js bereit ist
+                window.addEventListener('tuninghub:ready', () => {
+                    searchLog("Teileübersicht ist bereit, führe gespeicherte Suche aus");
+                    performLocalSearch(savedSearch);
+                }, { once: true });
             }
         }
 
@@ -476,6 +383,21 @@
         searchLog("Starte universelles Such-System...");
 
         try {
+            // Warte kurz bis supabaseClient.js geladen ist
+            let retries = 0;
+            while (!window.supabase && retries < 10) {
+                searchLog(`Warte auf Supabase Client (Versuch ${retries + 1}/10)...`);
+                await new Promise(resolve => setTimeout(resolve, 200));
+                retries++;
+            }
+            
+            if (!window.supabase) {
+                searchLog("WARNUNG: Supabase Client nicht verfügbar nach 10 Versuchen");
+            } else {
+                searchLog("Supabase Client gefunden!");
+                initSearchSupabase();
+            }
+            
             // Lade Daten im Hintergrund
             loadSearchParts();
             
@@ -507,26 +429,24 @@
         // URL Parameter entfernen
         saveSearchToURL('');
 
-        // Wenn auf Teileübersicht, alle Teile anzeigen
-        const currentPage = window.location.pathname;
-        const isOnOverviewPage = currentPage.includes('teileübersicht.html') || currentPage.includes('teileubersicht.html');
-        
-        if (isOnOverviewPage && typeof ladeAngebote === 'function') {
-            ladeAngebote(); // Lade alle Teile neu
-        }
+        // Event auslösen um Suche zu löschen
+        const event = new CustomEvent('tuninghub:clearsearch');
+        window.dispatchEvent(event);
     };
 
     window.TuningHubSearch.search = performSearch;
     window.TuningHubSearch.executeSearch = executeSearch;
     window.TuningHubSearch.getParts = () => searchParts;
     window.TuningHubSearch.init = initializeUniversalSearch;
+    window.TuningHubSearch.performLocalSearch = performLocalSearch;
 
     // Auto-Initialisierung
     function startUniversalSearch() {
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initializeUniversalSearch);
         } else {
-            setTimeout(initializeUniversalSearch, 100);
+            // Warte kurz damit andere Skripte laden können
+            setTimeout(initializeUniversalSearch, 300);
         }
     }
 
