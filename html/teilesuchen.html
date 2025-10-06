@@ -145,20 +145,47 @@
       let currentUser = null;
       let isProcessing = false;
 
-      function initializeSupabase() {
-        try {
-           import { supabase, trackingSupabase } from "/js/supabaseClient.js";
-          
+      // This function is now globally available
+async function initializeSupabase() {
+  try {
+    const module = await import("/js/supabaseClient.js");
+    supabase = module.supabase;
+    trackingSupabase = module.trackingSupabase;
+    console.log("Supabase erfolgreich initialisiert");
+    return true;
+  } catch (error) {
+    console.error("Fehler bei Supabase-Initialisierung:", error);
+    showError("Verbindungsfehler. Bitte Seite neu laden.");
+    return false;
+  }
+}
 
+// Now this will work
+document.addEventListener("DOMContentLoaded", async function () {
+  console.log("DOM geladen, initialisiere App...");
+  const isInitialized = await initializeSupabase(); // Function is now defined
+  if (!isInitialized) {
+    return;
+  }
+  await loadPhoneNumber();
+  async function initializeSupabase() {
+  try {
+    const module = await import("/js/supabaseClient.js");
+    supabase = module.supabase;
+    trackingSupabase = module.trackingSupabase;
+    console.log("Supabase erfolgreich initialisiert");
+    return true;
+  } catch (error) {
+    console.error("Fehler bei Supabase-Initialisierung:", error);
+    showError("Verbindungsfehler. Bitte Seite neu laden.");
+    return false;
+  }
+}
+});
 
-          console.log("Supabase erfolgreich initialisiert");
-          return true;
-        } catch (error) {
-          console.error("Fehler bei Supabase-Initialisierung:", error);
-          showError("Verbindungsfehler. Bitte Seite neu laden.");
-          return false;
-        }
-      }
+ 
+
+      
 
       function showLoading(show = true) {
         const overlay = document.getElementById("loadingOverlay");

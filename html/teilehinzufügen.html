@@ -157,8 +157,7 @@
           <a href="teilesuchen.html">Teilsuche hinzufügen</a>
         </div>
 
-        <div id="success-message" class="success-message"></div>
-        <div id="error-message" class="error-message"></div>
+        
 
         <label for="partTitle">Titel</label>
         <input
@@ -231,6 +230,8 @@
 
         <button id="addPartBtn" type="button">Teil hinzufügen</button>
       </section>
+      <div id="success-message" class="success-message"></div>
+        <div id="error-message" class="error-message"></div>
     </main>
 
 <footer>
@@ -306,64 +307,45 @@
         }
       }
 
-      async function loadPhoneNumber() {
-        try {
-          currentUser = await getCurrentUser();
-          if (!currentUser) return;
+async function loadPhoneNumber() {
+  try {
+    currentUser = await getCurrentUser();
+    if (!currentUser) return;
 
-          const phoneDisplay = document.getElementById("userPhoneNumber");
-          if (!phoneDisplay) return;
+    const phoneDisplay = document.getElementById("userPhoneNumber");
+    if (!phoneDisplay) return;
 
-          if (currentUser.user_metadata?.phone) {
-            userPhone = currentUser.user_metadata.phone;
-            phoneDisplay.textContent = userPhone;
-            return;
-          }
+    // Telefonnummer aus user_metadata laden
+    if (currentUser.user_metadata?.phone) {
+      userPhone = currentUser.user_metadata.phone;
+      phoneDisplay.textContent = userPhone;
+    } else {
+      phoneDisplay.textContent = "Keine Nummer gefunden";
+      userPhone = "";
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Telefonnummer:", error);
+    const phoneDisplay = document.getElementById("userPhoneNumber");
+    if (phoneDisplay) {
+      phoneDisplay.textContent = "Fehler beim Laden";
+    }
+  }
+}
 
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("phone_number")
-            .eq("id", currentUser.id)
-            .single();
+function showSuccess(message) {
+  hideMessages();
+  const successDiv = document.getElementById("success-message");
+  if (successDiv) {
+    successDiv.textContent = message;
+    successDiv.style.display = "block";
 
-          if (error) {
-            console.error("Fehler beim Laden der Telefonnummer:", error);
-            phoneDisplay.textContent = "Keine Nummer gefunden";
-            userPhone = "";
-            return;
-          }
+    setTimeout(() => {
+      successDiv.style.display = "none";
+    }, 5000);
+  }
+}
 
-          if (data && data.phone_number) {
-            userPhone = data.phone_number;
-            phoneDisplay.textContent = userPhone;
-          } else {
-            phoneDisplay.textContent = "Keine Nummer gefunden";
-            userPhone = "";
-          }
-        } catch (error) {
-          console.error(
-            "Unerwarteter Fehler beim Laden der Telefonnummer:",
-            error
-          );
-          const phoneDisplay = document.getElementById("userPhoneNumber");
-          if (phoneDisplay) {
-            phoneDisplay.textContent = "Fehler beim Laden";
-          }
-        }
-      }
-
-      function showSuccess(message) {
-        hideMessages();
-        const successDiv = document.getElementById("success-message");
-        if (successDiv) {
-          successDiv.textContent = message;
-          successDiv.style.display = "block";
-
-          setTimeout(() => {
-            successDiv.style.display = "none";
-          }, 5000);
-        }
-      }
+          
 
       function showError(message) {
         hideMessages();
