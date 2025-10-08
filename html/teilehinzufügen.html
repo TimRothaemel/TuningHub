@@ -312,6 +312,11 @@ async function loadPhoneNumber() {
     currentUser = await getCurrentUser();
     if (!currentUser) return;
 
+    console.log("=== User Metadata Debug ===");
+    console.log("Komplette user_metadata:", JSON.stringify(currentUser.user_metadata, null, 2));
+    console.log("Preferences:", currentUser.user_metadata?.preferences);
+    console.log("Contact Methods:", currentUser.user_metadata?.preferences?.contact_methods);
+
     const phoneDisplay = document.getElementById("userPhoneNumber");
     if (!phoneDisplay) return;
 
@@ -332,6 +337,27 @@ async function loadPhoneNumber() {
   }
 }
 
+function getContactPreferences() {
+  // Kontaktmöglichkeiten aus user_metadata auslesen
+  const metadata = currentUser?.user_metadata || {};
+  
+  console.log("=== getContactPreferences Debug ===");
+  console.log("Metadata:", metadata);
+  console.log("Preferences:", metadata.preferences);
+  console.log("Contact Methods:", metadata.preferences?.contact_methods);
+  
+  // Aus preferences.contact_methods ein Array erstellen
+  const contactMethods = metadata.preferences?.contact_methods || ["phone"];
+  
+  const result = {
+    contact_methods: contactMethods, // Array wie ["phone", "social", "chat"]
+    social_media: metadata.preferences?.social_media || null
+  };
+  
+  console.log("Ergebnis von getContactPreferences:", result);
+  
+  return result;
+}
 function showSuccess(message) {
   hideMessages();
   const successDiv = document.getElementById("success-message");
