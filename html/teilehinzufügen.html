@@ -566,9 +566,10 @@ function showSuccess(message) {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const maxSize = 10 * 1024 * 1024;
+        // Erhöhe das Limit auf 50MB, da wir die Bilder ja komprimieren
+        const maxSize = 50 * 1024 * 1024;
         if (file.size > maxSize) {
-          showError("Das ausgewählte Bild ist zu groß (max. 10MB).");
+          showError("Das ausgewählte Bild ist zu groß (max. 50MB). Bitte wähle ein kleineres Bild.");
           e.target.value = "";
           return;
         }
@@ -594,7 +595,6 @@ function showSuccess(message) {
           addImageInput();
         }
       }
-
       function validateInputs() {
         const title = document.getElementById("partTitle")?.value?.trim() || "";
         const description =
