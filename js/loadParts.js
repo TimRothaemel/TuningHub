@@ -5,7 +5,24 @@ import { supabase, trackingSupabase } from "./supabaseClient.js";
 // Import Chat-Modul dynamisch
 let ChatModule = null;
 
-
+// Dynamischer Import der openChat Funktion
+async function openChat(sellerId, teilId) {
+  try {
+    if (!ChatModule) {
+      ChatModule = await import('./chat.js');
+    }
+    
+    if (ChatModule && typeof ChatModule.openChat === 'function') {
+      return await ChatModule.openChat(sellerId, teilId);
+    } else {
+      throw new Error('Chat-Modul konnte nicht geladen werden');
+    }
+  } catch (error) {
+    console.error('Fehler beim Laden des Chat-Moduls:', error);
+    alert('Chat-Funktion ist momentan nicht verfügbar');
+    throw error;
+  }
+}
 
 // Utility functions
 export function log(message, data = '') {
@@ -18,9 +35,17 @@ export function showError(message) {
     container.innerHTML = `
       <div class="error-message">
         <p>⚠️ ${message}</p>
-        <button onclick="loadParts()" class="retry-btn">Erneut versuchen</button>
+        <button id="retry-btn" class="retry-btn">Erneut versuchen</button>
       </div>
     `;
+    
+    // Event Listener statt inline onclick
+    const retryBtn = document.getElementById("retry-btn");
+    if (retryBtn) {
+      retryBtn.addEventListener("click", () => {
+        loadParts();
+      });
+    }
   }
 }
 
@@ -53,7 +78,6 @@ export function createCard(teil) {
   const card = document.createElement("div");
   card.className = typ === "teilesuche" ? "card search-card" : "card";
   
-  // WICHTIG für Anker-Link
   card.setAttribute("data-id", id);
   card.id = `teil-${id}`;
 
@@ -139,15 +163,38 @@ export function extractData(teil) {
   const bild = teil.image_url;
   const kategorie = teil.type;
   const zustand = teil.condition;
-  const telefon = teil.contact_number || teil.seller_phone;
-  const verkäufer = "Privater Verkäufer";
   const datum = teil.created_at;
   const id = teil.id;
   const typ = teil.type;
   const link = teil.link;
   const verkäuferId = teil.user_id || teil.seller_id;
-  const sellerContactMethods = teil.seller_contact_methods || ['phone'];
-  const sellerSocialMedia = teil.seller_social_media;
+
+  // Verkäufer-Infos aus dem JOIN mit profiles
+  let telefon = null;
+  let verkäufer = "Privater Verkäufer";
+  let sellerContactMethods = ['phone'];
+  let sellerSocialMedia = null;
+
+  if (teil.seller) {
+    telefon = teil.seller.phone || null;
+    sellerContactMethods = teil.seller.contact_methods || ['phone'];
+    
+    // Social Media parsen (kann string oder object sein)
+    if (teil.seller.social_media) {
+      try {
+        sellerSocialMedia = typeof teil.seller.social_media === 'string'
+          ? JSON.parse(teil.seller.social_media)
+          : teil.seller.social_media;
+      } catch (e) {
+        console.warn('Social Media parsing error:', e);
+      }
+    }
+    
+    // Name: Company oder Username
+    verkäufer = teil.seller.account_type === 'company' && teil.seller.company_name
+      ? teil.seller.company_name
+      : teil.seller.username || "Privater Verkäufer";
+  }
 
   const bilder = [];
   for (let i = 1; i <= 5; i++) {
@@ -183,7 +230,7 @@ export function truncateDescription(text, maxLength = 120) {
   return text.substr(0, maxLength).trim() + "...";
 }
 
-// Helper functions für Kontaktdialog (müssen AUSSERHALB von contactSeller sein)
+// Helper: Kontaktoptionen generieren
 function generateContactOptions(methods, phone, verkäuferId, teilId) {
   let html = '';
 
@@ -235,6 +282,7 @@ function generateContactOptions(methods, phone, verkäuferId, teilId) {
   return html;
 }
 
+// Helper: Event Listener für Kontaktoptionen
 function setupContactEventListeners(dialog, methods, phone, verkäuferId, teilId, socialMedia) {
   const container = dialog.querySelector("#contact-options-container");
 
@@ -290,6 +338,7 @@ function setupContactEventListeners(dialog, methods, phone, verkäuferId, teilId
   }
 }
 
+// Social Media Dialog
 function showSocialMediaDialog(socialMedia) {
   const dialog = document.createElement("div");
   dialog.className = "contact-dialog-overlay";
@@ -346,7 +395,7 @@ function showSocialMediaDialog(socialMedia) {
   });
 }
 
-// ERWEITERTE KONTAKTFUNKTION MIT USER PREFERENCES
+// HAUPTFUNKTION: Verkäufer kontaktieren (mit Profiles-Integration)
 export async function contactSeller(teilId, verkäuferId, telefon) {
   if (!verkäuferId && !telefon) {
     alert("Keine Kontaktinformationen verfügbar");
@@ -357,34 +406,48 @@ export async function contactSeller(teilId, verkäuferId, telefon) {
     let contactMethods = ['phone'];
     let socialMedia = null;
     let verkäuferTelefon = telefon;
+    let verkäuferName = 'Verkäufer';
     
-    // Hole die Kontaktpräferenzen direkt aus dem part
-    if (teilId) {
+    // Hole Kontaktpräferenzen aus profiles-Tabelle
+    if (verkäuferId) {
       try {
-        const { data: partData, error } = await supabase
-          .from('parts')
-          .select('seller_contact_methods, seller_social_media, seller_phone')
-          .eq('id', teilId)
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('username, phone, email, social_media, contact_methods, company_name, account_type')
+          .eq('id', verkäuferId)
           .single();
         
-        if (!error && partData) {
-          console.log('Verkäufer Präferenzen aus part geladen:', partData);
+        if (!error && profileData) {
+          console.log('✅ Verkäufer-Profil geladen:', profileData);
           
-          if (partData.seller_contact_methods && Array.isArray(partData.seller_contact_methods)) {
-            contactMethods = partData.seller_contact_methods;
+          // Contact Methods (JSONB Array)
+          if (profileData.contact_methods && Array.isArray(profileData.contact_methods)) {
+            contactMethods = profileData.contact_methods;
           }
           
-          if (partData.seller_social_media) {
-            socialMedia = partData.seller_social_media;
+          // Social Media (JSON oder Text)
+          if (profileData.social_media) {
+            try {
+              socialMedia = typeof profileData.social_media === 'string' 
+                ? JSON.parse(profileData.social_media) 
+                : profileData.social_media;
+            } catch (e) {
+              console.warn('Social Media parsing error:', e);
+            }
           }
           
-          // Hole Telefonnummer aus part falls nicht übergeben
-          if (!verkäuferTelefon && partData.seller_phone) {
-            verkäuferTelefon = partData.seller_phone;
+          // Telefonnummer aus Profil
+          if (profileData.phone) {
+            verkäuferTelefon = profileData.phone;
           }
+          
+          // Name (Company oder Username)
+          verkäuferName = profileData.account_type === 'company' && profileData.company_name
+            ? profileData.company_name
+            : profileData.username || 'Verkäufer';
         }
       } catch (dbError) {
-        console.warn('Fehler beim Laden der Verkäufer-Präferenzen:', dbError);
+        console.warn('⚠️ Fehler beim Laden des Verkäufer-Profils:', dbError);
       }
     }
 
@@ -394,7 +457,7 @@ export async function contactSeller(teilId, verkäuferId, telefon) {
     dialog.className = "contact-dialog-overlay";
     dialog.innerHTML = `
       <div class="contact-dialog-content">
-        <h3>Verkäufer kontaktieren</h3>
+        <h3>${verkäuferName} kontaktieren</h3>
         <p class="contact-subtitle">Wähle eine Kontaktmethode:</p>
         <div class="contact-options" id="contact-options-container">
           ${generateContactOptions(contactMethods, cleanedPhone, verkäuferId, teilId)}
@@ -420,7 +483,7 @@ export async function contactSeller(teilId, verkäuferId, telefon) {
     });
 
   } catch (error) {
-    console.error("Fehler beim Laden der Verkäufer-Präferenzen:", error);
+    console.error("❌ Fehler beim Laden der Verkäufer-Präferenzen:", error);
     showBasicContactDialog(verkäuferTelefon || telefon);
   }
 }
@@ -737,12 +800,13 @@ export async function sharePart(id) {
   window.teileSharing.sharePart(id, currentPart);
 }
 
+// HAUPTFUNKTION: Teile laden (MIT JOIN zu profiles)
 export async function loadParts() {
-  log("Starte Laden der Angebote...");
+  log("🔄 Starte Laden der Angebote...");
 
   const container = document.getElementById("angebot-container");
   if (!container) {
-    log("ERROR: Container nicht gefunden");
+    log("❌ ERROR: Container nicht gefunden");
     return;
   }
 
@@ -754,22 +818,92 @@ export async function loadParts() {
   showLoading();
 
   try {
-    log("Lade Daten aus Supabase...");
+    log("📡 Lade Daten aus Supabase mit JOIN zu profiles...");
 
-    const { data, error } = await supabase
+    // Überprüfe Supabase-Verbindung
+    if (!supabase || typeof supabase.from !== 'function') {
+      throw new Error('Supabase-Client nicht korrekt initialisiert');
+    }
+
+    // Methode 1: Versuche JOIN mit Foreign Key
+    let { data, error } = await supabase
       .from("parts")
-      .select("*, seller_contact_methods, seller_social_media, seller_phone")
+      .select(`
+        *,
+        seller:profiles!parts_user_id_fkey (
+          id,
+          username,
+          phone,
+          email,
+          contact_methods,
+          social_media,
+          account_type,
+          company_name
+        )
+      `)
       .order("created_at", { ascending: false })
       .limit(20);
 
+   // Fallback: Wenn JOIN fehlschlägt, lade Daten separat
+    if (error && error.message.includes('relationship')) {
+      log("⚠️ JOIN fehlgeschlagen, verwende Fallback-Methode");
+      
+      const { data: partsData, error: partsError } = await supabase
+        .from("parts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (partsError) throw partsError;
+
+      // Lade Profile separat mit einzelnen Abfragen statt .in()
+      const userIds = [...new Set(partsData.map(p => p.user_id).filter(Boolean))];
+      
+      if (userIds.length > 0) {
+        const profilesData = [];
+        
+        // Lade jedes Profil einzeln um 406-Fehler zu vermeiden
+        for (const userId of userIds) {
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from("profiles")
+              .select("id, username, phone, email, contact_methods, social_media, account_type, company_name")
+              .eq("id", userId)
+              .maybeSingle();
+
+            if (!profileError && profile) {
+              profilesData.push(profile);
+            }
+          } catch (e) {
+            log(`⚠️ Konnte Profil ${userId} nicht laden:`, e);
+          }
+        }
+
+        if (profilesData.length > 0) {
+          // Merge profiles in parts
+          data = partsData.map(part => ({
+            ...part,
+            seller: profilesData.find(p => p.id === part.user_id) || null
+          }));
+        } else {
+          data = partsData;
+        }
+      } else {
+        data = partsData;
+      }
+      
+      error = null;
+    }
+
     if (error) {
-      log("Supabase Fehler:", error);
+      log("❌ Supabase Fehler:", error);
       showError(`Datenbankfehler: ${error.message}`);
       return;
     }
 
-    log("Daten erfolgreich geladen:", data);
+    log("✅ Daten erfolgreich geladen:", data);
 
+    // Custom Link Card hinzufügen
     const linkCardEntry = {
       id: "custom-link-card",
       name: "AmbrossSachsen",
@@ -793,7 +927,7 @@ export async function loadParts() {
     container.innerHTML = "";
 
     allData.forEach((teil, index) => {
-      log(`Verarbeite Teil ${index + 1}:`, teil);
+      log(`🔧 Verarbeite Teil ${index + 1}:`, teil);
 
       try {
         if (teil.isCustomLink) {
@@ -810,30 +944,33 @@ export async function loadParts() {
           container.appendChild(card);
         }
       } catch (cardError) {
-        log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
+        log(`❌ Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
       }
     });
 
     log(`✅ ${allData.length} Teile erfolgreich angezeigt (maximal 20)`);
   } catch (error) {
-    log("Unerwarteter Fehler:", error);
+    log("❌ Unerwarteter Fehler:", error);
     showError(`Unerwarteter Fehler: ${error.message}`);
   }
 }
 
+// Auto-Load beim Seitenaufruf
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     loadParts().catch((error) => {
-      log("Fallback: Zeige Test-Daten wegen Fehler:", error);
+      log("❌ Fallback: Zeige Test-Daten wegen Fehler:", error);
       showError("Fehler beim Laden der Daten: " + error.message);
     });
   });
 } else {
   loadParts().catch((error) => {
-    log("Fallback: Zeige Test-Daten wegen Fehler:", error);
+    log("❌ Fallback: Zeige Test-Daten wegen Fehler:", error);
     showError("Fehler beim Laden der Daten: " + error.message);
   });
 }
+
+// "Mehr"-Link Logik
 document.addEventListener("DOMContentLoaded", () => {
   const mehrLink = document.getElementById("mehr-link");
   if (!mehrLink) return;
@@ -847,3 +984,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// Mache loadParts global verfügbar für inline onclick Handler
+window.loadParts = loadParts;
