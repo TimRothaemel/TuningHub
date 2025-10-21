@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TuningHub Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #3498db;
+      --secondary: #2ecc71;
+      --danger: #e74c3c;
+      --dark: #2c3e50;
+      --light: #ecf0f1;
+    }
+    body { 
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f5f7fa; 
+      margin: 0; 
+      padding: 0;
+      color: #333;
+    }
+    header { 
+      background: var(--dark); 
+      color: white; 
+      padding: 1.5rem; 
+      text-align: center; 
+      font-size: 1.8rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .card { 
+      background: white; 
+      padding: 1.5rem; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+      transition: all 0.3s ease;
+      border-left: 4px solid var(--primary);
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    .card h3 {
+      margin-top: 0;
+      color: var(--dark);
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card-value {
+      font-size: 2rem;
+      font-weight: bold;
+      margin: 0.5rem 0 0;
+      color: var(--dark);
+    }
+    .filters { 
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    select, button {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+      background: white;
+    }
+    .chart-container {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .chart-title {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      color: var(--dark);
+    }
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: #666;
+      font-size: 1.2rem;
+    }
+    .error {
+      color: var(--danger);
+      background: #ffebee;
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      text-align: center;
+    }
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 768px) {
+      .two-column {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>TuningHub Analytics Dashboard</header>
+
+  <div class="container">
+    <div class="filters">
+      <div>
+        <label for="timeFilter">Zeitraum: </label>
+        <select id="timeFilter">
+          <option value="24h">Letzte 24 Stunden</option>
+          <option value="7d" selected>Letzte 7 Tage</option>
+          <option value="month">Letzter Monat</option>
+          <option value="year">Letztes Jahr</option>
+        </select>
+      </div>
+      <button id="refreshBtn">🔄 Aktualisieren</button>
+    </div>
+
+    <div id="loading" class="loading">⌛ Daten werden geladen...</div>
+    <div id="error" class="error" style="display: none;"></div>
+
+    <div class="dashboard-grid" id="stats" style="display: none;">
+      <div class="card">
+        <h3>📈 Pageviews</h3>
+        <div class="card-value" id="pageviews">0</div>
+      </div>
+      <div class="card">
+        <h3>🔐 Login-Versuche</h3>
+        <div class="card-value" id="login_attempts">0</div>
+      </div>
+      <div class="card">
+        <h3>⚙️ Neue Teile</h3>
+        <div class="card-value" id="parts">0</div>
+      </div>
+      <div class="card">
+        <h3>👤 Aktive Nutzer</h3>
+        <div class="card-value" id="active_users">0</div>
+      </div>
+      <div class="card">
+        <h3>📅 Events heute</h3>
+        <div class="card-value" id="today_events">0</div>
+      </div>
+      <div class="card">
+        <h3>💰 Ø Preis</h3>
+        <div class="card-value" id="avg_price">0 €</div>
+      </div>
+    </div>
+
+    <div class="two-column">
+      <div class="chart-container">
+        <h3 class="chart-title">Nutzungsstatistiken</h3>
+        <canvas id="eventsChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3 class="chart-title">Teile-Uploads</h3>
+        <canvas id="partsChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    // Zwei separate Supabase-Clients für die verschiedenen Instanzen
+    const tracking = createClient(
+      'https://lhxcnrogjjskgaclqxtm.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww'
+    )
+
+    const supabase = createClient(
+      'https://yvdptnkmgfxkrszitweo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo'
+    )
+
+    const timeSelect = document.getElementById('timeFilter')
+    const refreshBtn = document.getElementById('refreshBtn')
+    const eventsChartCanvas = document.getElementById('eventsChart')
+    const partsChartCanvas = document.getElementById('partsChart')
+    const loadingElement = document.getElementById('loading')
+    const errorElement = document.getElementById('error')
+    const statsElement = document.getElementById('stats')
+    let eventsChart = null
+    let partsChart = null
+
+    // Event Listener
+    timeSelect.addEventListener('change', loadData)
+    refreshBtn.addEventListener('click', loadData)
+
+    // Initialer Datenabruf
+    loadData()
+
+    function getDateRange(filter) {
+      const now = new Date()
+      const start = new Date(now)
+      
+      switch (filter) {
+        case '24h': 
+          start.setHours(now.getHours() - 24)
+          break
+        case '7d':
+          start.setDate(now.getDate() - 7)
+          break
+        case 'month':
+          start.setMonth(now.getMonth() - 1)
+          break
+        case 'year':
+          start.setFullYear(now.getFullYear() - 1)
+          break
+      }
+      
+      return { start, end: now }
+    }
+
+    async function loadData() {
+      try {
+        // UI zurücksetzen
+        loadingElement.style.display = 'block'
+        errorElement.style.display = 'none'
+        statsElement.style.display = 'none'
+        
+        if (eventsChart) eventsChart.destroy()
+        if (partsChart) partsChart.destroy()
+
+        const { start, end } = getDateRange(timeSelect.value)
+        const todayStart = new Date()
+        todayStart.setHours(0, 0, 0, 0)
+
+        // Parallele Abfragen an beide Supabase-Instanzen
+        const [
+          { data: parts, error: partsError },
+          { data: events, error: eventsError }
+        ] = await Promise.all([
+          supabase.from('parts')
+            .select('*')
+            .gte('created_at', start.toISOString())
+            .lte('created_at', end.toISOString()),
+          tracking.from('tracking_events')
+            .select('*')
+            .gte('timestamp', start.toISOString())
+            .lte('timestamp', end.toISOString())
+        ])
+
+        // Fehlerbehandlung
+        if (partsError) throw new Error(`Teile-Daten: ${partsError.message}`)
+        if (eventsError) throw new Error(`Tracking-Daten: ${eventsError.message}`)
+
+        // Heutige Events filtern
+        const todaysEvents = events.filter(e => new Date(e.timestamp) >= todayStart)
+
+        // Eindeutige Nutzer identifizieren
+        const activeUsers = new Set(
+          events.map(e => e.user_id).filter(id => id && id !== 'undefined')
+        )
+
+        // Statistiken berechnen
+        const pageviews = events.filter(e => e.event_type === 'pageview').length
+        const loginAttempts = events.filter(e => e.event_type === 'login_attempt').length
+        
+        // Durchschnittspreis berechnen
+        const avgPrice = parts.length > 0 
+          ? (parts.reduce((sum, part) => sum + parseFloat(part.price), 0) / parts.length).toFixed(2)
+          : 0
+
+        // UI aktualisieren
+        document.getElementById('pageviews').textContent = pageviews.toLocaleString()
+        document.getElementById('login_attempts').textContent = loginAttempts.toLocaleString()
+        document.getElementById('parts').textContent = parts.length.toLocaleString()
+        document.getElementById('active_users').textContent = activeUsers.size.toLocaleString()
+        document.getElementById('today_events').textContent = todaysEvents.length.toLocaleString()
+        document.getElementById('avg_price').textContent = `${avgPrice} €`
+
+        // Events-Diagramm erstellen
+        createEventsChart(events, start, end)
+        // Parts-Diagramm erstellen
+        createPartsChart(parts, start, end)
+
+        // UI anzeigen
+        loadingElement.style.display = 'none'
+        statsElement.style.display = 'grid'
+
+      } catch (error) {
+        console.error('Fehler beim Laden der Daten:', error)
+        loadingElement.style.display = 'none'
+        errorElement.style.display = 'block'
+        errorElement.textContent = `Fehler: ${error.message}`
+      }
+    }
+
+    function createEventsChart(events, startDate, endDate) {
+      // Daten nach Tag gruppieren
+      const eventsByDay = groupDataByDay(events, 'timestamp', startDate, endDate)
+      
+      eventsChart = new Chart(eventsChartCanvas, {
+        type: 'line',
+        data: {
+          labels: Object.keys(eventsByDay),
+          datasets: [
+            {
+              label: 'Pageviews',
+              data: Object.values(eventsByDay).map(day => 
+                day.filter(e => e.event_type === 'pageview').length
+              ),
+              borderColor: '#3498db',
+              backgroundColor: 'rgba(52, 152, 219, 0.1)',
+              borderWidth: 2,
+              tension: 0.1
+            },
+            {
+              label: 'Login-Versuche',
+              data: Object.values(eventsByDay).map(day => 
+                day.filter(e => e.event_type === 'login_attempt').length
+              ),
+              borderColor: '#e74c3c',
+              backgroundColor: 'rgba(231, 76, 60, 0.1)',
+              borderWidth: 2,
+              tension: 0.1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Anzahl Events'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Datum'
+              }
+            }
+          }
+        }
+      })
+    }
+
+    function createPartsChart(parts, startDate, endDate) {
+      // Daten nach Tag gruppieren
+      const partsByDay = groupDataByDay(parts, 'created_at', startDate, endDate)
+      
+      // Durchschnittspreis pro Tag berechnen
+      const avgPriceByDay = {}
+      Object.entries(partsByDay).forEach(([date, dayParts]) => {
+        const prices = dayParts.map(p => parseFloat(p.price))
+        avgPriceByDay[date] = prices.reduce((a, b) => a + b, 0) / prices.length
+      })
+
+      partsChart = new Chart(partsChartCanvas, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(partsByDay),
+          datasets: [
+            {
+              label: 'Anzahl Uploads',
+              data: Object.values(partsByDay).map(day => day.length),
+              backgroundColor: 'rgba(46, 204, 113, 0.7)',
+              borderColor: 'rgba(39, 174, 96, 1)',
+              borderWidth: 1,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Ø Preis (€)',
+              data: Object.values(avgPriceByDay),
+              borderColor: '#f39c12',
+              backgroundColor: 'rgba(243, 156, 18, 0.1)',
+              borderWidth: 2,
+              type: 'line',
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            }
+          },
+          scales: {
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              title: {
+                display: true,
+                text: 'Anzahl Uploads'
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: {
+                display: true,
+                text: 'Durchschnittspreis (€)'
+              },
+              grid: {
+                drawOnChartArea: false
+              }
+            }
+          }
+        }
+      })
+    }
+
+    function groupDataByDay(data, dateField, startDate, endDate) {
+      const result = {}
+      const currentDate = new Date(startDate)
+      
+      // Leere Tage initialisieren
+      while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split('T')[0]
+        result[dateStr] = []
+        currentDate.setDate(currentDate.getDate() + 1)
+      }
+      
+      // Daten zuordnen
+      data.forEach(item => {
+        const dateStr = new Date(item[dateField]).toISOString().split('T')[0]
+        if (result[dateStr]) {
+          result[dateStr].push(item)
+        }
+      })
+      
+      return result
+    }
+  </script>
+</body>
+</html>

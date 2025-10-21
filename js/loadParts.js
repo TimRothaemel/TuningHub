@@ -191,8 +191,8 @@ export function extractData(teil) {
     }
     
     // Name: Company oder Username
-    verkäufer = teil.seller.account_type === 'company' && teil.seller.company_name
-      ? teil.seller.company_name
+    verkäufer = teil.seller.account_type === 'company' 
+      ? teil.seller
       : teil.seller.username || "Privater Verkäufer";
   }
 
@@ -396,6 +396,7 @@ function showSocialMediaDialog(socialMedia) {
 }
 
 // HAUPTFUNKTION: Verkäufer kontaktieren (mit Profiles-Integration)
+// HAUPTFUNKTION: Verkäufer kontaktieren (mit Profiles-Integration) - FIXED
 export async function contactSeller(teilId, verkäuferId, telefon) {
   if (!verkäuferId && !telefon) {
     alert("Keine Kontaktinformationen verfügbar");
@@ -411,43 +412,81 @@ export async function contactSeller(teilId, verkäuferId, telefon) {
     // Hole Kontaktpräferenzen aus profiles-Tabelle
     if (verkäuferId) {
       try {
-        const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select('username, phone, email, social_media, contact_methods, company_name, account_type')
-          .eq('id', verkäuferId)
-          .single();
+        console.log('🔍 Lade Verkäufer-Profil für ID:', verkäuferId);
         
-        if (!error && profileData) {
-          console.log('✅ Verkäufer-Profil geladen:', profileData);
+        // SCHRITT 1: Lade Basis-Daten ohne JSONB
+        const { data: baseProfile, error: baseError } = await supabase
+          .from('profiles')
+          .select('id,username,phone,email,account_type')
+          .eq('id', verkäuferId)
+          .maybeSingle();
+        
+        if (baseError) {
+          console.error('❌ Fehler beim Laden des Basis-Profils:', baseError);
+          throw baseError;
+        }
+        
+        if (!baseProfile) {
+          console.warn('⚠️ Kein Profil gefunden für ID:', verkäuferId);
+        } else {
+          console.log('✅ Basis-Profil geladen:', baseProfile);
           
-          // Contact Methods (JSONB Array)
-          if (profileData.contact_methods && Array.isArray(profileData.contact_methods)) {
-            contactMethods = profileData.contact_methods;
-          }
+          // Setze Basis-Daten
+          verkäuferTelefon = baseProfile.phone || telefon;
+          verkäuferName = baseProfile.account_type === 'company' 
+            ? baseProfile
+            : baseProfile.username || 'Verkäufer';
           
-          // Social Media (JSON oder Text)
-          if (profileData.social_media) {
-            try {
-              socialMedia = typeof profileData.social_media === 'string' 
-                ? JSON.parse(profileData.social_media) 
-                : profileData.social_media;
-            } catch (e) {
-              console.warn('Social Media parsing error:', e);
+          // SCHRITT 2: Lade JSONB-Felder separat
+          try {
+            const { data: jsonProfile, error: jsonError } = await supabase
+              .from('profiles')
+              .select('id,contact_methods,social_media')
+              .eq('id', verkäuferId)
+              .maybeSingle();
+            
+            if (!jsonError && jsonProfile) {
+              console.log('✅ JSONB-Felder geladen:', jsonProfile);
+              
+              // Contact Methods
+              if (jsonProfile.contact_methods) {
+                if (Array.isArray(jsonProfile.contact_methods)) {
+                  contactMethods = jsonProfile.contact_methods;
+                } else if (typeof jsonProfile.contact_methods === 'string') {
+                  try {
+                    contactMethods = JSON.parse(jsonProfile.contact_methods);
+                  } catch (e) {
+                    console.warn('⚠️ Contact Methods parsing error:', e);
+                  }
+                }
+              }
+              
+              // Social Media
+              if (jsonProfile.social_media) {
+                try {
+                  socialMedia = typeof jsonProfile.social_media === 'string' 
+                    ? JSON.parse(jsonProfile.social_media) 
+                    : jsonProfile.social_media;
+                } catch (e) {
+                  console.warn('⚠️ Social Media parsing error:', e);
+                }
+              }
+              
+              console.log('📋 Finale Kontaktdaten:', {
+                contactMethods,
+                socialMedia,
+                phone: verkäuferTelefon
+              });
+            } else if (jsonError) {
+              console.warn('⚠️ JSONB-Fehler (nicht kritisch):', jsonError.message);
             }
+          } catch (jsonErr) {
+            console.warn('⚠️ JSONB-Abfrage fehlgeschlagen (nicht kritisch):', jsonErr);
           }
-          
-          // Telefonnummer aus Profil
-          if (profileData.phone) {
-            verkäuferTelefon = profileData.phone;
-          }
-          
-          // Name (Company oder Username)
-          verkäuferName = profileData.account_type === 'company' && profileData.company_name
-            ? profileData.company_name
-            : profileData.username || 'Verkäufer';
         }
       } catch (dbError) {
-        console.warn('⚠️ Fehler beim Laden des Verkäufer-Profils:', dbError);
+        console.error('❌ Fehler beim Laden des Verkäufer-Profils:', dbError);
+        // Fahre mit Default-Werten fort
       }
     }
 
@@ -483,11 +522,11 @@ export async function contactSeller(teilId, verkäuferId, telefon) {
     });
 
   } catch (error) {
-    console.error("❌ Fehler beim Laden der Verkäufer-Präferenzen:", error);
-    showBasicContactDialog(verkäuferTelefon || telefon);
+    console.error("❌ Fehler in contactSeller:", error);
+    // Fallback zu Basic Dialog
+    showBasicContactDialog(telefon);
   }
 }
-
 async function openChatHandler(verkäuferId, teilId) {
   try {
     await openChat(verkäuferId, teilId);
@@ -801,6 +840,7 @@ export async function sharePart(id) {
 }
 
 // HAUPTFUNKTION: Teile laden (MIT JOIN zu profiles)
+// HAUPTFUNKTION: Teile laden (MIT verbessertem JOIN zu profiles)
 export async function loadParts() {
   log("🔄 Starte Laden der Angebote...");
 
@@ -825,7 +865,7 @@ export async function loadParts() {
       throw new Error('Supabase-Client nicht korrekt initialisiert');
     }
 
-    // Methode 1: Versuche JOIN mit Foreign Key
+    // STRATEGIE 1: Versuche JOIN mit allen Feldern (inkl. JSONB)
     let { data, error } = await supabase
       .from("parts")
       .select(`
@@ -835,18 +875,78 @@ export async function loadParts() {
           username,
           phone,
           email,
-          contact_methods,
-          social_media,
           account_type,
-          company_name
+          contact_methods,
+          social_media
         )
       `)
       .order("created_at", { ascending: false })
       .limit(20);
+    
+    // STRATEGIE 2: Wenn JSONB-Fehler, versuche ohne JSONB und lade separat
+    if (error && (error.message.includes('json') || error.message.includes('400'))) {
+      log("⚠️ JSONB im JOIN fehlgeschlagen, lade separat...");
+      
+      // Hole Daten ohne JSONB
+      const result = await supabase
+        .from("parts")
+        .select(`
+          *,
+          seller:profiles!parts_user_id_fkey (
+            id,
+            username,
+            phone,
+            email,
+            account_type,
+          )
+        `)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      
+      data = result.data;
+      error = result.error;
+      
+      // Lade JSONB-Felder separat
+      if (!error && data && data.length > 0) {
+        const userIds = [...new Set(data.map(p => p.seller?.id).filter(Boolean))];
+        
+        if (userIds.length > 0) {
+          log("📡 Lade JSONB-Felder für", userIds.length, "Verkäufer...");
+          
+          // Nutze IN-Query statt einzelner Abfragen
+          const { data: profilesWithJson, error: jsonError } = await supabase
+            .from("profiles")
+            .select("id, contact_methods, social_media")
+            .in("id", userIds);
+          
+          if (!jsonError && profilesWithJson && profilesWithJson.length > 0) {
+            log("✅ JSONB-Felder geladen für", profilesWithJson.length, "Verkäufer");
+            
+            // Merge JSONB-Daten
+            data = data.map(part => {
+              if (part.seller) {
+                const jsonData = profilesWithJson.find(p => p.id === part.seller.id);
+                if (jsonData) {
+                  part.seller.contact_methods = jsonData.contact_methods || ['phone'];
+                  part.seller.social_media = jsonData.social_media || null;
+                  log(`✅ JSONB für ${part.seller.username}:`, {
+                    contact_methods: jsonData.contact_methods,
+                    social_media: jsonData.social_media
+                  });
+                }
+              }
+              return part;
+            });
+          } else if (jsonError) {
+            log("⚠️ JSONB-Fehler:", jsonError.message);
+          }
+        }
+      }
+    }
 
-   // Fallback: Wenn JOIN fehlschlägt, lade Daten separat
+    // STRATEGIE 3: Vollständiger Fallback ohne JOIN
     if (error && error.message.includes('relationship')) {
-      log("⚠️ JOIN fehlgeschlagen, verwende Fallback-Methode");
+      log("⚠️ JOIN komplett fehlgeschlagen, verwende Fallback-Methode");
       
       const { data: partsData, error: partsError } = await supabase
         .from("parts")
@@ -856,35 +956,27 @@ export async function loadParts() {
 
       if (partsError) throw partsError;
 
-      // Lade Profile separat mit einzelnen Abfragen statt .in()
       const userIds = [...new Set(partsData.map(p => p.user_id).filter(Boolean))];
       
       if (userIds.length > 0) {
-        const profilesData = [];
+        log("📡 Lade Profile separat für", userIds.length, "Verkäufer...");
         
-        // Lade jedes Profil einzeln um 406-Fehler zu vermeiden
-        for (const userId of userIds) {
-          try {
-            const { data: profile, error: profileError } = await supabase
-              .from("profiles")
-              .select("id, username, phone, email, contact_methods, social_media, account_type, company_name")
-              .eq("id", userId)
-              .maybeSingle();
+        // Nutze IN-Query für bessere Performance
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, username, phone, email, contact_methods, social_media, account_type")
+          .in("id", userIds);
 
-            if (!profileError && profile) {
-              profilesData.push(profile);
-            }
-          } catch (e) {
-            log(`⚠️ Konnte Profil ${userId} nicht laden:`, e);
-          }
-        }
-
-        if (profilesData.length > 0) {
-          // Merge profiles in parts
+        if (!profilesError && profilesData && profilesData.length > 0) {
+          log("✅ Profile geladen:", profilesData.length);
+          
           data = partsData.map(part => ({
             ...part,
             seller: profilesData.find(p => p.id === part.user_id) || null
           }));
+        } else if (profilesError) {
+          log("⚠️ Profile-Fehler:", profilesError.message);
+          data = partsData;
         } else {
           data = partsData;
         }
