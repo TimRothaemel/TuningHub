@@ -444,16 +444,55 @@
       }
     }
   </style>
+<link rel="stylesheet" href="/css/main.css" />
+<link rel="stylesheet" href="/css/search.css" />
+<link rel="stylesheet" href="/css/menu.css" />
+
+<script src="/js/search.js" defer></script>
+<script src="/js/menu.js" defer></script>
+
 </head>
 <body>
-  <header class="header">
-    <div class="header-top">
-      <div class="logo">TuningHub Analytics</div>
-      <div class="account-erstellen">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzMzMyI+PHBhdGggZD0iTTEyIDEyYzIuNzYgMCA1LTIuMjQgNS01cy0yLjI0LTUtNS01LTUgMi4yNC01IDUgMi4yNCA1IDUgNXptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg==" alt="Account">
+    <header class="header">
+      <div class="header-top">
+        <div class="logo">
+          <a href="../../index.html">
+            <img
+              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              alt="TuningHub Logo"
+              height="50"
+            />
+          </a>
+        </div>
+        <div class="searchbar-wrapper">
+        <input
+          id="searchbar"
+          type="text"
+          class="searchbar"
+          placeholder="Suche nach Teilen, Marken..."
+        >
+        <img 
+        src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+        >
+        
       </div>
-    </div>
-  </header>
+      
+  
+      <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
+  <!-- Öffnene -->
+  <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+  <!-- Schließen -->
+  <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+</button>
+<nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Navigation</div>
+        </div>
+        <div class="menu-items">
+           
+    </nav>
+      <div class="overlay" id="overlay"></div>
+    </header>
 
   <main>
     <div class="filters">
@@ -662,6 +701,15 @@
       </div>
     </div>
   </main>
+  <footer>
+    <div class="informations"><a href="/html/übertuninghub.html">TuningHub</a></div>
+    <div class="informations"><a href="/html/impressum.html">Impressum</a></div>
+    <div class="informations"><a href="/html/support.html">Support</a></div>
+    <div class="informations"><a href="/html/socialmedia.html">Social Media</a></div>
+    <div class="informations"><a href="/html/agb.html">AGB</a></div>
+    <div class="informations"><a href="/html/haftungsbeschränkung.html">Haftungsbeschränkung</a></div>
+    <div class="informations"><a href="/html/datenschutz.html">Datenschutz</a></div>
+  </footer>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
