@@ -7,6 +7,8 @@ let allPartsData = [];
 let loadedPartsCount = 0;
 const PARTS_PER_LOAD = 20;
 let isLoading = false;
+let isSearchActive = false;
+let searchResults = [];
 
 // Utility functions
 export function log(message, data = '') {
@@ -43,6 +45,18 @@ export function showEmpty() {
       <div class="empty-message">
         <p>📦 Keine Angebote gefunden</p>
         <a href="/html/teilehinzufügen.html" class="add-parts-btn">Erstes Teil hinzufügen</a>
+      </div>
+    `;
+  }
+}
+
+export function showNoSearchResults(query) {
+  const container = document.getElementById("angebot-container");
+  if (container) {
+    container.innerHTML = `
+      <div class="empty-message">
+        <p>🔍 Keine Ergebnisse für "${query}"</p>
+        <button onclick="window.TuningHubSearch.clearSearch()" class="retry-btn">Suche zurücksetzen</button>
       </div>
     `;
   }
@@ -310,8 +324,6 @@ function showBasicContactDialog(telefon) {
   dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.remove(); });
 }
 
-// [Restliche Funktionen bleiben gleich bis loadParts...]
-
 let currentPart = null;
 let currentImageIndex = 0;
 let imageUrls = [];
@@ -451,6 +463,57 @@ export async function sharePart(id) {
   window.teileSharing.sharePart(id, currentPart);
 }
 
+// NEUE FUNKTION: Zeige Suchergebnisse an
+function displaySearchResults(results, query) {
+  log(`Zeige ${results.length} Suchergebnisse für: "${query}"`);
+  
+  isSearchActive = true;
+  searchResults = results;
+  
+  const container = document.getElementById("angebot-container");
+  container.innerHTML = "";
+  
+  if (results.length === 0) {
+    showNoSearchResults(query);
+    return;
+  }
+  
+  // Zeige Suchergebnis-Header
+  const header = document.createElement("div");
+  header.style.cssText = "grid-column: 1/-1; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px;";
+  header.innerHTML = `
+    <h2 style="margin: 0 0 10px 0;">Suchergebnisse für "${query}"</h2>
+    <p style="margin: 0;">${results.length} ${results.length === 1 ? 'Ergebnis' : 'Ergebnisse'} gefunden</p>
+    <button onclick="window.TuningHubSearch.clearSearch()" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Suche zurücksetzen
+    </button>
+  `;
+  container.appendChild(header);
+  
+  // Zeige alle Suchergebnisse
+  results.forEach(teil => {
+    try {
+      const card = createCard(teil);
+      container.appendChild(card);
+    } catch (error) {
+      log("Fehler beim Erstellen der Such-Karte:", error);
+    }
+  });
+  
+  log("Suchergebnisse angezeigt");
+}
+
+// NEUE FUNKTION: Suche zurücksetzen
+function clearSearchResults() {
+  log("Setze Suche zurück");
+  
+  isSearchActive = false;
+  searchResults = [];
+  
+  // Lade normale Ansicht
+  loadParts();
+}
+
 // NEUE LAZY LOADING FUNKTION
 function loadMoreParts() {
   if (isLoading || loadedPartsCount >= allPartsData.length) return;
@@ -479,7 +542,6 @@ function loadMoreParts() {
   loadedPartsCount = endIndex;
   isLoading = false;
   
-  // Füge Load-More Trigger hinzu wenn noch mehr Teile vorhanden
   if (loadedPartsCount < allPartsData.length) {
     addLoadMoreTrigger();
   }
@@ -497,7 +559,6 @@ function addLoadMoreTrigger() {
     document.getElementById("angebot-container").appendChild(trigger);
   }
   
-  // Intersection Observer für automatisches Nachladen
   const observer = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting) {
       log("Load-More Trigger sichtbar, lade weitere Teile...");
@@ -513,6 +574,10 @@ export async function loadParts() {
   const container = document.getElementById("angebot-container");
   if (!container) { log("ERROR: Container nicht gefunden"); return; }
   if (!supabase) { showError("Supabase nicht initialisiert"); return; }
+  
+  // Reset Suchstatus
+  isSearchActive = false;
+  searchResults = [];
   
   showLoading();
   
@@ -543,10 +608,7 @@ export async function loadParts() {
     container.innerHTML = "";
     loadedPartsCount = 0;
     
-    // Lade erste Batch
     loadMoreParts();
-    
-    // Prüfe ob ein spezifisches Teil angesprungen werden soll
     setTimeout(() => handleHashScroll(), 500);
     
   } catch (error) {
@@ -559,16 +621,13 @@ function handleHashScroll() {
   const hash = window.location.hash;
   if (hash && hash.startsWith('#teil-')) {
     log("Hash erkannt:", hash);
-    const teilId = hash.substring(6); // Entferne '#teil-'
+    const teilId = hash.substring(6);
     
-    // Prüfe ob das Teil bereits geladen ist
     let element = document.querySelector(hash);
     
     if (element) {
-      // Teil ist bereits geladen
       scrollToElement(element);
     } else {
-      // Teil muss noch geladen werden
       log("Teil noch nicht geladen, lade alle Teile bis zum Ziel...");
       loadAllPartsUntilHash(teilId);
     }
@@ -576,7 +635,6 @@ function handleHashScroll() {
 }
 
 function loadAllPartsUntilHash(teilId) {
-  // Finde Index des gesuchten Teils
   const teilIndex = allPartsData.findIndex(t => t.id === teilId);
   
   if (teilIndex === -1) {
@@ -584,7 +642,6 @@ function loadAllPartsUntilHash(teilId) {
     return;
   }
   
-  // Lade alle Teile bis zu diesem Index
   const container = document.getElementById("angebot-container");
   for (let i = loadedPartsCount; i <= teilIndex; i++) {
     const teil = allPartsData[i];
@@ -603,7 +660,6 @@ function loadAllPartsUntilHash(teilId) {
   
   loadedPartsCount = teilIndex + 1;
   
-  // Jetzt zum Element scrollen
   setTimeout(() => {
     const element = document.querySelector(`#teil-${teilId}`);
     if (element) {
@@ -616,29 +672,86 @@ function scrollToElement(element) {
   log("Scrolle zu Element:", element);
   element.scrollIntoView({ behavior: "smooth", block: "center" });
   
-  // Highlight-Effekt
   element.style.boxShadow = "0 0 0 3px #007bff";
   setTimeout(() => {
     element.style.boxShadow = "";
   }, 2000);
 }
 
+// WICHTIG: Event Listener für Such-System
+window.addEventListener('tuninghub:search', (event) => {
+  log("Such-Event empfangen:", event.detail);
+  const { query, results } = event.detail;
+  displaySearchResults(results, query);
+});
+
+window.addEventListener('tuninghub:clearsearch', () => {
+  log("Clear-Search Event empfangen");
+  clearSearchResults();
+});
+
 // Event Listeners
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    loadParts().catch((error) => {
-      log("Fehler beim Laden:", error);
-      showError("Fehler beim Laden der Daten: " + error.message);
-    });
-  });
-} else {
-  loadParts().catch((error) => {
+async function initializePage() {
+  log("Seite wird initialisiert...");
+  
+  try {
+    // Lade zuerst alle Teile
+    await loadParts();
+    
+    // DANN signalisiere dass wir bereit sind
+    log("Seite bereit, sende ready-Signal...");
+    window.dispatchEvent(new Event('tuninghub:ready'));
+    
+    // Prüfe ob es einen Suchparameter gibt
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('search');
+    
+    if (searchQuery && searchQuery.trim()) {
+      log("URL-Suchparameter gefunden:", searchQuery);
+      
+      // Warte kurz bis search.js bereit ist
+      setTimeout(() => {
+        if (window.TuningHubSearch && window.TuningHubSearch.performLocalSearch) {
+          log("Führe URL-Suche aus...");
+          window.TuningHubSearch.performLocalSearch(searchQuery);
+        } else {
+          log("TuningHubSearch nicht verfügbar, führe manuelle Suche aus");
+          performManualSearch(searchQuery);
+        }
+      }, 500);
+    }
+    
+  } catch (error) {
     log("Fehler beim Laden:", error);
     showError("Fehler beim Laden der Daten: " + error.message);
+  }
+}
+
+// Manuelle Suche falls TuningHubSearch nicht verfügbar
+function performManualSearch(query) {
+  log("Führe manuelle Suche aus:", query);
+  
+  const lowerQuery = query.toLowerCase();
+  const results = allPartsData.filter(part => {
+    const searchText = `${part.title || ''} ${part.description || ''} ${part.name || ''}`.toLowerCase();
+    return searchText.includes(lowerQuery);
   });
+  
+  displaySearchResults(results, query);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePage);
+} else {
+  initializePage();
 }
 
 // Hash-Change Listener für dynamisches Navigieren
 window.addEventListener('hashchange', () => {
   handleHashScroll();
 });
+
+// Globale Funktion für Suche zurücksetzen (wird von Button aufgerufen)
+window.clearSearch = clearSearchResults;
+
+log("teileübersicht.html.js vollständig initialisiert");
