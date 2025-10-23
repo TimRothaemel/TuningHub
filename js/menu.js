@@ -15,116 +15,43 @@ async function getUserAccountType() {
   try {
     if (!window.supabase) {
       console.warn("Supabase not available");
-      return 'guest';
+      return "guest";
     }
 
-    // METHODE 1: Versuche getUser() 
-    let user = null;
-    let error = null;
-    
-    try {
-      const result = await window.supabase.auth.getUser();
-      user = result.data?.user;
-      error = result.error;
-    } catch (e) {
-      console.warn("getUser() failed:", e);
+    // 🔹 Hole aktuellen User
+    const { data: { user }, error } = await window.supabase.auth.getUser();
+    if (error || !user) {
+      console.warn("No user found or error:", error);
+      return "guest";
     }
 
-    // METHODE 2: Falls getUser() keine Metadaten hat, versuche getSession()
-    if (user && !user.raw_user_meta_data) {
-      console.log("raw_user_meta_data is undefined, trying getSession()...");
-      try {
-        const sessionResult = await window.supabase.auth.getSession();
-        if (sessionResult.data?.session?.user) {
-          console.log("Session user found:", sessionResult.data.session.user);
-          user = sessionResult.data.session.user;
-        }
-      } catch (e) {
-        console.warn("getSession() failed:", e);
-      }
+    // 🔹 Debug: vollständige Ausgabe
+    console.log("🔍 Supabase user object:", JSON.parse(JSON.stringify(user)));
+
+    // 🔹 Finde account_type in allen möglichen Quellen
+    const metaSources = [
+      user.raw_user_meta_data?.account_type,
+      user.user_metadata?.account_type,
+      user.app_metadata?.account_type
+    ];
+
+    const accountType = metaSources.find(Boolean) || "normal";
+
+    // 🔹 Validierung
+    const valid = ["guest", "normal", "business", "admin"];
+    const cleanType = String(accountType).trim().toLowerCase();
+
+    if (!valid.includes(cleanType)) {
+      console.warn(`⚠️ Invalid account_type detected: "${cleanType}", defaulting to "normal"`);
+      return "normal";
     }
 
-    // METHODE 3: Falls immer noch keine Metadaten, versuche direkte Datenbankabfrage
-    if (user && !user.raw_user_meta_data && user.id) {
-      console.log("Still no metadata, trying database query...");
-      try {
-        const { data: profileData, error: profileError } = await window.supabase
-          .from('profiles') // Annahme: Sie haben eine profiles Tabelle
-          .select('account_type')
-          .eq('id', user.id)
-          .single();
-          
-        if (profileData?.account_type) {
-          console.log("Account type from database:", profileData.account_type);
-          return profileData.account_type.toLowerCase().trim();
-        }
-      } catch (e) {
-        console.warn("Database query failed:", e);
-      }
-    }
+    console.log(`✅ Account type detected: ${cleanType}`);
+    return cleanType;
 
-    if (error) {
-      console.warn("Error getting user:", error);
-      return 'guest';
-    }
-
-    if (!user) {
-      console.log("No user found, returning guest");
-      return 'guest';
-    }
-
-    // Debug: Vollständiges User-Objekt loggen
-    console.log("=== USER DEBUG INFO ===");
-    console.log("User ID:", user.id);
-    console.log("User Email:", user.email);
-    console.log("User Object Keys:", Object.keys(user));
-    console.log("Complete user object:", user);
-    console.log("raw_user_meta_data:", user.raw_user_meta_data);
-    console.log("app_metadata:", user.app_metadata);
-    console.log("user_metadata:", user.user_metadata);
-    console.log("========================");
-
-    // Get account_type from verschiedenen möglichen Quellen
-    let accountType = null;
-    
-    // Versuche raw_user_meta_data
-    if (user.raw_user_meta_data?.account_type) {
-      accountType = user.raw_user_meta_data.account_type;
-      console.log("Account type from raw_user_meta_data:", accountType);
-    }
-    // Versuche user_metadata
-    else if (user.user_metadata?.account_type) {
-      accountType = user.user_metadata.account_type;
-      console.log("Account type from user_metadata:", accountType);
-    }
-    // Versuche app_metadata
-    else if (user.app_metadata?.account_type) {
-      accountType = user.app_metadata.account_type;
-      console.log("Account type from app_metadata:", accountType);
-    }
-
-    // Validate account type
-    const validAccountTypes = ['guest', 'normal', 'business', 'admin'];
-    
-    if (!accountType) {
-      console.log("No account_type found in any metadata, defaulting to normal");
-      return 'normal';
-    }
-
-    // Ensure account type is a string and trim whitespace
-    const cleanAccountType = String(accountType).trim().toLowerCase();
-    
-    if (!validAccountTypes.includes(cleanAccountType)) {
-      console.warn(`Invalid account_type found: "${cleanAccountType}", defaulting to normal`);
-      return 'normal';
-    }
-
-    console.log(`✓ User account type successfully detected: ${cleanAccountType}`);
-    return cleanAccountType;
-
-  } catch (error) {
-    console.error('Error detecting account type:', error);
-    return 'guest';
+  } catch (err) {
+    console.error("❌ Error detecting account type:", err);
+    return "guest";
   }
 }
 
