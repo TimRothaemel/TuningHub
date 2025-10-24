@@ -27,7 +27,7 @@ class TeileSharing {
         const shortDescription = this.truncateText(beschreibung || `${kategorie} von ${verkäufer}`, 160);
         
         // Bild URL vorbereiten
-        const imageUrl = bild ? (bild.startsWith('http') ? bild : `${this.baseUrl}${bild}`) : `${this.baseUrl}/img/tuninghub-logo.png`;
+        const imageUrl = bild ? (bild.startsWith('http') ? bild : `${this.baseUrl}${bild}`) : `${this.baseUrl}../../../TuningHub/public/img/tuninghub-logo.png`;
 
         // Meta-Tags aktualisieren oder erstellen
         this.updateMetaTag('og:title', `${name} - ${preisText}`);

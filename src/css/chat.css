@@ -142,7 +142,7 @@
     background-color: #f0f0f0;
 }
 
-.back-button svg {
+.back-button ../../../TuningHub/public/svg {
     width: 24px;
     height: 24px;
     color: #333;
@@ -278,7 +278,7 @@
     transform: scale(0.95);
 }
 
-.send-button svg {
+.send-button ../../../TuningHub/public/svg {
     width: 24px;
     height: 24px;
 }
@@ -298,8 +298,8 @@
     padding: 40px 20px;
 }
 
-.no-chat-selected svg,
-.empty-chat-list svg {
+.no-chat-selected ../../../TuningHub/public/svg,
+.empty-chat-list ../../../TuningHub/public/svg {
     width: 80px;
     height: 80px;
     margin-bottom: 20px;

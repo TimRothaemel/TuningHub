@@ -10,13 +10,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>Teil hinzufügen – TuningHub</title>
-    <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/teilehinzufügen.css" />
-       <link rel="stylesheet" href="/css/menu.css" />
-    <link rel="stylesheet" href="/css/search.css" />
-    <script type="module" src="/js/supabaseClient.js"></script>
-    <script src="/js/menu.js"></script>
-    <script src="/js/search.js"></script>
+    <link rel="stylesheet" href="/src/css/main.css" />
+    <link rel="stylesheet" href="/src/css/teilehinzufügen.css" />
+       <link rel="stylesheet" href="/src/css/menu.css" />
+    <link rel="stylesheet" href="/src/css/search.css" />
+    <script type="module" src="/src/js/supabaseClient.js"></script>
+    <script src="/src/js/menu.js"></script>
+    <script src="/src/js/search.js"></script>
     <style>
       /* Styling für Bild-Upload und Vorschau */
       .image-upload-container {
@@ -113,7 +113,7 @@
         <div class="logo">
           <a href="../index.html">
             <img
-              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              src="../../../TuningHub/public/img/THub-Logo-ohne-Hintergrund-500x200.png"
               alt="TuningHub Logo"
               height="50"
             />
@@ -127,7 +127,7 @@
           placeholder="Suche nach Teilen, Marken..."
         >
         <img 
-        src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+        src="../../../TuningHub/public/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.../../../TuningHub/public/svg"
         >
         
       </div>
@@ -135,9 +135,9 @@
   
       <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
   <!-- Öffnene -->
-  <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+  <img src="../../../TuningHub/public/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.../../../TuningHub/public/svg" alt="Menu" width="36" height="36" class="icon icon-open">
   <!-- Schließen -->
-  <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+  <img src="../../../TuningHub/public/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.../../../TuningHub/public/svg" alt="Schließen" width="36" height="36" class="icon icon-close">
 </button>
 <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -257,7 +257,7 @@
 
       async function initializeSupabase() {
   try {
-    const module = await import("/js/supabaseClient.js");
+    const module = await import("/src/js/supabaseClient.js");
     supabase = module.supabase;
     trackingSupabase = module.trackingSupabase;
     console.log("Supabase erfolgreich initialisiert");
@@ -941,4 +941,4 @@ function showSuccess(message) {
       });
     </script>
   </body>
-</html>
+</src/pages>

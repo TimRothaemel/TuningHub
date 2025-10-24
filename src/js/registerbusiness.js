@@ -593,7 +593,7 @@ async function performBusinessRegistration() {
           agb_consent: businessData.agbConsent,
           agb_consent_date: new Date().toISOString(),
         },
-        emailRedirectTo: window.location.origin + '/html/confirmemail.html',
+        emailRedirectTo: window.location.origin + '/src/pages/confirmemail.html',
       },
     });
 

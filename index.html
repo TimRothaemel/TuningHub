@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TuningHub</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/js/metaDateLoader.js" defer></script>
+    <script src="/src/js/metaDateLoader.js" defer></script>
     <meta property="og:title" content="TuningHub Mopedteile kaufen und verkaufen" />
   <meta property="og:description" content="Finde und verkaufe Mopedteile für dein Moped. Große Auswahl an Felgen, Auspuffanlagen, Fahrwerken und mehr." />
-  <meta property="og:image" content="/img/THub-Logo-ohne-Hintergrund-500x200" />
+  <meta property="og:image" content="/public/img/THub-Logo-ohne-Hintergrund-500x200" />
   <meta property="og:url" content="https://tuninghub.netlify.app/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="TuningHub" />
@@ -16,23 +16,23 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="TuningHub Mopedteile kaufen und verkaufen" />
   <meta name="twitter:description" content="Finde und verkaufe Mopedteile für dein Moped." />
-  <meta name="twitter:image" content="/img/THub-Logo-ohne-Hintergrund-500x200.png" />
+  <meta name="twitter:image" content="/public/img/THub-Logo-ohne-Hintergrund-500x200.png" />
 
-    <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/index.css" />
-    <link rel="stylesheet" href="/css/card.css" />
-    <link rel="stylesheet" href="/css/search.css" />
-    <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/src/css/main.css" />
+    <link rel="stylesheet" href="/src/css/index.css" />
+    <link rel="stylesheet" href="/src/css/card.css" />
+    <link rel="stylesheet" href="/src/css/search.css" />
+    <link rel="stylesheet" href="/src/css/menu.css" />
 
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
 
 
-<script type="module" src="/js/supabaseClient.js"></script>
-<script type="module" src="/js/loadParts.js"></script>
-<script type="module" src="/js/index.js"></script>
-<script src="/js/search.js" defer></script>
-<script src="/js/menu.js" defer></script>
-<script src="/js/shareParts.js" defer></script>
+<script type="module" src="/src/js/supabaseClient.js"></script>
+<script type="module" src="/src/js/loadParts.js"></script>
+<script type="module" src="/src/js/index.js"></script>
+<script src="/src/js/search.js" defer></script>
+<script src="/src/js/menu.js" defer></script>
+<script src="/src/js/shareParts.js" defer></script>
   </head>
 
   
@@ -40,9 +40,9 @@
     <header class="header">
       <div class="header-top">
         <div class="logo">
-          <a href="../index.html">
+          <a href="/index.html">
             <img
-              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              src="/public/img/THub-Logo-ohne-Hintergrund-500x200.png"
               alt="TuningHub Logo"
               height="50"
             />
@@ -56,7 +56,7 @@
           placeholder="Suche nach Teilen, Marken..."
         >
         <img 
-        src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+        src="public/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.../../../TuningHub/public/svg"
         >
         
       </div>
@@ -64,9 +64,9 @@
   
       <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
   <!-- Öffnene -->
-  <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+  <img src="/public/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
   <!-- Schließen -->
-  <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+  <img src="/public/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
 </button>
 <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -81,7 +81,7 @@
     <main>
 
       <div class="grid-container" id="angebot-container"></div>
- <a class="middle" id="mehr-link" href="/html/teileübersicht.html">mehr</a>
+ <a class="middle" id="mehr-link" href="/src/pages/teileübersicht.html">mehr</a>
     </main>
 
     <div class="detail-modal" id="detail-modal">
@@ -151,13 +151,13 @@
     </div>
 
  <footer>
-    <div class="informations"><a href="/html/übertuninghub.html">TuningHub</a></div>
-    <div class="informations"><a href="/html/impressum.html">Impressum</a></div>
-    <div class="informations"><a href="/html/support.html">Support</a></div>
-    <div class="informations"><a href="/html/socialmedia.html">Social Media</a></div>
-    <div class="informations"><a href="/html/agb.html">AGB</a></div>
-    <div class="informations"><a href="/html/haftungsbeschränkung.html">Haftungsbeschränkung</a></div>
-    <div class="informations"><a href="/html/datenschutz.html">Datenschutz</a></div>
+    <div class="informations"><a href="/src/pages/übertuninghub.html">TuningHub</a></div>
+    <div class="informations"><a href="/src/pages/impressum.html">Impressum</a></div>
+    <div class="informations"><a href="/src/pages/support.html">Support</a></div>
+    <div class="informations"><a href="/src/pages/socialmedia.html">Social Media</a></div>
+    <div class="informations"><a href="/src/pages/agb.html">AGB</a></div>
+    <div class="informations"><a href="/src/pages/haftungsbeschränkung.html">Haftungsbeschränkung</a></div>
+    <div class="informations"><a href="/src/pages/datenschutz.html">Datenschutz</a></div>
   </footer>
   </body>
-</html>
+</src/pages>

@@ -110,7 +110,7 @@ function openShopCategories(shopId, shopName) {
     sessionStorage.setItem('selectedShopName', shopName);
     
     // Zur Kategorien-Seite navigieren
-    window.location.href = '/html/verkäuferKategorien.html';
+    window.location.href = '/src/pages/verkäuferKategorien.html';
 }
 
 // Hilfsfunktionen

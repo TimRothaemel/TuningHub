@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TuningHub Teilübersicht</title>
-    <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/index.css" />
-    <link rel="stylesheet" href="/css/card.css">
-    <link rel="stylesheet" href="/css/search.css" />
-    <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/src/css/main.css" />
+    <link rel="stylesheet" href="/src/css/index.css" />
+    <link rel="stylesheet" href="/src/css/card.css">
+    <link rel="stylesheet" href="/src/css/search.css" />
+    <link rel="stylesheet" href="/src/css/menu.css" />
     
 
     
@@ -18,13 +18,13 @@
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
     
 
-    <script type="module" src="/js/supabaseClient.js"></script>
+    <script type="module" src="/src/js/supabaseClient.js"></script>
     
     <!-- Andere Scripts -->
-    <script src="/js/search.js" defer></script>
-    <script src="/js/menu.js" defer></script>
+    <script src="/src/js/search.js" defer></script>
+    <script src="/src/js/menu.js" defer></script>
     
-    <script type="module" src="/js/teileübersicht.js" defer></script>
+    <script type="module" src="/src/js/teileübersicht.js" defer></script>
 </head>
 
 <body>
@@ -33,7 +33,7 @@
             <div class="logo">
                 <a href="../index.html">
                     <img
-                        src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+                        src="../../../TuningHub/public/img/THub-Logo-ohne-Hintergrund-500x200.png"
                         alt="TuningHub Logo"
                         height="50"
                     />
@@ -47,12 +47,12 @@
                     class="searchbar"
                     placeholder="Suche nach Teilen, Marken..."
                 >
-                <img src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg">
+                <img src="../../../TuningHub/public/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.../../../TuningHub/public/svg">
             </div>
             
             <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
-                <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
-                <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+                <img src="../../../TuningHub/public/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.../../../TuningHub/public/svg" alt="Menu" width="36" height="36" class="icon icon-open">
+                <img src="../../../TuningHub/public/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.../../../TuningHub/public/svg" alt="Schließen" width="36" height="36" class="icon icon-close">
             </button>
             
             <nav class="sidebar" id="sidebar">
@@ -147,4 +147,4 @@
         <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
     </footer>
 </body>
-</html>
+</src/pages>

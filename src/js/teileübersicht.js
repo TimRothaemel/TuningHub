@@ -44,7 +44,7 @@ export function showEmpty() {
     container.innerHTML = `
       <div class="empty-message">
         <p>📦 Keine Angebote gefunden</p>
-        <a href="/html/teilehinzufügen.html" class="add-parts-btn">Erstes Teil hinzufügen</a>
+        <a href="/src/pages/teilehinzufügen.html" class="add-parts-btn">Erstes Teil hinzufügen</a>
       </div>
     `;
   }
@@ -77,8 +77,8 @@ export function createCard(teil) {
     card.classList.add("external-link-card");
   }
 
-  const imageUrl = bild || "/img/search.png";
-  const fallbackUrl = "/img/search.png";
+  const imageUrl = bild || "../../../TuningHub/public/img/search.png";
+  const fallbackUrl = "../../../TuningHub/public/img/search.png";
 
   let preisText = preis;
   if (typeof preis === "number") {
@@ -123,7 +123,7 @@ export function createLinkCard(name, beschreibung, imageUrl, preis, targetUrl) {
   card.innerHTML = `
     <div class="card link-card">
       <div class="image-container">
-        <img src="${imageUrl || '/img/placeholder.jpg'}" alt="${name}" loading="lazy">
+        <img src="${imageUrl || '../../../TuningHub/public/img/placeholder.jpg'}" alt="${name}" loading="lazy">
         <div class="card-badge">Extern</div>
       </div>
       <div class="card-content">
@@ -361,10 +361,10 @@ export function openDetailView(teil) {
   const modal = document.getElementById("detail-modal");
   const { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, typ, id, bilder, link, verkäuferId } = extractData(teil);
   currentPart = teil;
-  imageUrls = bilder.length > 0 ? bilder : [bild || "/img/no-image.png"];
+  imageUrls = bilder.length > 0 ? bilder : [bild || "../../../TuningHub/public/img/no-image.png"];
   currentImageIndex = 0;
   document.getElementById("detail-title").textContent = name;
-  const fallbackUrl = "/img/no-image.png";
+  const fallbackUrl = "../../../TuningHub/public/img/no-image.png";
   const detailImage = document.getElementById("detail-image");
   detailImage.src = imageUrls[0] || fallbackUrl;
   detailImage.alt = name;
@@ -593,7 +593,7 @@ export async function loadParts() {
       id: "custom-link-card",
       name: "AmbrossSachsen",
       beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
-      image_url: "/img/zylinderbearbeitung_ambrosssachsen.jpg",
+      image_url: "../../../TuningHub/public/img/zylinderbearbeitung_ambrosssachsen.jpg",
       preis: "Konfigurieren",
       created_at: "2025-08-29T00:00:00Z",
       isCustomLink: true,

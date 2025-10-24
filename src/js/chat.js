@@ -18,7 +18,7 @@ async function init() {
     
     if (error || !user) {
         alert("Bitte melde dich an, um den Chat zu nutzen");
-        window.location.href = "/html/login.html";
+        window.location.href = "/src/pages/login.html";
         return;
     }
 
@@ -103,9 +103,9 @@ async function loadChats() {
         if (!chats || chats.length === 0) {
             container.innerHTML = `
                 <div class="empty-chat-list">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <../../../TuningHub/public/svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
+                    <../../../TuningHub/public/svg>
                     <p>Noch keine Chats vorhanden</p>
                 </div>
             `;
@@ -177,9 +177,9 @@ async function openChat(chatId, username = 'Chat') {
     chatWindow.innerHTML = `
         <div class="chat-header">
             <button class="back-button" onclick="window.backToChats()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <../../../TuningHub/public/svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
+                <../../../TuningHub/public/svg>
             </button>
             <div class="chat-header-info">
                 <h3>${username}</h3>
@@ -190,9 +190,9 @@ async function openChat(chatId, username = 'Chat') {
         <div class="input-area">
             <input type="text" id="messageInput" placeholder="Nachricht eingeben..." />
             <button class="send-button" onclick="window.sendMessage()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <../../../TuningHub/public/svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                </svg>
+                <../../../TuningHub/public/svg>
             </button>
         </div>
     `;

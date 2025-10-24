@@ -32,7 +32,7 @@ async function initializeApp() {
     currentUser = await getCurrentUser();
     if (!currentUser) {
         showError('Du musst als Business-Account eingeloggt sein.');
-        setTimeout(() => window.location.href = '/html/login.html', 3000);
+        setTimeout(() => window.location.href = '/pages/login.html', 3000);
         return;
     }
 

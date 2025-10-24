@@ -294,7 +294,7 @@
             await performLocalSearch(trimmedQuery);
         } else {
             // Auf anderer Seite - zur Teileübersicht weiterleiten
-            const targetUrl = '/html/teileübersicht.html';
+            const targetUrl = '/src/pages/teileübersicht.html';
             const url = new URL(targetUrl, window.location.origin);
             url.searchParams.set('search', trimmedQuery);
             

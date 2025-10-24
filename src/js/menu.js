@@ -144,51 +144,51 @@ async function initializeMenuRobust() {
   const menuConfigs = {
     guest: [
       { href: "../index.html", text: "Startseite" },
-      { href: "/html/verkäufer.html", text: "Verkäufer"},
-      { href: "/html/login.html", text: "Anmelden" },
-      { href: "/html/register.html", text: "Registrieren"},
-      { href: "/html/übertuninghub.html", text: "Über uns"},
-      { href: "/html/support.html", text: "Support"},
-      { href: "/html/datenschutz.html", text: "Datenschutz"},
-      { href: "/html/impressum.html", text: "Impressum"}
+      { href: "/src/pages/verkäufer.html", text: "Verkäufer"},
+      { href: "/src/pages/login.html", text: "Anmelden" },
+      { href: "/src/pages/register.html", text: "Registrieren"},
+      { href: "/src/pages/übertuninghub.html", text: "Über uns"},
+      { href: "/src/pages/support.html", text: "Support"},
+      { href: "/src/pages/datenschutz.html", text: "Datenschutz"},
+      { href: "/src/pages/impressum.html", text: "Impressum"}
     ],
     normal: [
-      { href: "../html/index.html", text: "Startseite"},
-      { href: "/html/teilesuchen.html", text: "Teile suchen"},
-      { href: "/html/teilehinzufügen.html", text: "Teile verkaufen"},
-      { href: "/html/meineteile.html", text: "Meine Anzeigen"},
-      { href: "/html/verkäufer.html", text: "Verkäufer",},
-      { href: "/html/account.html", text: "Einstellungen"},
-      { href: "/html/support.html", text: "Support"},
-      { href: "/html/übertuninghub.html", text: "Über uns"},
-      { href: "/html/datenschutz.html", text: "Datenschutz"},
-      { href: "/html/impressum.html", text: "Impressum"},
+      { href: "../src/pages/index.html", text: "Startseite"},
+      { href: "/src/pages/teilesuchen.html", text: "Teile suchen"},
+      { href: "/src/pages/teilehinzufügen.html", text: "Teile verkaufen"},
+      { href: "/src/pages/meineteile.html", text: "Meine Anzeigen"},
+      { href: "/src/pages/verkäufer.html", text: "Verkäufer",},
+      { href: "/src/pages/account.html", text: "Einstellungen"},
+      { href: "/src/pages/support.html", text: "Support"},
+      { href: "/src/pages/übertuninghub.html", text: "Über uns"},
+      { href: "/src/pages/datenschutz.html", text: "Datenschutz"},
+      { href: "/src/pages/impressum.html", text: "Impressum"},
       { href: "#", text: "Abmelden", action: "logout" }
     ],
     business: [
       { href: "../index.html", text: "Startseite",},
-      { href: "/html/verkäufer.html", text: "Verkäufer"},
-      { href: "/html/account.html", text: "Einstellungen"},      
-      { href: "/html/produkteHinzufügen.html", text: "Produkte hinzufügen"},
-      { href: "/html/meineProdukte.html", text: "Meine Produkte"},
-      { href: "/html/businessShopEinstellungen.html", text: "Shop Einstellungen"},
-      { href: "/html/support.html", text: "Support"},
-      { href: "/html/übertuninghub.html", text: "Über uns"},
-      { href: "/html/datenschutz.html", text: "Datenschutz"},
-      { href: "/html/impressum.html", text: "Impressum"},
+      { href: "/src/pages/verkäufer.html", text: "Verkäufer"},
+      { href: "/src/pages/account.html", text: "Einstellungen"},      
+      { href: "/src/pages/produkteHinzufügen.html", text: "Produkte hinzufügen"},
+      { href: "/src/pages/meineProdukte.html", text: "Meine Produkte"},
+      { href: "/src/pages/businessShopEinstellungen.html", text: "Shop Einstellungen"},
+      { href: "/src/pages/support.html", text: "Support"},
+      { href: "/src/pages/übertuninghub.html", text: "Über uns"},
+      { href: "/src/pages/datenschutz.html", text: "Datenschutz"},
+      { href: "/src/pages/impressum.html", text: "Impressum"},
       { href: "#", text: "Abmelden", action: "logout" }
     ],
     admin: [
       { href: "../index.html", text: "Startseite"},
-      { href: "/html/admin/tuninghubAdminDashboard.html", text: "Admin Dashboard"},
-      { href: "/html/teilesuchen.html", text: "Teile suchen"},
-      { href: "/html/teilehinzufügen.html", text: "Teil hinzufügen"},
-      { href: "/html/verkäufer.html", text: "Alle Verkäufer"},
-      { href: "/html/account.html", text: "Admin Account"},
-      { href: "/html/support.html", text: "Support"},
-      { href: "/html/übertuninghub.html", text: "Über uns"},
-      { href: "/html/datenschutz.html", text: "Datenschutz"},
-      { href: "/html/impressum.html", text: "Impressum"},
+      { href: "/src/pages/admin/tuninghubAdminDashboard.html", text: "Admin Dashboard"},
+      { href: "/src/pages/teilesuchen.html", text: "Teile suchen"},
+      { href: "/src/pages/teilehinzufügen.html", text: "Teil hinzufügen"},
+      { href: "/src/pages/verkäufer.html", text: "Alle Verkäufer"},
+      { href: "/src/pages/account.html", text: "Admin Account"},
+      { href: "/src/pages/support.html", text: "Support"},
+      { href: "/src/pages/übertuninghub.html", text: "Über uns"},
+      { href: "/src/pages/datenschutz.html", text: "Datenschutz"},
+      { href: "/src/pages/impressum.html", text: "Impressum"},
       { href: "#", text: "Abmelden", action: "logout" }
     ]
   };
@@ -219,7 +219,7 @@ async function initializeMenuRobust() {
         if (item.icon) {
           const icon = document.createElement('span');
           icon.className = 'menu-icon';
-          // Fallback to text if SVG not available
+          // Fallback to text if ../../../TuningHub/public/svg not available
           icon.innerHTML = `<span class="material-icons-outlined" style="font-size: 20px;">${item.icon}</span>`;
           menuItem.appendChild(icon);
         }
@@ -330,7 +330,7 @@ async function initializeMenuRobust() {
         e.preventDefault();
         const page = menuItem.dataset.page;
         if (page) {
-          window.location.href = `/html/${page}.html`;
+          window.location.href = `/src/pages/${page}.html`;
         }
       }
       // Menü schließen nach Klick

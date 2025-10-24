@@ -133,7 +133,7 @@
         if (bild) {
             imageUrl = bild.startsWith('http') ? bild : `${window.location.origin}${bild}`;
         } else {
-            imageUrl = `${window.location.origin}/img/THub-Logo-ohne-Hintergrund-500x200.png`;
+            imageUrl = `${window.location.origin}../../../TuningHub/public/img/THub-Logo-ohne-Hintergrund-500x200.png`;
         }
         
         return {

@@ -9,17 +9,17 @@
   
   <!-- Unterseiten -->
   <url>
-    <loc>https://www.tuninghub.netlify.app/html/teile%C3%BCbersicht.html</loc>
+    <loc>https://www.tuninghub.netlify.app/src/pages/teile%C3%BCbersicht.html</loc>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://www.tuninghub.netlify.app/html/register.html</loc>
+    <loc>https://www.tuninghub.netlify.app/src/pages/register.html</loc>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://www.tuninghub.netlify.app/html/account.html</loc>
+    <loc>https://www.tuninghub.netlify.app/src/pages/account.html</loc>
     <priority>0.5</priority>
   </url>
 

@@ -32,7 +32,7 @@ async function initializeCategoriesPage() {
     
     if (!shopId) {
         showError('Kein Shop ausgewählt');
-        setTimeout(() => window.location.href = '/html/verkäufer.html', 3000);
+        setTimeout(() => window.location.href = '/src/pages/verkäufer.html', 3000);
         return;
     }
 
@@ -281,12 +281,12 @@ function openCategoryParts(categoryId, categoryName) {
     sessionStorage.setItem('selectedShopName', currentShop.name);
     
     console.log('Opening category parts:', categoryId, categoryName);
-    window.location.href = '/html/kategorieTeile.html';
+    window.location.href = '/src/pages/kategorieTeile.html';
 }
 
 // Zurück zu den Shops
 function goBackToShops() {
-    window.location.href = '/html/verkäufer.html';
+    window.location.href = '/src/pages/verkäufer.html';
 }
 
 // Event Listener für Back-Button

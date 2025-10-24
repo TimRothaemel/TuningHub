@@ -8,7 +8,7 @@ let currentCategory;
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         // Supabase Client direkt importieren
-        const supabaseModule = await import('/js/supabaseClient.js');
+        const supabaseModule = await import('/src/js/supabaseClient.js');
         supabase = supabaseModule.supabase;
         
         await initializePartsPage();
@@ -27,7 +27,7 @@ async function initializePartsPage() {
     
     if (!shopId || !categoryId) {
         showError('Fehlende Shop- oder Kategorie-Information');
-        setTimeout(() => window.location.href = '/html/verkäufer.html', 3000);
+        setTimeout(() => window.location.href = '/src/pages/verkäufer.html', 3000);
         return;
     }
 
@@ -227,7 +227,7 @@ function createPartCard(part, defaultCategoryName) {
     const imageUrl = part.image_url || part.image_url1 || part.photo_url || 
                     '/images/placeholder-part.jpg';
     
-    const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmM2Y0ZjYiLz4KICAgIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiPvCfmKc8L3RleHQ+Cjwvc3ZnPg==';
+    const fallbackImage = 'data:image../../../TuningHub/public/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmM2Y0ZjYiLz4KICAgIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiPvCfmKc8L3RleHQ+Cjwvc3ZnPg==';
     
     return `
         <div class="card ${hasLink ? 'external-link-card' : ''}" onclick="${clickHandler}">
@@ -313,11 +313,11 @@ function openPartDetails(partId, partName) {
 }
 
 function goBackToCategories() {
-    window.location.href = '/html/verkäuferKategorien.html';
+    window.location.href = '/src/pages/verkäuferKategorien.html';
 }
 
 function goBackToShops() {
-    window.location.href = '/html/verkäufer.html';
+    window.location.href = '/src/pages/verkäufer.html';
 }
 
 function showLoading(show = true) {

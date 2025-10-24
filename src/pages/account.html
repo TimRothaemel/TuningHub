@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TuningHub Account</title>
-    <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/account.css" />
-    <link rel="stylesheet" href="/css/menu.css" />
-    <link rel="stylesheet" href="/css/search.css" />
-    <script type="module" src="/js/supabaseClient.js"></script>
-    <script src="/js/search.js" defer></script>
-    <script src="/js/menu.js" defer></script>
+    <link rel="stylesheet" href="/src/css/main.css" />
+    <link rel="stylesheet" href="/src/css/account.css" />
+    <link rel="stylesheet" href="/src/css/menu.css" />
+    <link rel="stylesheet" href="/src/css/search.css" />
+    <script type="module" src="/src/js/supabaseClient.js"></script>
+    <script src="/src/js/search.js" defer></script>
+    <script src="/src/js/menu.js" defer></script>
     <style>
       .error {
         color: #e63946;
@@ -44,7 +44,7 @@
         <div class="logo">
           <a href="../index.html">
             <img
-              src="/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              src="../../public/img/THub-Logo-ohne-Hintergrund-500x200.png"
               alt="TuningHub Logo"
               height="50"
             />
@@ -58,7 +58,7 @@
           placeholder="Suche nach Teilen, Marken..."
         >
         <img 
-        src="/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+        src="../../public/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
         >
         
       </div>
@@ -66,9 +66,9 @@
   
       <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
   <!-- Öffnene -->
-  <img src="/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+  <img src="../../public/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
   <!-- Schließen -->
-  <img src="/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+  <img src="../../public/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
 </button>
 <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -550,4 +550,4 @@ if (document.readyState === "complete") {
 }
     </script>
   </body>
-</html>
+</src/pages>

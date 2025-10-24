@@ -12,7 +12,7 @@ let categories = [];
 
 async function initializeSupabase() {
   try {
-    const { supabase: sb, trackingSupabase: tsb } = await import("/js/supabaseClient.js");
+    const { supabase: sb, trackingSupabase: tsb } = await import("/src/js/supabaseClient.js");
     supabase = sb;
     trackingSupabase = tsb;
     

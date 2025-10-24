@@ -55,7 +55,7 @@ async function setAccountLink() {
     } = await supabase.auth.getUser();
     const accountLink = document.getElementById("account-link");
     if (accountLink) {
-      accountLink.href = user ? "/html/account.html" : "/html/login.html";
+      accountLink.href = user ? "/src/pages/account.html" : "/src/pages/login.html";
       log(
         "Account-Link gesetzt:",
         user ? "Eingeloggt" : "Nicht eingeloggt"

@@ -52,7 +52,7 @@ function createProductCard(product) {
   // Handle multiple images
   const imageUrl = product.image_urls && product.image_urls.length > 0 
     ? product.image_urls[0] 
-    : "/img/default-part-image.png";
+    : "../../../TuningHub/public/img/default-part-image.png";
 
   // Sanitize data
   const title = sanitizeInput(product.title || "Unbekanntes Teil");
@@ -61,7 +61,7 @@ function createProductCard(product) {
 
   card.innerHTML = `
     <div class="card-image-container">
-      <img src="${imageUrl}" alt="${title}" onerror="this.src='/img/default-part-image.png'">
+      <img src="${imageUrl}" alt="${title}" onerror="this.src='../../../TuningHub/public/img/default-part-image.png'">
       ${product.condition ? `<div class="card-badge">${product.condition}</div>` : ''}
     </div>
     <div class="card-content">
@@ -79,7 +79,7 @@ function createProductCard(product) {
 // Navigate to Product Detail
 function navigateToProduct(product) {
   console.log("Navigating to product:", product.title);
-  window.location.href = `/html/teil-detail.html?id=${product.id}`;
+  window.location.href = `/src/pages/teil-detail.html?id=${product.id}`;
 }
 
 // Create Seller Header
@@ -87,14 +87,14 @@ function createSellerHeader(seller) {
   const header = document.createElement("div");
   header.className = "seller-header";
 
-  const logoUrl = seller.logo_url || "/img/default-business-logo.png";
+  const logoUrl = seller.logo_url || "../../../TuningHub/public/img/default-business-logo.png";
   const companyName = sanitizeInput(seller.company_name || "Unbekannter Verkäufer");
   const description = sanitizeInput(seller.description || "Spezialist für Mopedteile");
 
   header.innerHTML = `
     <div class="seller-header-content">
       <div class="seller-logo">
-        <img src="${logoUrl}" alt="${companyName} Logo" onerror="this.src='/img/default-business-logo.png'">
+        <img src="${logoUrl}" alt="${companyName} Logo" onerror="this.src='../../../TuningHub/public/img/default-business-logo.png'">
       </div>
       <div class="seller-info">
         <h1>${companyName}</h1>
@@ -142,7 +142,7 @@ function renderSellerProducts(seller, products) {
       ${createSellerHeader(seller).outerHTML}
       <div class="no-products">
         <div class="no-products-content">
-          <img src="/svg/inventory_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Keine Produkte" width="64" height="64">
+          <img src="../../../TuningHub/public/svg/inventory_60dp_000000_FILL0_wght400_GRAD0_opsz48.../../../TuningHub/public/svg" alt="Keine Produkte" width="64" height="64">
           <h3>Noch keine Produkte</h3>
           <p>Dieser Verkäufer hat noch keine Produkte in seinem Sortiment.</p>
         </div>
@@ -283,7 +283,7 @@ async function initializePage() {
   
   const sellerId = getUrlParameter("seller");
   if (!sellerId) {
-    window.location.href = "/html/verkäufer.html";
+    window.location.href = "/src/pages/verkäufer.html";
     return;
   }
 
@@ -307,11 +307,11 @@ async function initializePage() {
     mainContent.innerHTML = `
       <div class="error-message">
         <div class="error-content">
-          <img src="/svg/error_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Fehler" width="64" height="64">
+          <img src="../../../TuningHub/public/svg/error_60dp_000000_FILL0_wght400_GRAD0_opsz48.../../../TuningHub/public/svg" alt="Fehler" width="64" height="64">
           <h3>Fehler beim Laden</h3>
           <p>${error.message}</p>
           <button onclick="initializePage()" class="btn-primary">Erneut versuchen</button>
-          <a href="/html/verkäufer.html" class="btn-secondary">Zurück zu allen Verkäufern</a>
+          <a href="/src/pages/verkäufer.html" class="btn-secondary">Zurück zu allen Verkäufern</a>
         </div>
       </div>
     `;
