@@ -250,8 +250,8 @@
     // NEUE FUNKTION: Prüfe ob wir auf der Übersichtsseite sind
     function isOnOverviewPage() {
         const currentPage = window.location.pathname;
-        return currentPage.includes('teileübersicht.html') || 
-               currentPage.includes('teileubersicht.html') ||
+        return currentPage.includes('/src/pages/teileübersicht.html') || 
+               currentPage.includes('/src/pages/teileubersicht.html') ||
                currentPage.endsWith('/');
     }
 
@@ -302,7 +302,6 @@
             window.location.href = url.toString();
         }
     }
-
     // Such-Interface auf aktueller Seite initialisieren
     function initSearchInterface() {
         searchLog("Initialisiere universelles Such-Interface...");

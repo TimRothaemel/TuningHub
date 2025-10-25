@@ -21,7 +21,7 @@ export function showError(message) {
     container.innerHTML = `
       <div class="error-message">
         <p>⚠️ ${message}</p>
-        <button onclick="loadParts()" class="retry-btn">Erneut versuchen</button>
+        <button onclick="window.TuningHubParts.loadParts()" class="retry-btn">Erneut versuchen</button>
       </div>
     `;
   }
@@ -56,7 +56,7 @@ export function showNoSearchResults(query) {
     container.innerHTML = `
       <div class="empty-message">
         <p>🔍 Keine Ergebnisse für "${query}"</p>
-        <button onclick="window.TuningHubSearch.clearSearch()" class="retry-btn">Suche zurücksetzen</button>
+        <button onclick="window.TuningHubParts.clearSearchResults()" class="retry-btn">Suche zurücksetzen</button>
       </div>
     `;
   }
@@ -197,7 +197,6 @@ export function truncateDescription(text, maxLength = 120) {
   return text.substr(0, maxLength).trim() + "...";
 }
 
-// [Alle Helper-Funktionen für Kontakt-Dialog bleiben gleich...]
 function generateContactOptions(methods, phone, verkäuferId, teilId) {
   let html = '';
   methods.forEach(method => {
@@ -327,6 +326,7 @@ function showBasicContactDialog(telefon) {
 let currentPart = null;
 let currentImageIndex = 0;
 let imageUrls = [];
+let keydownHandler = null;
 
 export function showImage(index) {
   if (imageUrls.length === 0) return;
@@ -363,6 +363,7 @@ export function openDetailView(teil) {
   currentPart = teil;
   imageUrls = bilder.length > 0 ? bilder : [bild || "../../../TuningHub/public/img/no-image.png"];
   currentImageIndex = 0;
+  
   document.getElementById("detail-title").textContent = name;
   const fallbackUrl = "../../../TuningHub/public/img/no-image.png";
   const detailImage = document.getElementById("detail-image");
@@ -370,32 +371,95 @@ export function openDetailView(teil) {
   detailImage.alt = name;
   detailImage.onerror = function () { this.src = fallbackUrl; };
   showImage(0);
+  
+  // Event-Listener für Bild-Navigation
+  const prevBtn = document.getElementById("prev-image");
+  const nextBtn = document.getElementById("next-image");
+  
+  // Entferne alte Listener (falls vorhanden)
+  const newPrevBtn = prevBtn.cloneNode(true);
+  const newNextBtn = nextBtn.cloneNode(true);
+  prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+  nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+  
   document.getElementById("prev-image").addEventListener("click", prevImage);
   document.getElementById("next-image").addEventListener("click", nextImage);
-  function handleKeydown(e) { if (e.key === "ArrowLeft") prevImage(); if (e.key === "ArrowRight") nextImage(); }
-  document.addEventListener("keydown", handleKeydown);
+  
+  // Keyboard-Navigation
+  if (keydownHandler) {
+    document.removeEventListener("keydown", keydownHandler);
+  }
+  
+  keydownHandler = function(e) {
+    if (e.key === "ArrowLeft") prevImage();
+    if (e.key === "ArrowRight") nextImage();
+    if (e.key === "Escape") closeDetailView();
+  };
+  
+  document.addEventListener("keydown", keydownHandler);
+  
   let preisText = preis;
   if (typeof preis === "number") preisText = `${preis.toLocaleString("de-DE")}€`;
   else if (typeof preis === "string" && !isNaN(parseFloat(preis))) preisText = `${parseFloat(preis).toLocaleString("de-DE")}€`;
+  
   document.getElementById("detail-price").textContent = preisText;
   document.getElementById("detail-description").textContent = beschreibung || "Keine detaillierte Beschreibung verfügbar.";
   document.getElementById("detail-category").textContent = kategorie;
   document.getElementById("detail-condition").textContent = zustand;
   document.getElementById("detail-seller").textContent = verkäufer;
+  
   const typeContainer = document.getElementById("detail-type-container");
   const typeElement = document.getElementById("detail-type");
-  if (typ) { typeContainer.style.display = "flex"; typeElement.textContent = typ === "teilesuche" ? "Suche" : typ; } 
-  else { typeContainer.style.display = "none"; }
+  if (typ) { 
+    typeContainer.style.display = "flex"; 
+    typeElement.textContent = typ === "teilesuche" ? "Suche" : typ; 
+  } else { 
+    typeContainer.style.display = "none"; 
+  }
+  
   const linkContainer = document.getElementById("detail-link-container") || createLinkContainer();
   const linkButton = document.getElementById("visit-link-btn");
-  if (link && link.trim().length > 0) { linkContainer.style.display = "block"; linkButton.onclick = function () { window.open(link, '_blank'); }; } 
-  else { linkContainer.style.display = "none"; }
+  if (link && link.trim().length > 0) { 
+    linkContainer.style.display = "block"; 
+    linkButton.onclick = function () { window.open(link, '_blank'); }; 
+  } else { 
+    linkContainer.style.display = "none"; 
+  }
+  
   const contactBtn = document.getElementById("contact-seller-btn");
   contactBtn.onclick = function () { contactSeller(id, verkäuferId, telefon); };
-  if (!verkäuferId && !telefon) { contactBtn.disabled = true; contactBtn.textContent = "Keine Kontaktdaten verfügbar"; } 
-  else { contactBtn.disabled = false; contactBtn.textContent = "Verkäufer kontaktieren"; }
+  if (!verkäuferId && !telefon) { 
+    contactBtn.disabled = true; 
+    contactBtn.textContent = "Keine Kontaktdaten verfügbar"; 
+  } else { 
+    contactBtn.disabled = false; 
+    contactBtn.textContent = "Verkäufer kontaktieren"; 
+  }
+  
   const shareBtn = document.getElementById("share-btn");
   shareBtn.onclick = function () { sharePart(id); };
+  
+  // Close-Button Event-Listener
+  const closeBtn = modal.querySelector(".close-modal, .modal-close, [data-close-modal]");
+  if (closeBtn) {
+    const newCloseBtn = closeBtn.cloneNode(true);
+    closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+    newCloseBtn.addEventListener("click", closeDetailView);
+  }
+  
+  // Overlay-Click zum Schließen
+  const modalOverlay = modal.querySelector(".modal-overlay");
+  if (modalOverlay) {
+    const newOverlay = modalOverlay.cloneNode(true);
+    modalOverlay.parentNode.replaceChild(newOverlay, modalOverlay);
+    newOverlay.addEventListener("click", (e) => {
+      if (e.target === newOverlay) {
+        closeDetailView();
+      }
+    });
+  }
+  
+  // Modal aktivieren
   modal.classList.add("active");
   document.body.style.overflow = "hidden";
   log("Detailansicht geöffnet für:", name);
@@ -418,6 +482,13 @@ export function closeDetailView() {
   const modal = document.getElementById("detail-modal");
   modal.classList.remove("active");
   document.body.style.overflow = "";
+  
+  // Entferne Keyboard-Listener
+  if (keydownHandler) {
+    document.removeEventListener("keydown", keydownHandler);
+    keydownHandler = null;
+  }
+  
   currentPart = null;
   imageUrls = [];
   currentImageIndex = 0;
@@ -437,8 +508,12 @@ export function fallbackCopyToClipboard(text) {
     const successful = document.execCommand("copy");
     if (successful) alert("Link zum Teil wurde in die Zwischenablage kopiert!");
     else showLinkDialog(text);
-  } catch (err) { console.error("Fallback copy failed:", err); showLinkDialog(text); } 
-  finally { document.body.removeChild(textArea); }
+  } catch (err) { 
+    console.error("Fallback copy failed:", err); 
+    showLinkDialog(text); 
+  } finally { 
+    document.body.removeChild(textArea); 
+  }
 }
 
 export function showLinkDialog(url) {
@@ -452,18 +527,29 @@ export async function sharePart(id) {
     log("TeileSharing nicht verfügbar, verwende Fallback");
     const url = `${window.location.origin}${window.location.pathname}?part=${encodeURIComponent(id)}`;
     if (navigator.share) {
-      navigator.share({ title: "Tuning-Teil bei TuningHub", text: "Schau dir dieses Teil bei TuningHub an!", url: url }).catch((err) => console.warn("Sharing failed:", err));
+      navigator.share({ 
+        title: "Tuning-Teil bei TuningHub", 
+        text: "Schau dir dieses Teil bei TuningHub an!", 
+        url: url 
+      }).catch((err) => console.warn("Sharing failed:", err));
     } else {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(() => alert("Link zum Teil wurde in die Zwischenablage kopiert!")).catch((err) => { console.error("Fehler beim Kopieren des Links:", err); fallbackCopyToClipboard(url); });
-      } else { fallbackCopyToClipboard(url); }
+        navigator.clipboard.writeText(url)
+          .then(() => alert("Link zum Teil wurde in die Zwischenablage kopiert!"))
+          .catch((err) => { 
+            console.error("Fehler beim Kopieren des Links:", err); 
+            fallbackCopyToClipboard(url); 
+          });
+      } else { 
+        fallbackCopyToClipboard(url); 
+      }
     }
     return;
   }
   window.teileSharing.sharePart(id, currentPart);
 }
 
-// NEUE FUNKTION: Zeige Suchergebnisse an
+// Suchfunktionen
 function displaySearchResults(results, query) {
   log(`Zeige ${results.length} Suchergebnisse für: "${query}"`);
   
@@ -478,13 +564,13 @@ function displaySearchResults(results, query) {
     return;
   }
   
-  // Zeige Suchergebnis-Header
+  // Suchergebnis-Header
   const header = document.createElement("div");
   header.style.cssText = "grid-column: 1/-1; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 20px;";
   header.innerHTML = `
     <h2 style="margin: 0 0 10px 0;">Suchergebnisse für "${query}"</h2>
     <p style="margin: 0;">${results.length} ${results.length === 1 ? 'Ergebnis' : 'Ergebnisse'} gefunden</p>
-    <button onclick="window.TuningHubSearch.clearSearch()" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+    <button onclick="window.TuningHubParts.clearSearchResults()" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
       Suche zurücksetzen
     </button>
   `;
@@ -503,8 +589,7 @@ function displaySearchResults(results, query) {
   log("Suchergebnisse angezeigt");
 }
 
-// NEUE FUNKTION: Suche zurücksetzen
-function clearSearchResults() {
+export function clearSearchResults() {
   log("Setze Suche zurück");
   
   isSearchActive = false;
@@ -514,7 +599,7 @@ function clearSearchResults() {
   loadParts();
 }
 
-// NEUE LAZY LOADING FUNKTION
+// Lazy Loading
 function loadMoreParts() {
   if (isLoading || loadedPartsCount >= allPartsData.length) return;
   
@@ -583,9 +668,16 @@ export async function loadParts() {
   
   try {
     log("Lade ALLE Daten aus Supabase...");
-    const { data, error } = await supabase.from("parts").select("*, seller_contact_methods, seller_social_media, seller_phone").order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("parts")
+      .select("*, seller_contact_methods, seller_social_media, seller_phone")
+      .order("created_at", { ascending: false });
     
-    if (error) { log("Supabase Fehler:", error); showError(`Datenbankfehler: ${error.message}`); return; }
+    if (error) { 
+      log("Supabase Fehler:", error); 
+      showError(`Datenbankfehler: ${error.message}`); 
+      return; 
+    }
     
     log("Daten erfolgreich geladen:", data);
     
@@ -603,7 +695,10 @@ export async function loadParts() {
     allPartsData = data ? [...data, linkCardEntry] : [linkCardEntry];
     allPartsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     
-    if (allPartsData.length === 0) { showEmpty(); return; }
+    if (allPartsData.length === 0) { 
+      showEmpty(); 
+      return; 
+    }
     
     container.innerHTML = "";
     loadedPartsCount = 0;
@@ -678,7 +773,7 @@ function scrollToElement(element) {
   }, 2000);
 }
 
-// WICHTIG: Event Listener für Such-System
+// Event Listener für Such-System
 window.addEventListener('tuninghub:search', (event) => {
   log("Such-Event empfangen:", event.detail);
   const { query, results } = event.detail;
@@ -690,7 +785,7 @@ window.addEventListener('tuninghub:clearsearch', () => {
   clearSearchResults();
 });
 
-// Event Listeners
+// Initialisierung
 async function initializePage() {
   log("Seite wird initialisiert...");
   
@@ -740,18 +835,27 @@ function performManualSearch(query) {
   displaySearchResults(results, query);
 }
 
+// DOMContentLoaded
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializePage);
 } else {
   initializePage();
 }
 
-// Hash-Change Listener für dynamisches Navigieren
+// Hash-Change Listener
 window.addEventListener('hashchange', () => {
   handleHashScroll();
 });
 
-// Globale Funktion für Suche zurücksetzen (wird von Button aufgerufen)
-window.clearSearch = clearSearchResults;
+// Globale Exports für externe Zugriffe
+window.TuningHubParts = {
+  loadParts,
+  clearSearchResults,
+  openDetailView,
+  closeDetailView,
+  contactSeller,
+  sharePart,
+  getAllParts: () => allPartsData
+};
 
 log("teileübersicht.html.js vollständig initialisiert");
