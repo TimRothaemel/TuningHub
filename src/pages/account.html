@@ -514,7 +514,7 @@ window.deleteAccount = async function deleteAccount() {
 
     await supabase.auth.signOut();
     alert("Account gelöscht!");
-    window.location.href = "../index.html";
+    window.location.href = "../../index.html";
   } catch (error) {
     await trackEvent("account_deletion_error", {
       error_message: error.message,
