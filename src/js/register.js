@@ -330,12 +330,13 @@ async function performRegistration() {
 
     if (signupError) throw signupError;
 
-    await trackEvent("registration_success", {
+await trackEvent("registration_success", {
       email: userData.email,
       username: userData.username,
       phone: userData.phone,
       user_id: signupData.user?.id,
-      preferences: userData.preferences,
+      contact_methods: userData.contactMethods,
+      social_media: userData.socialMedia,
       privacy_consent: userData.privacyConsent,
       agb_consent: userData.agbConsent,
     });
