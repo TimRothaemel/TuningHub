@@ -1,4 +1,4 @@
-console.log("teileübersicht.html.js geladen");
+console.log("teileübersicht.js geladen");
 
 import { supabase, trackingSupabase } from "./supabaseClient.js";
 
@@ -9,10 +9,11 @@ const PARTS_PER_LOAD = 20;
 let isLoading = false;
 let isSearchActive = false;
 let searchResults = [];
+let pageFullyLoaded = false;
 
 // Utility functions
 export function log(message, data = '') {
-  console.log(`[TuningHub] ${message}`, data);
+  console.log(`[TuningHub-Overview] ${message}`, data);
 }
 
 export function showError(message) {
@@ -372,11 +373,9 @@ export function openDetailView(teil) {
   detailImage.onerror = function () { this.src = fallbackUrl; };
   showImage(0);
   
-  // Event-Listener für Bild-Navigation
   const prevBtn = document.getElementById("prev-image");
   const nextBtn = document.getElementById("next-image");
   
-  // Entferne alte Listener (falls vorhanden)
   const newPrevBtn = prevBtn.cloneNode(true);
   const newNextBtn = nextBtn.cloneNode(true);
   prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
@@ -385,7 +384,6 @@ export function openDetailView(teil) {
   document.getElementById("prev-image").addEventListener("click", prevImage);
   document.getElementById("next-image").addEventListener("click", nextImage);
   
-  // Keyboard-Navigation
   if (keydownHandler) {
     document.removeEventListener("keydown", keydownHandler);
   }
@@ -439,7 +437,6 @@ export function openDetailView(teil) {
   const shareBtn = document.getElementById("share-btn");
   shareBtn.onclick = function () { sharePart(id); };
   
-  // Close-Button Event-Listener
   const closeBtn = modal.querySelector(".close-modal, .modal-close, [data-close-modal]");
   if (closeBtn) {
     const newCloseBtn = closeBtn.cloneNode(true);
@@ -447,7 +444,6 @@ export function openDetailView(teil) {
     newCloseBtn.addEventListener("click", closeDetailView);
   }
   
-  // Overlay-Click zum Schließen
   const modalOverlay = modal.querySelector(".modal-overlay");
   if (modalOverlay) {
     const newOverlay = modalOverlay.cloneNode(true);
@@ -459,7 +455,6 @@ export function openDetailView(teil) {
     });
   }
   
-  // Modal aktivieren
   modal.classList.add("active");
   document.body.style.overflow = "hidden";
   log("Detailansicht geöffnet für:", name);
@@ -483,7 +478,6 @@ export function closeDetailView() {
   modal.classList.remove("active");
   document.body.style.overflow = "";
   
-  // Entferne Keyboard-Listener
   if (keydownHandler) {
     document.removeEventListener("keydown", keydownHandler);
     keydownHandler = null;
@@ -549,7 +543,7 @@ export async function sharePart(id) {
   window.teileSharing.sharePart(id, currentPart);
 }
 
-// Suchfunktionen
+// SUCHFUNKTIONEN - VERBESSERT
 function displaySearchResults(results, query) {
   log(`Zeige ${results.length} Suchergebnisse für: "${query}"`);
   
@@ -595,11 +589,24 @@ export function clearSearchResults() {
   isSearchActive = false;
   searchResults = [];
   
+  // URL-Parameter entfernen
+  const url = new URL(window.location);
+  url.searchParams.delete('search');
+  window.history.pushState({}, '', url);
+  
+  // Suchfeld leeren
+  const searchInput = document.getElementById('searchbar') || 
+                     document.getElementById('search-input') || 
+                     document.querySelector('.searchbar');
+  if (searchInput) {
+    searchInput.value = '';
+  }
+  
   // Lade normale Ansicht
   loadParts();
 }
 
-// Lazy Loading
+// LAZY LOADING
 function loadMoreParts() {
   if (isLoading || loadedPartsCount >= allPartsData.length) return;
   
@@ -773,7 +780,7 @@ function scrollToElement(element) {
   }, 2000);
 }
 
-// Event Listener für Such-System
+// EVENT LISTENER FÜR SUCH-SYSTEM
 window.addEventListener('tuninghub:search', (event) => {
   log("Such-Event empfangen:", event.detail);
   const { query, results } = event.detail;
@@ -785,7 +792,7 @@ window.addEventListener('tuninghub:clearsearch', () => {
   clearSearchResults();
 });
 
-// Initialisierung
+// INITIALISIERUNG - VERBESSERT
 async function initializePage() {
   log("Seite wird initialisiert...");
   
@@ -793,28 +800,14 @@ async function initializePage() {
     // Lade zuerst alle Teile
     await loadParts();
     
-    // DANN signalisiere dass wir bereit sind
-    log("Seite bereit, sende ready-Signal...");
-    window.dispatchEvent(new Event('tuninghub:ready'));
+    // Markiere Seite als vollständig geladen
+    pageFullyLoaded = true;
     
-    // Prüfe ob es einen Suchparameter gibt
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchQuery = urlParams.get('search');
-    
-    if (searchQuery && searchQuery.trim()) {
-      log("URL-Suchparameter gefunden:", searchQuery);
-      
-      // Warte kurz bis search.js bereit ist
-      setTimeout(() => {
-        if (window.TuningHubSearch && window.TuningHubSearch.performLocalSearch) {
-          log("Führe URL-Suche aus...");
-          window.TuningHubSearch.performLocalSearch(searchQuery);
-        } else {
-          log("TuningHubSearch nicht verfügbar, führe manuelle Suche aus");
-          performManualSearch(searchQuery);
-        }
-      }, 500);
-    }
+    // WICHTIG: Sende ready-Signal an search.js
+    log("Seite fertig geladen, sende 'overview-ready' Signal...");
+    window.dispatchEvent(new CustomEvent('tuninghub:overview-ready', {
+      detail: { timestamp: Date.now() }
+    }));
     
   } catch (error) {
     log("Fehler beim Laden:", error);
@@ -822,32 +815,19 @@ async function initializePage() {
   }
 }
 
-// Manuelle Suche falls TuningHubSearch nicht verfügbar
-function performManualSearch(query) {
-  log("Führe manuelle Suche aus:", query);
-  
-  const lowerQuery = query.toLowerCase();
-  const results = allPartsData.filter(part => {
-    const searchText = `${part.title || ''} ${part.description || ''} ${part.name || ''}`.toLowerCase();
-    return searchText.includes(lowerQuery);
-  });
-  
-  displaySearchResults(results, query);
-}
-
-// DOMContentLoaded
+// DOM READY
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializePage);
 } else {
   initializePage();
 }
 
-// Hash-Change Listener
+// HASH CHANGE
 window.addEventListener('hashchange', () => {
   handleHashScroll();
 });
 
-// Globale Exports für externe Zugriffe
+// GLOBALE EXPORTS
 window.TuningHubParts = {
   loadParts,
   clearSearchResults,
@@ -855,7 +835,8 @@ window.TuningHubParts = {
   closeDetailView,
   contactSeller,
   sharePart,
-  getAllParts: () => allPartsData
+  getAllParts: () => allPartsData,
+  isReady: () => pageFullyLoaded
 };
 
-log("teileübersicht.html.js vollständig initialisiert");
+log("teileübersicht.js vollständig initialisiert");

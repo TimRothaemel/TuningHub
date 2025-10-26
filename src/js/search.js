@@ -1,4 +1,4 @@
-// TuningHub Universal Search System - KORRIGIERT
+// TuningHub Universal Search System - KORRIGIERT v2
 // Funktioniert auf allen Seiten und leitet zur Teileübersicht weiter
 
 (function() {
@@ -12,6 +12,7 @@
     let searchParts = [];
     let searchLoading = false;
     let searchSupabase;
+    let isOverviewPageReady = false;
 
     // Debug-Logging
     function searchLog(message, data = null) {
@@ -21,14 +22,11 @@
     // Supabase-Client für Suche initialisieren
     function initSearchSupabase() {
         try {
-            // Versuche den globalen supabase Client zu nutzen
             if (window.supabase) {
                 searchSupabase = window.supabase;
                 searchLog("Nutze globalen Supabase Client");
                 return true;
             }
-            
-            // Fallback: Warte auf supabaseClient.js
             searchLog("Warte auf globalen Supabase Client...");
             return false;
         } catch (error) {
@@ -83,11 +81,9 @@
         searchLog("Lade Teile für Suche...");
 
         try {
-            // Prüfe ob Supabase Client verfügbar ist
             if (!searchSupabase) {
                 const initialized = initSearchSupabase();
                 if (!initialized) {
-                    // Warte kurz und versuche nochmal
                     await new Promise(resolve => setTimeout(resolve, 500));
                     initSearchSupabase();
                 }
@@ -199,7 +195,6 @@
         }
 
         try {
-            // Erweiterte Fuse.js Suche
             const exactResults = searchFuse.search(`="${trimmedQuery}"`);
             const fuzzyResults = searchFuse.search(trimmedQuery);
             
@@ -208,7 +203,6 @@
 
             const allResults = [...exactResults, ...fuzzyResults, ...wordResults];
             
-            // Duplikate entfernen
             const uniqueResults = allResults.reduce((acc, current) => {
                 const existing = acc.find(item => item.item.id === current.item.id);
                 if (!existing || current.score < existing.score) {
@@ -247,7 +241,7 @@
         return urlParams.get('search') || '';
     }
 
-    // NEUE FUNKTION: Prüfe ob wir auf der Übersichtsseite sind
+    // Prüfe ob wir auf der Übersichtsseite sind
     function isOnOverviewPage() {
         const currentPage = window.location.pathname;
         return currentPage.includes('/src/pages/teileübersicht.html') || 
@@ -255,7 +249,7 @@
                currentPage.endsWith('/');
     }
 
-    // NEUE FUNKTION: Suche auf aktueller Seite durchführen
+    // Suche auf aktueller Seite durchführen
     async function performLocalSearch(query) {
         searchLog(`Führe lokale Suche aus: "${query}"`);
         
@@ -270,12 +264,14 @@
         const event = new CustomEvent('tuninghub:search', {
             detail: {
                 query: query,
-                results: results
+                results: results,
+                timestamp: Date.now()
             }
         });
         window.dispatchEvent(event);
         
         saveSearchToURL(query);
+        searchLog(`Suche ausgeführt, ${results.length} Ergebnisse gefunden`);
         return results;
     }
 
@@ -290,8 +286,14 @@
         searchLog(`Führe Suche aus: "${trimmedQuery}"`);
 
         if (isOnOverviewPage()) {
-            // Bereits auf der Übersichtsseite - lokale Suche
-            await performLocalSearch(trimmedQuery);
+            // Bereits auf der Übersichtsseite - warte auf Ready-Signal
+            if (isOverviewPageReady) {
+                await performLocalSearch(trimmedQuery);
+            } else {
+                searchLog("Übersichtsseite noch nicht bereit, warte...");
+                // Speichere Suche für später
+                window.pendingSearch = trimmedQuery;
+            }
         } else {
             // Auf anderer Seite - zur Teileübersicht weiterleiten
             const targetUrl = '/src/pages/teileübersicht.html';
@@ -302,11 +304,11 @@
             window.location.href = url.toString();
         }
     }
+
     // Such-Interface auf aktueller Seite initialisieren
     function initSearchInterface() {
         searchLog("Initialisiere universelles Such-Interface...");
 
-        // Such-Input finden
         const searchInput = document.getElementById('searchbar') || 
                            document.getElementById('search-input') || 
                            document.querySelector('.searchbar') ||
@@ -317,7 +319,6 @@
             return false;
         }
 
-        // Such-Button (Lupe) finden
         const searchButton = searchInput.parentNode?.querySelector('img[src*="search"]') ||
                             document.querySelector('.search-button') ||
                             document.querySelector('[onclick*="search"]');
@@ -364,12 +365,6 @@
             if (savedSearch) {
                 newSearchInput.value = savedSearch;
                 searchLog(`Gespeicherte Suche in Input gesetzt: "${savedSearch}"`);
-                
-                // WICHTIG: Führe Suche erst aus wenn teileübersicht.html.js bereit ist
-                window.addEventListener('tuninghub:ready', () => {
-                    searchLog("Teileübersicht ist bereit, führe gespeicherte Suche aus");
-                    performLocalSearch(savedSearch);
-                }, { once: true });
             }
         }
 
@@ -382,7 +377,7 @@
         searchLog("Starte universelles Such-System...");
 
         try {
-            // Warte kurz bis supabaseClient.js geladen ist
+            // Warte auf Supabase Client
             let retries = 0;
             while (!window.supabase && retries < 10) {
                 searchLog(`Warte auf Supabase Client (Versuch ${retries + 1}/10)...`);
@@ -414,6 +409,26 @@
         }
     }
 
+    // Event Listener für Ready-Signal von teileübersicht.html.js
+    window.addEventListener('tuninghub:overview-ready', () => {
+        searchLog("Teileübersicht ist bereit!");
+        isOverviewPageReady = true;
+        
+        // Prüfe ob es eine ausstehende Suche gibt
+        if (window.pendingSearch) {
+            searchLog(`Führe ausstehende Suche aus: "${window.pendingSearch}"`);
+            performLocalSearch(window.pendingSearch);
+            delete window.pendingSearch;
+        } else {
+            // Prüfe URL-Parameter
+            const savedSearch = loadSearchFromURL();
+            if (savedSearch) {
+                searchLog(`Führe URL-Suche aus: "${savedSearch}"`);
+                performLocalSearch(savedSearch);
+            }
+        }
+    });
+
     // Globale API
     window.TuningHubSearch.clearSearch = function() {
         const searchInput = document.getElementById('searchbar') || 
@@ -425,12 +440,12 @@
             searchInput.focus();
         }
 
-        // URL Parameter entfernen
         saveSearchToURL('');
 
-        // Event auslösen um Suche zu löschen
         const event = new CustomEvent('tuninghub:clearsearch');
         window.dispatchEvent(event);
+        
+        searchLog("Suche gelöscht");
     };
 
     window.TuningHubSearch.search = performSearch;
@@ -438,18 +453,17 @@
     window.TuningHubSearch.getParts = () => searchParts;
     window.TuningHubSearch.init = initializeUniversalSearch;
     window.TuningHubSearch.performLocalSearch = performLocalSearch;
+    window.TuningHubSearch.isReady = () => searchParts.length > 0;
 
     // Auto-Initialisierung
     function startUniversalSearch() {
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initializeUniversalSearch);
         } else {
-            // Warte kurz damit andere Skripte laden können
             setTimeout(initializeUniversalSearch, 300);
         }
     }
 
-    // Starte das Such-System
     startUniversalSearch();
 
     searchLog("TuningHub Universal Search System geladen");
