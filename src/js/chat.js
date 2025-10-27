@@ -1,366 +1,461 @@
-// Supabase Initialisierung
-const supabaseUrl = "https://yvdptnkmgfxkrszitweo.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+console.log("chat.js geladen");
 
-let currentUser = null;
-let currentChatId = null;
-let messageSubscription = null;
-let userCache = {}; // Cache für Nutzerdaten
+import { supabase } from "./supabaseClient.js";
 
-// URL Parameter auslesen
-const urlParams = new URLSearchParams(window.location.search);
-const chatIdFromUrl = urlParams.get('chat');
+/**
+ * Öffnet einen Chat mit einem Verkäufer
+ * @param {string} sellerId - Die ID des Verkäufers
+ * @param {string} teilId - Die ID des Teils (optional)
+ * @returns {Promise<void>}
+ */
+export async function openChat(sellerId, teilId = null) {
+  console.log("📧 openChat aufgerufen:", { sellerId, teilId });
 
-// User laden und Chat initialisieren
-async function init() {
-    const { data: { user }, error } = await supabase.auth.getUser();
+  try {
+    // 1. Aktuellen User prüfen
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (error || !user) {
-        alert("Bitte melde dich an, um den Chat zu nutzen");
-        window.location.href = "/src/pages/login.html";
-        return;
+    if (authError || !user) {
+      alert("Bitte melde dich an, um den Chat zu nutzen");
+      window.location.href = "/src/pages/login.html";
+      return;
     }
 
-    currentUser = user;
-    await loadChats();
-
-    if (chatIdFromUrl) {
-        await openChat(chatIdFromUrl);
-    }
-}
-
-// Nutzerdaten laden (mit Cache)
-async function getUserData(userId) {
-    // Aus Cache laden wenn vorhanden
-    if (userCache[userId]) {
-        return userCache[userId];
+    // 2. Prüfen ob User mit sich selbst chatten will
+    if (user.id === sellerId) {
+      alert("Du kannst nicht mit dir selbst chatten");
+      return;
     }
 
-    try {
-        // Versuche aus auth.users Metadaten zu laden
-        const { data: authData, error: authError } = await supabase.auth.admin.getUserById(userId);
-        
-        if (!authError && authData?.user?.user_metadata) {
-            const metadata = authData.user.user_metadata;
-            const userData = {
-                username: metadata.username || metadata.full_name || `User_${userId.substring(0, 8)}`,
-                fullName: metadata.full_name || null
-            };
-            userCache[userId] = userData;
-            return userData;
-        }
+    console.log("✅ User authentifiziert:", user.id);
 
-        // Fallback: Versuche aus custom users Tabelle
-        const { data, error } = await supabase
-            .from('users')
-            .select('username, full_name')
-            .eq('id', userId)
+    // 3. Existierenden Chat suchen
+    const { data: existingChats, error: searchError } = await supabase
+      .from('chats')
+      .select('id')
+      .or(`and(user1_id.eq.${user.id},user2_id.eq.${sellerId}),and(user1_id.eq.${sellerId},user2_id.eq.${user.id})`)
+      .limit(1);
+
+    if (searchError) {
+      console.error("❌ Fehler beim Suchen des Chats:", searchError);
+      throw searchError;
+    }
+
+    let chatId;
+
+    if (existingChats && existingChats.length > 0) {
+      // Chat existiert bereits
+      chatId = existingChats[0].id;
+      console.log("✅ Existierender Chat gefunden:", chatId);
+    } else {
+      // Neuen Chat erstellen
+      console.log("📝 Erstelle neuen Chat...");
+      
+      const { data: newChat, error: createError } = await supabase
+        .from('chats')
+        .insert([{
+          user1_id: user.id,
+          user2_id: sellerId,
+          created_at: new Date().toISOString(),
+          last_message_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error("❌ Fehler beim Erstellen des Chats:", createError);
+        throw createError;
+      }
+
+      chatId = newChat.id;
+      console.log("✅ Neuer Chat erstellt:", chatId);
+
+      // Optional: Erste Nachricht mit Teil-Info senden
+      if (teilId) {
+        try {
+          const { data: partData } = await supabase
+            .from('parts')
+            .select('title')
+            .eq('id', teilId)
             .single();
 
-        if (!error && data) {
-            const userData = {
-                username: data.username || `User_${userId.substring(0, 8)}`,
-                fullName: data.full_name || null
-            };
-            userCache[userId] = userData;
-            return userData;
-        }
-
-    } catch (error) {
-        console.log('Info: Verwende Fallback für User ID');
-    }
-
-    // Fallback: Generiere Username aus ID
-    const userData = {
-        username: `User_${userId.substring(0, 8)}`,
-        fullName: null
-    };
-    userCache[userId] = userData;
-    return userData;
-}
-
-// Chats laden
-async function loadChats() {
-    const container = document.getElementById('chatsContainer');
-    container.innerHTML = '<div class="loading-message">Lade Chats...</div>';
-
-    try {
-        const { data: chats, error } = await supabase
-            .from('chats')
-            .select(`
-                id,
-                user1_id,
-                user2_id,
-                last_message_at,
-                created_at
-            `)
-            .or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`)
-            .order('last_message_at', { ascending: false });
-
-        if (error) throw error;
-
-        if (!chats || chats.length === 0) {
-            container.innerHTML = `
-                <div class="empty-chat-list">
-                    <../../../TuningHub/public/svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    <../../../TuningHub/public/svg>
-                    <p>Noch keine Chats vorhanden</p>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = '';
-
-        for (const chat of chats) {
-            const otherUserId = chat.user1_id === currentUser.id ? chat.user2_id : chat.user1_id;
-            
-            // Nutzerdaten laden
-            const userData = await getUserData(otherUserId);
-            
-            // Letzte Nachricht laden
-            const { data: lastMessage } = await supabase
-                .from('messages')
-                .select('message, created_at')
-                .eq('chat_id', chat.id)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
-
-            const chatItem = document.createElement('div');
-            chatItem.className = 'chat-item';
-            if (chat.id === currentChatId) {
-                chatItem.classList.add('active');
-            }
-            chatItem.onclick = () => openChat(chat.id, userData.username);
-
-            const timeAgo = lastMessage ? formatTimeAgo(lastMessage.created_at) : formatTimeAgo(chat.created_at);
-            const preview = lastMessage ? lastMessage.message.substring(0, 50) : 'Neuer Chat';
-
-            chatItem.innerHTML = `
-                <div class="chat-item-avatar">${userData.username.charAt(0).toUpperCase()}</div>
-                <div class="chat-item-content">
-                    <div class="chat-item-header">
-                        <div class="chat-item-name">${userData.username}</div>
-                        <div class="chat-item-time">${timeAgo}</div>
-                    </div>
-                    <div class="chat-item-preview">${preview}${preview.length >= 50 ? '...' : ''}</div>
-                </div>
-            `;
-
-            container.appendChild(chatItem);
-        }
-
-    } catch (error) {
-        console.error('Fehler beim Laden der Chats:', error);
-        container.innerHTML = '<div class="error">Fehler beim Laden der Chats</div>';
-    }
-}
-
-// Chat öffnen
-async function openChat(chatId, username = 'Chat') {
-    currentChatId = chatId;
-
-    // Mobile: Chat-Liste ausblenden
-    const chatList = document.getElementById('chatList');
-    chatList.classList.add('hidden-mobile');
-
-    // Alte Subscription entfernen
-    if (messageSubscription) {
-        await supabase.removeChannel(messageSubscription);
-    }
-
-    // Chat-Fenster aufbauen
-    const chatWindow = document.getElementById('chatWindow');
-    chatWindow.innerHTML = `
-        <div class="chat-header">
-            <button class="back-button" onclick="window.backToChats()">
-                <../../../TuningHub/public/svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                <../../../TuningHub/public/svg>
-            </button>
-            <div class="chat-header-info">
-                <h3>${username}</h3>
-                <p class="online-status">Online</p>
-            </div>
-        </div>
-        <div class="messages-container" id="messagesContainer"></div>
-        <div class="input-area">
-            <input type="text" id="messageInput" placeholder="Nachricht eingeben..." />
-            <button class="send-button" onclick="window.sendMessage()">
-                <../../../TuningHub/public/svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                <../../../TuningHub/public/svg>
-            </button>
-        </div>
-    `;
-
-    // Nachrichten laden
-    await loadMessages(chatId);
-
-    // Realtime-Subscription einrichten
-    messageSubscription = supabase
-        .channel(`chat-${chatId}`)
-        .on(
-            'postgres_changes',
-            {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'messages',
-                filter: `chat_id=eq.${chatId}`
-            },
-            (payload) => {
-                addMessageToUI(payload.new);
-            }
-        )
-        .subscribe();
-
-    // Enter-Taste für Senden
-    document.getElementById('messageInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            window.sendMessage();
-        }
-    });
-
-    // Aktiven Chat in Liste markieren
-    document.querySelectorAll('.chat-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    document.querySelectorAll('.chat-item').forEach(item => {
-        if (item.onclick.toString().includes(chatId)) {
-            item.classList.add('active');
-        }
-    });
-}
-
-// Zurück zur Chat-Liste (Mobile)
-window.backToChats = function() {
-    const chatList = document.getElementById('chatList');
-    chatList.classList.remove('hidden-mobile');
-}
-
-// Nachrichten laden
-async function loadMessages(chatId) {
-    const container = document.getElementById('messagesContainer');
-    container.innerHTML = '<div class="loading-message">Lade Nachrichten...</div>';
-
-    try {
-        const { data: messages, error } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('chat_id', chatId)
-            .order('created_at', { ascending: true });
-
-        if (error) throw error;
-
-        container.innerHTML = '';
-
-        if (!messages || messages.length === 0) {
-            container.innerHTML = '<div class="loading-message">Noch keine Nachrichten. Schreibe die erste!</div>';
-            return;
-        }
-
-        messages.forEach(msg => addMessageToUI(msg));
-        scrollToBottom();
-
-    } catch (error) {
-        console.error('Fehler beim Laden der Nachrichten:', error);
-        container.innerHTML = '<div class="error">Fehler beim Laden der Nachrichten</div>';
-    }
-}
-
-// Nachricht zur UI hinzufügen
-function addMessageToUI(message) {
-    const container = document.getElementById('messagesContainer');
-    
-    // Prüfen ob Nachricht bereits existiert
-    if (document.querySelector(`[data-message-id="${message.id}"]`)) {
-        return;
-    }
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${message.sender_id === currentUser.id ? 'sent' : 'received'}`;
-    messageDiv.setAttribute('data-message-id', message.id);
-
-    const time = new Date(message.created_at).toLocaleTimeString('de-DE', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    });
-
-    messageDiv.innerHTML = `
-        <div class="message-bubble">
-            <div class="message-text">${escapeHtml(message.message)}</div>
-            <div class="message-time">${time}</div>
-        </div>
-    `;
-
-    container.appendChild(messageDiv);
-    scrollToBottom();
-}
-
-// Nachricht senden
-window.sendMessage = async function() {
-    const input = document.getElementById('messageInput');
-    const message = input.value.trim();
-
-    if (!message || !currentChatId) return;
-
-    try {
-        const { error } = await supabase
-            .from('messages')
-            .insert([{
-                chat_id: currentChatId,
-                sender_id: currentUser.id,
-                message: message,
+          if (partData) {
+            await supabase
+              .from('messages')
+              .insert([{
+                chat_id: chatId,
+                sender_id: user.id,
+                message: `Hallo! Ich interessiere mich für: ${partData.title}`,
                 created_at: new Date().toISOString()
-            }]);
-
-        if (error) throw error;
-
-        // Update last_message_at
-        await supabase
-            .from('chats')
-            .update({ last_message_at: new Date().toISOString() })
-            .eq('id', currentChatId);
-
-        input.value = '';
-        
-    } catch (error) {
-        console.error('Fehler beim Senden:', error);
-        alert('Nachricht konnte nicht gesendet werden');
+              }]);
+          }
+        } catch (err) {
+          console.warn("⚠️ Konnte Teil-Info nicht laden:", err);
+        }
+      }
     }
+
+    // 4. Zur Chat-Seite weiterleiten
+    console.log("🚀 Leite zur Chat-Seite weiter...");
+    window.location.href = `/src/pages/chat.html?chat=${chatId}`;
+
+  } catch (error) {
+    console.error("❌ Fehler in openChat:", error);
+    alert("Chat konnte nicht geöffnet werden. Bitte versuche es später erneut.");
+    throw error;
+  }
 }
 
-// Hilfsfunktionen
-function scrollToBottom() {
-    const container = document.getElementById('messagesContainer');
-    if (container) {
-        container.scrollTop = container.scrollHeight;
+/**
+ * Lädt alle Chats für den aktuellen User
+ * @returns {Promise<Array>}
+ */
+export async function loadUserChats() {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return [];
     }
+
+    const { data: chats, error } = await supabase
+      .from('chats')
+      .select(`
+        id,
+        user1_id,
+        user2_id,
+        last_message_at,
+        created_at
+      `)
+      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+      .order('last_message_at', { ascending: false });
+
+    if (error) throw error;
+
+    return chats || [];
+  } catch (error) {
+    console.error("Fehler beim Laden der Chats:", error);
+    return [];
+  }
 }
 
-function formatTimeAgo(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now - date;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
+/**
+ * Prüft ob ein Chat zwischen zwei Usern existiert
+ * @param {string} userId1 - Erste User-ID
+ * @param {string} userId2 - Zweite User-ID
+ * @returns {Promise<string|null>} Chat-ID oder null
+ */
+export async function checkChatExists(userId1, userId2) {
+  try {
+    const { data, error } = await supabase
+      .from('chats')
+      .select('id')
+      .or(`and(user1_id.eq.${userId1},user2_id.eq.${userId2}),and(user1_id.eq.${userId2},user2_id.eq.${userId1})`)
+      .limit(1)
+      .single();
 
-    if (minutes < 1) return 'Gerade eben';
-    if (minutes < 60) return `vor ${minutes} Min.`;
-    if (hours < 24) return `vor ${hours} Std.`;
-    if (days < 7) return `vor ${days} Tag${days > 1 ? 'en' : ''}`;
-    return date.toLocaleDateString('de-DE');
+    if (error || !data) return null;
+    return data.id;
+  } catch (error) {
+    console.error("Fehler beim Prüfen des Chats:", error);
+    return null;
+  }
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+/**
+ * Sendet eine Nachricht in einen Chat
+ * @param {string} chatId - Die Chat-ID
+ * @param {string} message - Die Nachricht
+ * @returns {Promise<boolean>}
+ */
+export async function sendMessage(chatId, message) {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      throw new Error("Nicht authentifiziert");
+    }
+
+    const { error } = await supabase
+      .from('messages')
+      .insert([{
+        chat_id: chatId,
+        sender_id: user.id,
+        message: message.trim(),
+        created_at: new Date().toISOString()
+      }]);
+
+    if (error) throw error;
+
+    // Update last_message_at
+    await supabase
+      .from('chats')
+      .update({ last_message_at: new Date().toISOString() })
+      .eq('id', chatId);
+
+    return true;
+  } catch (error) {
+    console.error("Fehler beim Senden der Nachricht:", error);
+    return false;
+  }
 }
 
-// Initialisierung
-init();
+/**
+ * Lädt Nachrichten eines Chats
+ * @param {string} chatId - Die Chat-ID
+ * @param {number} limit - Maximale Anzahl der Nachrichten
+ * @returns {Promise<Array>}
+ */
+export async function loadMessages(chatId, limit = 100) {
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', chatId)
+      .order('created_at', { ascending: true })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error("Fehler beim Laden der Nachrichten:", error);
+    return [];
+  }
+}
+
+/**
+ * Abonniert Echtzeit-Updates für einen Chat
+ * @param {string} chatId - Die Chat-ID
+ * @param {Function} callback - Callback-Funktion für neue Nachrichten
+ * @returns {RealtimeChannel}
+ */
+export function subscribeToChat(chatId, callback) {
+  return supabase
+    .channel(`chat-${chatId}`)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: `chat_id=eq.${chatId}`
+    }, (payload) => {
+      callback(payload.new);
+    })
+    .subscribe();
+}
+
+/**
+ * Beendet eine Chat-Subscription
+ * @param {RealtimeChannel} subscription - Die Subscription
+ */
+export async function unsubscribeFromChat(subscription) {
+  if (subscription) {
+    await supabase.removeChannel(subscription);
+  }
+}
+
+/**
+ * Markiert Nachrichten als gelesen
+ * @param {string} chatId - Die Chat-ID
+ * @returns {Promise<boolean>}
+ */
+export async function markAsRead(chatId) {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) return false;
+
+    // Hier könntest du eine "read_at" Spalte in messages updaten
+    // oder einen separaten "read_receipts" Table verwenden
+    console.log("Markiere Nachrichten als gelesen:", chatId);
+    
+    return true;
+  } catch (error) {
+    console.error("Fehler beim Markieren als gelesen:", error);
+    return false;
+  }
+}
+
+/**
+ * Löscht einen Chat
+ * @param {string} chatId - Die Chat-ID
+ * @returns {Promise<boolean>}
+ */
+export async function deleteChat(chatId) {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      throw new Error("Nicht authentifiziert");
+    }
+
+    // Prüfen ob User Teil des Chats ist
+    const { data: chat, error: fetchError } = await supabase
+      .from('chats')
+      .select('user1_id, user2_id')
+      .eq('id', chatId)
+      .single();
+
+    if (fetchError || !chat) {
+      throw new Error("Chat nicht gefunden");
+    }
+
+    if (chat.user1_id !== user.id && chat.user2_id !== user.id) {
+      throw new Error("Keine Berechtigung");
+    }
+
+    // Lösche zuerst alle Nachrichten
+    await supabase
+      .from('messages')
+      .delete()
+      .eq('chat_id', chatId);
+
+    // Lösche dann den Chat
+    const { error: deleteError } = await supabase
+      .from('chats')
+      .delete()
+      .eq('id', chatId);
+
+    if (deleteError) throw deleteError;
+
+    return true;
+  } catch (error) {
+    console.error("Fehler beim Löschen des Chats:", error);
+    return false;
+  }
+}
+
+/**
+ * Lädt User-Informationen für Chat-Anzeige
+ * @param {string} userId - Die User-ID
+ * @returns {Promise<Object>}
+ */
+export async function getChatPartnerInfo(userId) {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, username, phone, email, account_type')
+      .eq('id', userId)
+      .single();
+
+    if (error || !data) {
+      return {
+        id: userId,
+        username: `User_${userId.substring(0, 8)}`,
+        accountType: 'private'
+      };
+    }
+
+    return {
+      id: data.id,
+      username: data.username || `User_${userId.substring(0, 8)}`,
+      phone: data.phone,
+      email: data.email,
+      accountType: data.account_type || 'private'
+    };
+  } catch (error) {
+    console.error("Fehler beim Laden der User-Info:", error);
+    return {
+      id: userId,
+      username: `User_${userId.substring(0, 8)}`,
+      accountType: 'private'
+    };
+  }
+}
+
+/**
+ * Zählt ungelesene Nachrichten für den aktuellen User
+ * @returns {Promise<number>}
+ */
+export async function getUnreadCount() {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) return 0;
+
+    // Hier müsstest du einen "read_receipts" Table haben
+    // oder "read_at" Timestamps in messages
+    // Vereinfachte Version: Zähle alle Nachrichten der letzten 24h
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: chats } = await supabase
+      .from('chats')
+      .select('id')
+      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+    if (!chats) return 0;
+
+    let unreadCount = 0;
+
+    for (const chat of chats) {
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('chat_id', chat.id)
+        .neq('sender_id', user.id)
+        .gte('created_at', oneDayAgo);
+
+      unreadCount += count || 0;
+    }
+
+    return unreadCount;
+  } catch (error) {
+    console.error("Fehler beim Zählen ungelesener Nachrichten:", error);
+    return 0;
+  }
+}
+
+/**
+ * Sucht nach Nachrichten in allen Chats
+ * @param {string} query - Suchbegriff
+ * @returns {Promise<Array>}
+ */
+export async function searchMessages(query) {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) return [];
+
+    // Hole alle Chat-IDs des Users
+    const { data: chats } = await supabase
+      .from('chats')
+      .select('id')
+      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+    if (!chats) return [];
+
+    const chatIds = chats.map(c => c.id);
+
+    // Suche in Nachrichten
+    const { data: messages, error } = await supabase
+      .from('messages')
+      .select('*, chat_id')
+      .in('chat_id', chatIds)
+      .ilike('message', `%${query}%`)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+    return messages || [];
+  } catch (error) {
+    console.error("Fehler bei der Nachrichtensuche:", error);
+    return [];
+  }
+}
+
+// Export als Standard-Objekt für einfacheren Import
+export default {
+  openChat,
+  loadUserChats,
+  checkChatExists,
+  sendMessage,
+  loadMessages,
+  subscribeToChat,
+  unsubscribeFromChat,
+  markAsRead,
+  deleteChat,
+  getChatPartnerInfo,
+  getUnreadCount,
+  searchMessages
+};
+
+console.log("✅ chat.js Modul vollständig geladen")
