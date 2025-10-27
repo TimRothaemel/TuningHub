@@ -1,5 +1,5 @@
-// TuningHub Universal Search System - KORRIGIERT v2
-// Funktioniert auf allen Seiten und leitet zur Teileübersicht weiter
+// TuningHub Universal Search System - FIXED v3
+// Funktioniert auf allen Seiten inkl. index.html
 
 (function() {
     'use strict';
@@ -241,12 +241,35 @@
         return urlParams.get('search') || '';
     }
 
-    // Prüfe ob wir auf der Übersichtsseite sind
+    // Prüfe ob wir auf einer Seite sind, die Suchergebnisse anzeigen kann
     function isOnOverviewPage() {
         const currentPage = window.location.pathname;
-        return currentPage.includes('/src/pages/teileübersicht.html') || 
-               currentPage.includes('/src/pages/teileubersicht.html') ||
-               currentPage.endsWith('/');
+        const isOverview = currentPage.includes('/teileübersicht.html') || 
+                          currentPage.includes('/teileubersicht.html') ||
+                          currentPage.endsWith('/index.html') ||
+                          currentPage === '/' ||
+                          currentPage.endsWith('/');
+        
+        searchLog(`Prüfe Seite: ${currentPage} -> isOverview: ${isOverview}`);
+        return isOverview;
+    }
+
+    // Ermittle den korrekten Pfad zur Teileübersicht
+    function getOverviewPagePath() {
+        const currentPath = window.location.pathname;
+        
+        // Wenn wir bereits in /src/pages/ sind
+        if (currentPath.includes('/src/pages/')) {
+            return '/src/pages/teileübersicht.html';
+        }
+        // Wenn wir auf index.html oder root sind
+        else if (currentPath.endsWith('/index.html') || currentPath === '/' || currentPath.endsWith('/')) {
+            return 'src/pages/teileübersicht.html';
+        }
+        // Default
+        else {
+            return '/src/pages/teileübersicht.html';
+        }
     }
 
     // Suche auf aktueller Seite durchführen
@@ -255,10 +278,12 @@
         
         // Lade Daten falls noch nicht verfügbar
         if (searchParts.length === 0) {
+            searchLog("Lade Teile, da noch nicht vorhanden...");
             await loadSearchParts();
         }
 
         const results = executeSearch(query);
+        searchLog(`Suche ergab ${results.length} Ergebnisse`);
         
         // Event auslösen für teileübersicht.html.js
         const event = new CustomEvent('tuninghub:search', {
@@ -271,11 +296,11 @@
         window.dispatchEvent(event);
         
         saveSearchToURL(query);
-        searchLog(`Suche ausgeführt, ${results.length} Ergebnisse gefunden`);
+        searchLog(`Event gefeuert, ${results.length} Ergebnisse`);
         return results;
     }
 
-    // Suche ausführen und zur Teileübersicht weiterleiten
+    // Suche ausführen und ggf. zur Teileübersicht weiterleiten
     async function performSearch(query) {
         if (!query || !query.trim()) {
             searchLog("Leere Suche abgebrochen");
@@ -286,18 +311,25 @@
         searchLog(`Führe Suche aus: "${trimmedQuery}"`);
 
         if (isOnOverviewPage()) {
-            // Bereits auf der Übersichtsseite - warte auf Ready-Signal
-            if (isOverviewPageReady) {
-                await performLocalSearch(trimmedQuery);
+            // Auf einer Seite, die Ergebnisse anzeigen kann
+            searchLog("Auf Übersichtsseite, führe lokale Suche aus");
+            
+            // Bei index.html IMMER zur Teileübersicht weiterleiten
+            const currentPath = window.location.pathname;
+            if (currentPath.endsWith('/index.html') || currentPath === '/' || currentPath.endsWith('/')) {
+                searchLog("Auf index.html - leite zur Teileübersicht weiter");
+                const targetPath = getOverviewPagePath();
+                const url = new URL(targetPath, window.location.origin);
+                url.searchParams.set('search', trimmedQuery);
+                window.location.href = url.toString();
             } else {
-                searchLog("Übersichtsseite noch nicht bereit, warte...");
-                // Speichere Suche für später
-                window.pendingSearch = trimmedQuery;
+                // Bereits auf Teileübersicht - lokale Suche
+                await performLocalSearch(trimmedQuery);
             }
         } else {
             // Auf anderer Seite - zur Teileübersicht weiterleiten
-            const targetUrl = '/src/pages/teileübersicht.html';
-            const url = new URL(targetUrl, window.location.origin);
+            const targetPath = getOverviewPagePath();
+            const url = new URL(targetPath, window.location.origin);
             url.searchParams.set('search', trimmedQuery);
             
             searchLog(`Leite zur Teileübersicht weiter: ${url.toString()}`);
@@ -312,7 +344,8 @@
         const searchInput = document.getElementById('searchbar') || 
                            document.getElementById('search-input') || 
                            document.querySelector('.searchbar') ||
-                           document.querySelector('input[placeholder*="Suche"]');
+                           document.querySelector('input[placeholder*="Suche"]') ||
+                           document.querySelector('input[placeholder*="suche"]');
 
         if (!searchInput) {
             searchLog("Such-Input nicht gefunden");
@@ -320,6 +353,7 @@
         }
 
         const searchButton = searchInput.parentNode?.querySelector('img[src*="search"]') ||
+                            searchInput.parentNode?.querySelector('img[alt*="Suche"]') ||
                             document.querySelector('.search-button') ||
                             document.querySelector('[onclick*="search"]');
 
@@ -337,6 +371,7 @@
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const query = newSearchInput.value.trim();
+                searchLog(`Enter gedrückt mit Query: "${query}"`);
                 if (query) {
                     performSearch(query);
                 }
@@ -350,7 +385,9 @@
 
             newSearchButton.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 const query = newSearchInput.value.trim();
+                searchLog(`Such-Button geklickt mit Query: "${query}"`);
                 if (query) {
                     performSearch(query);
                 }
@@ -360,7 +397,7 @@
         }
 
         // Wenn wir auf der Teileübersicht sind, URL-Parameter prüfen
-        if (isOnOverviewPage()) {
+        if (isOnOverviewPage() && !window.location.pathname.endsWith('/index.html')) {
             const savedSearch = loadSearchFromURL();
             if (savedSearch) {
                 newSearchInput.value = savedSearch;
@@ -375,18 +412,19 @@
     // Hauptinitialisierung
     async function initializeUniversalSearch() {
         searchLog("Starte universelles Such-System...");
+        searchLog(`Aktuelle Seite: ${window.location.pathname}`);
 
         try {
             // Warte auf Supabase Client
             let retries = 0;
-            while (!window.supabase && retries < 10) {
-                searchLog(`Warte auf Supabase Client (Versuch ${retries + 1}/10)...`);
-                await new Promise(resolve => setTimeout(resolve, 200));
+            while (!window.supabase && retries < 15) {
+                searchLog(`Warte auf Supabase Client (Versuch ${retries + 1}/15)...`);
+                await new Promise(resolve => setTimeout(resolve, 300));
                 retries++;
             }
             
             if (!window.supabase) {
-                searchLog("WARNUNG: Supabase Client nicht verfügbar nach 10 Versuchen");
+                searchLog("WARNUNG: Supabase Client nicht verfügbar nach 15 Versuchen");
             } else {
                 searchLog("Supabase Client gefunden!");
                 initSearchSupabase();
@@ -402,6 +440,16 @@
                 searchLog("Universelles Such-System erfolgreich initialisiert");
             } else {
                 searchLog("Such-Interface konnte nicht initialisiert werden");
+            }
+            
+            // Bei Teileübersicht: prüfe URL-Parameter
+            if (isOnOverviewPage() && !window.location.pathname.endsWith('/index.html')) {
+                const savedSearch = loadSearchFromURL();
+                if (savedSearch) {
+                    searchLog(`URL-Parameter gefunden, führe Suche aus: "${savedSearch}"`);
+                    // Kurze Verzögerung für Seiteninitialisierung
+                    setTimeout(() => performLocalSearch(savedSearch), 500);
+                }
             }
             
         } catch (error) {
@@ -454,6 +502,7 @@
     window.TuningHubSearch.init = initializeUniversalSearch;
     window.TuningHubSearch.performLocalSearch = performLocalSearch;
     window.TuningHubSearch.isReady = () => searchParts.length > 0;
+    window.TuningHubSearch.reload = loadSearchParts;
 
     // Auto-Initialisierung
     function startUniversalSearch() {
