@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat - TuningHub</title>
+    <title>Chat TuningHub</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="/src/css/main.css">
     <link rel="stylesheet" href="/src/css/menu.css">  
@@ -11,27 +11,53 @@
     <link rel="stylesheet" href="/src/css/chat.css">
     <script src="/src/js/menu.js" defer></script>
     <script src="/src/js/search.js" defer></script>
-    <script src="/src/js/chat.js" defer></script>
+    <script type="module" src="/src/js/chat.js" defer></script>
+    <script type="module" src="/src/js/chatPage.js" defer></script>
 
 </head>
 <body>
-    <header class="header">
-        <div class="header-top">
-            <div class="logo">
-                <a href="../../index.html">
-                    <img src="../../public/img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50">
-                </a>
-            </div>
-            <div class="searchbar-wrapper">
-                <input id="searchbar" type="text" class="searchbar" placeholder="Suche nach Teilen, Marken...">
-                <img src="../../public/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg">
-            </div>
-            <button id="menu-btn" class="menu-button" aria-label="Navigation öffnen">
-                <img src="../../public/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
-                <img src="../../public/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
-            </button>
+<header class="header">
+      <div class="header-top">
+        <div class="logo">
+          <a href="../../index.html">
+            <img
+              src="../../public/img/THub-Logo-ohne-Hintergrund-500x200.png"
+              alt="TuningHub Logo"
+              height="50"
+            />
+          </a>
         </div>
+        <div class="searchbar-wrapper">
+        <input
+          id="searchbar"
+          type="text"
+          class="searchbar"
+          placeholder="Suche nach Teilen, Marken..."
+        >
+        <img 
+        src="../../public/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+        >
+        
+      </div>
+      
+  
+      <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
+  <!-- Öffnene -->
+  <img src="../../public/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+  <!-- Schließen -->
+  <img src="../../public/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+</button>
+<nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Navigation</div>
+        </div>
+                <div class="menu-items">
+           
+        </div>
+    </nav>
+      <div class="overlay" id="overlay"></div>
     </header>
+
 
     <main>
         <div class="chat-container">

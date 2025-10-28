@@ -47,15 +47,18 @@ export async function openChat(sellerId, teilId = null) {
       // Chat existiert bereits
       chatId = existingChats[0].id;
       console.log("✅ Existierender Chat gefunden:", chatId);
-    } else {
+   } else {
       // Neuen Chat erstellen
       console.log("📝 Erstelle neuen Chat...");
+      
+      // Sortiere User-IDs, um die Check-Constraint zu erfüllen
+      const [sortedUser1, sortedUser2] = [user.id, sellerId].sort();
       
       const { data: newChat, error: createError } = await supabase
         .from('chats')
         .insert([{
-          user1_id: user.id,
-          user2_id: sellerId,
+          user1_id: sortedUser1,
+          user2_id: sortedUser2,
           created_at: new Date().toISOString(),
           last_message_at: new Date().toISOString()
         }])

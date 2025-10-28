@@ -157,6 +157,7 @@ async function initializeMenuRobust() {
       { href: "/src/pages/teilesuchen.html", text: "Teile suchen"},
       { href: "/src/pages/teilehinzufügen.html", text: "Teile verkaufen"},
       { href: "/src/pages/meineteile.html", text: "Meine Anzeigen"},
+      { href: "/src/pages/chat.html", text: "Chat"},
       { href: "/src/pages/verkäufer.html", text: "Verkäufer",},
       { href: "/src/pages/account.html", text: "Einstellungen"},
       { href: "/src/pages/support.html", text: "Support"},
