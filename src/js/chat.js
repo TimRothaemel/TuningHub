@@ -1,6 +1,7 @@
 console.log("chat.js geladen");
 
 import { supabase } from "./supabaseClient.js";
+import { notifyNewChatMessage } from "./notifications.js";
 
 /**
  * Öffnet einen Chat mit einem Verkäufer
@@ -179,6 +180,9 @@ export async function sendMessage(chatId, message) {
       throw new Error("Nicht authentifiziert");
     }
 
+    console.log("📤 Sende Nachricht:", { chatId, message: message.substring(0, 50) });
+
+    // Nachricht senden
     const { error } = await supabase
       .from('messages')
       .insert([{
@@ -196,9 +200,35 @@ export async function sendMessage(chatId, message) {
       .update({ last_message_at: new Date().toISOString() })
       .eq('id', chatId);
 
+    console.log("✅ Nachricht gesendet");
+
+    // ✨ NEU: Benachrichtigung erstellen
+    try {
+      const { data: chat } = await supabase
+        .from('chats')
+        .select('user1_id, user2_id')
+        .eq('id', chatId)
+        .single();
+
+      if (chat) {
+        // Finde den Empfänger (der andere User im Chat)
+        const recipientId = chat.user1_id === user.id ? chat.user2_id : chat.user1_id;
+        
+        console.log("📬 Erstelle Benachrichtigung für:", recipientId);
+        
+        // Erstelle Benachrichtigung
+        await notifyNewChatMessage(recipientId, user.id, chatId, message);
+        
+        console.log("✅ Benachrichtigung erstellt");
+      }
+    } catch (notifyError) {
+      console.error("⚠️ Fehler beim Erstellen der Benachrichtigung:", notifyError);
+      // Fehler bei Benachrichtigung sollte nicht das Senden der Nachricht verhindern
+    }
+
     return true;
   } catch (error) {
-    console.error("Fehler beim Senden der Nachricht:", error);
+    console.error("❌ Fehler beim Senden der Nachricht:", error);
     return false;
   }
 }
@@ -461,4 +491,4 @@ export default {
   searchMessages
 };
 
-console.log("✅ chat.js Modul vollständig geladen")
+console.log("✅ chat.js Modul vollständig geladen");

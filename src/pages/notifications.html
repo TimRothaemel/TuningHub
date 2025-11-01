@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benachrichtigungen - TuningHub</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="/src/css/main.css">
+    <link rel="stylesheet" href="/src/css/menu.css">  
+    <link rel="stylesheet" href="/src/css/search.css">
+    <link rel="stylesheet" href="/src/css/notifications.css">
+    <script src="/src/js/menu.js" defer></script>
+    <script src="/src/js/search.js" defer></script>
+    <script type="module" src="/src/js/notificationsPage.js" defer></script>
+</head>
+<body>
+<header class="header">
+    <div class="header-top">
+        <div class="logo">
+            <a href="../../index.html">
+                <img
+                    src="../../public/img/THub-Logo-ohne-Hintergrund-500x200.png"
+                    alt="TuningHub Logo"
+                    height="50"
+                />
+            </a>
+        </div>
+        <div class="searchbar-wrapper">
+            <input
+                id="searchbar"
+                type="text"
+                class="searchbar"
+                placeholder="Suche nach Teilen, Marken..."
+            >
+            <img 
+                src="../../public/svg/search_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg"
+            >
+        </div>
+        
+        <button id="menu-btn" class="menu-button" aria-controls="sidebar" aria-expanded="false" aria-label="Navigation öffnen">
+            <img src="../../public/svg/menu_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Menu" width="36" height="36" class="icon icon-open">
+            <img src="../../public/svg/close_60dp_000000_FILL0_wght400_GRAD0_opsz48.svg" alt="Schließen" width="36" height="36" class="icon icon-close">
+        </button>
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Navigation</div>
+            </div>
+            <div class="menu-items"></div>
+        </nav>
+        <div class="overlay" id="overlay"></div>
+    </div>
+</header>
+
+<main>
+    <div class="notifications-container">
+        <!-- Header mit Aktionen -->
+        <div class="notifications-header">
+            <h1>Benachrichtigungen</h1>
+            <div class="header-actions">
+                <button id="markAllReadBtn" class="action-btn secondary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    Alle als gelesen markieren
+                </button>
+                <button id="filterBtn" class="action-btn secondary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    Filter
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter-Optionen (versteckt) -->
+        <div class="filter-options" id="filterOptions" style="display: none;">
+            <button class="filter-tag active" data-filter="all">Alle</button>
+            <button class="filter-tag" data-filter="chat_message">Chat-Nachrichten</button>
+            <button class="filter-tag" data-filter="system">System</button>
+            <button class="filter-tag" data-filter="part_sold">Verkäufe</button>
+            <button class="filter-tag" data-filter="favorite_update">Favoriten</button>
+            <button class="filter-tag" data-filter="unread">Nur ungelesen</button>
+        </div>
+
+        <!-- Benachrichtigungen Liste -->
+        <div class="notifications-list" id="notificationsList">
+            <!-- Loading State -->
+            <div class="loading" id="loadingState">
+                <div class="spinner"></div>
+                <p>Lade Benachrichtigungen...</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div class="informations"><a href="übertuninghub.html">TuningHub</a></div>
+    <div class="informations"><a href="impressum.html">Impressum</a></div>
+    <div class="informations"><a href="support.html">Support</a></div>
+    <div class="informations"><a href="socialmedia.html">Social Media</a></div>
+    <div class="informations"><a href="agb.html">AGB</a></div>
+    <div class="informations"><a href="haftungsbeschränkung.html">Haftungsbeschränkung</a></div>
+    <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+</footer>
+
+</body>
+</html>
