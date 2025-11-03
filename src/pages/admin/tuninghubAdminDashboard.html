@@ -775,7 +775,9 @@
       return parts;
     };
 
-    // Supabase-Clients
+
+
+    // Supabase-Clients für globalen Zugriff verfügbar machen
     const tracking = createClient(
       'https://lhxcnrogjjskgaclqxtm.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww'
@@ -785,6 +787,12 @@
       'https://yvdptnkmgfxkrszitweo.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo'
     )
+    
+    // Globalen Client für search.js verfügbar machen
+    window.supabase = supabase;
+    window.trackingSupabase = tracking;
+
+    // Mock-Daten für den Fall, dass die Supabase-Verbindung fehlschlägt
 
     // DOM-Elemente
     const timeSelect = document.getElementById('timeFilter')
