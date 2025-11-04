@@ -104,21 +104,73 @@ export async function completeNotificationAction(notificationId, consentType, ve
   try {
     console.log("✅ Schließe Benachrichtigungs-Aktion ab:", { notificationId, consentType, version });
     
-    const { data, error } = await supabase.rpc('complete_notification_action', {
-      p_notification_id: notificationId,
-      p_consent_type: consentType,
-      p_consent_version: version
-    });
-
-    if (error) {
-      console.error("❌ Fehler beim Abschließen der Aktion:", error);
-      throw error;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error("❌ User nicht authentifiziert");
+      throw new Error('Nicht authentifiziert');
     }
+
+    console.log("👤 User ID:", user.id);
+
+    // 1. Speichere Consent in profiles Tabelle
+    const updateData = {
+      updated_at: new Date().toISOString()
+    };
+
+    // Setze das richtige Consent-Feld basierend auf dem Typ
+    switch (consentType) {
+      case 'privacy_policy':
+        updateData.privacy_consent = true;
+        updateData.privacy_consent_date = new Date().toISOString();
+        console.log("Setze privacy_consent");
+        break;
+      case 'agb':
+      case 'terms':
+        updateData.agb_consent = true;
+        updateData.agb_consent_date = new Date().toISOString();
+        console.log("📋 Setze agb_consent");
+        break;
+      default:
+        console.warn('⚠️ Unbekannter Consent-Typ:', consentType);
+    }
+
+    console.log("💾 Update Data:", updateData);
+
+    const { data: profileData, error: consentError } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', user.id)
+      .select();
+
+    if (consentError) {
+      console.error("❌ Fehler beim Speichern des Consents:", consentError);
+      throw consentError;
+    }
+
+    console.log("✅ Consent gespeichert:", profileData);
+
+    // 2. Aktualisiere Benachrichtigung
+    const { data: notifData, error: notifError } = await supabase
+      .from('notifications')
+      .update({
+        read: true,
+        action_completed: true,
+        read_at: new Date().toISOString()
+      })
+      .eq('id', notificationId)
+      .select();
+
+    if (notifError) {
+      console.error("❌ Fehler beim Aktualisieren der Benachrichtigung:", notifError);
+      throw notifError;
+    }
+
+    console.log("✅ Benachrichtigung aktualisiert:", notifData);
+    console.log("🎉 Alles erfolgreich abgeschlossen!");
     
-    console.log("✅ Aktion abgeschlossen und Zustimmung gespeichert");
-    return data;
+    return true;
   } catch (error) {
-    console.error("❌ Fehler:", error);
+    console.error("❌ Fehler in completeNotificationAction:", error);
     return false;
   }
 }
@@ -128,7 +180,7 @@ export async function completeNotificationAction(notificationId, consentType, ve
  */
 export async function sendSystemNotificationToAll(notificationData) {
   try {
-    console.log("📢 Sende System-Benachrichtigung an alle User:", notificationData);
+    console.log("Sende System-Benachrichtigung an alle User:", notificationData);
     
     const { data, error } = await supabase.rpc('create_system_notification_for_all', {
       p_type: notificationData.type || 'system',
@@ -166,7 +218,7 @@ export async function notifyPrivacyPolicyUpdate(version = '1.0') {
 export async function notifyTermsUpdate(version = '1.0') {
   return await sendSystemNotificationToAll({
     type: 'terms',
-    title: '📋 AGBs aktualisiert',
+    title: 'AGBs aktualisiert',
     message: 'Unsere Allgemeinen Geschäftsbedingungen wurden aktualisiert. Bitte lies sie durch und stimme zu.',
     requiresAction: true,
     actionType: 'agb'
@@ -176,7 +228,7 @@ export async function notifyTermsUpdate(version = '1.0') {
 export async function notifyImprintUpdate(version = '1.0') {
   return await sendSystemNotificationToAll({
     type: 'imprint',
-    title: '📄 Impressum aktualisiert',
+    title: 'Impressum aktualisiert',
     message: 'Unser Impressum wurde aktualisiert.',
     requiresAction: false
   });
