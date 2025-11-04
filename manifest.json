@@ -4,7 +4,7 @@
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#e50914",
+  "theme_color": "#0077cc",
   "icons": [
     {
       "src": "/public/img/THub Logo mit Hintergrund.png",
