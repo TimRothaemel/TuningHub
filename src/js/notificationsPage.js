@@ -201,7 +201,14 @@ class NotificationsPage {
     };
 
     return `
-      <div class="notification-item ${readClass} ${actionClass} ${priorityClass}" data-id="${notification.id}">
+      <div class="notification-item ${readClass} ${actionClass} ${priorityClass}" data-id="${notification.id}" onclick="window.notificationsPage.handleNotificationClick('${notification.id}', event)">
+        <button class="notification-close" onclick="window.notificationsPage.deleteNotification('${notification.id}'); event.stopPropagation();" title="Benachrichtigung schließen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        
         <div class="notification-content">
           <div class="notification-header">
             <h3 class="notification-title">${escapeHTML(notification.title)}</h3>
@@ -210,7 +217,7 @@ class NotificationsPage {
           <p class="notification-message">${escapeHTML(notification.message || '')}</p>
           
           ${notification.requires_action && !notification.action_completed ? `
-            <div class="notification-actions">
+            <div class="notification-actions" onclick="event.stopPropagation()">
               <button class="btn-primary" onclick="window.notificationsPage.showConsentModal('${notification.id}', '${notification.action_type}')">
                 Dokument lesen & zustimmen
               </button>
@@ -218,28 +225,12 @@ class NotificationsPage {
           ` : ''}
           
           ${notification.action_url && !notification.requires_action ? `
-            <div class="notification-actions">
+            <div class="notification-actions" onclick="event.stopPropagation()">
               <a href="${notification.action_url}" class="btn-secondary" onclick="window.notificationsPage.markAsRead('${notification.id}')">
                 Ansehen
               </a>
             </div>
           ` : ''}
-        </div>
-        <div class="notification-actions-right">
-          ${!notification.read ? `
-            <button class="btn-icon" onclick="window.notificationsPage.markAsRead('${notification.id}')" title="Als gelesen markieren">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/>
-              </svg>
-              Als gelesen
-            </button>
-          ` : ''}
-          <button class="btn-icon btn-delete" onclick="window.notificationsPage.deleteNotification('${notification.id}')" title="Löschen">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/>
-            </svg>
-            Löschen
-          </button>
         </div>
       </div>
     `;
