@@ -233,7 +233,50 @@ export async function notifyImprintUpdate(version = '1.0') {
     requiresAction: false
   });
 }
+/**
+ * Erstellt eine Benachrichtigung für eine neue Chat-Nachricht
+ * @param {string} recipientId - ID des Empfängers
+ * @param {string} senderId - ID des Absenders
+ * @param {string} chatId - ID des Chats
+ * @param {string} message - Die Nachricht (wird gekürzt)
+ */
+export async function notifyNewChatMessage(recipientId, senderId, chatId, message) {
+  try {
+    // Hole Absender-Info
+    const { data: senderProfile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', senderId)
+      .single();
 
+    const senderName = senderProfile?.username || 'Ein Nutzer';
+    
+    // Kürze Nachricht auf 50 Zeichen
+    const preview = message.length > 50 
+      ? message.substring(0, 47) + '...' 
+      : message;
+
+    // Erstelle Benachrichtigung
+    const { error } = await supabase
+      .from('notifications')
+      .insert([{
+        user_id: recipientId,
+        type: 'chat_message',
+        title: `Neue Nachricht von ${senderName}`,
+        message: preview,
+        link: `/src/pages/chat.html?chat=${chatId}`,
+        created_at: new Date().toISOString(),
+        read: false
+      }]);
+
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Fehler beim Erstellen der Chat-Benachrichtigung:', error);
+    return false;
+  }
+}
 export default {
   getNotifications,
   markNotificationAsRead,
