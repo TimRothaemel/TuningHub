@@ -3,22 +3,23 @@
    ======================================== */
 .chat-container {
     display: flex;
-    height: 100vh; /* Volle Höhe ohne Abzüge */
+    height: 100%;
     max-width: 100%;
     margin: 0;
     background: white;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     transform: translateZ(0);
     box-sizing: border-box;
+    flex: 1;
 }
 
 /* Stellt sicher, dass der Body die volle Höhe nutzt */
 body {
     margin: 0;
     padding: 0;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    overflow-x: hidden;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -31,8 +32,8 @@ main {
     overflow: hidden;
     position: relative;
     background: white;
-    /* Platz für Footer schaffen */
-    padding-bottom: 60px; /* Geschätzte Footer-Höhe */
+    display: flex;
+    flex-direction: column;
 }
 
 /* ========================================
@@ -362,13 +363,14 @@ main {
 }
 
 /* ========================================
-   NACHRICHTEN CONTAINER
+   NACHRICHTEN CONTAINER - KRITISCH FÜR SCROLLING
    ======================================== */
 
 .chat-messages,
 .messages-container {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto !important; /* WICHTIG: Muss scrollbar sein */
+    overflow-x: hidden;
     padding: 20px;
     background: #f8f9fa;
     -webkit-overflow-scrolling: touch;
@@ -378,6 +380,8 @@ main {
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: rgba(0,0,0,0.2) transparent;
+    min-height: 0; /* WICHTIG: Für Flex-Scrolling */
+    overscroll-behavior: contain; /* Verhindert "Bounce" */
 }
 
 .chat-messages::-webkit-scrollbar,
@@ -403,7 +407,7 @@ main {
 .message {
     display: flex;
     margin-bottom: 4px;
-    animation: messageSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: messageSlide 0.2s ease-out;
     max-width: 75%;
     transform: translateZ(0);
 }
@@ -411,7 +415,7 @@ main {
 @keyframes messageSlide {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(5px);
     }
     to {
         opacity: 1;
@@ -488,6 +492,7 @@ main {
     gap: 12px;
     box-shadow: 0 -1px 6px rgba(0,0,0,0.1);
     flex-shrink: 0;
+    align-items: flex-end; /* WICHTIG: Button am Boden */
 }
 
 #messageInput,
@@ -501,9 +506,12 @@ main {
     transition: all 0.2s ease;
     font-family: 'Segoe UI', sans-serif;
     resize: none;
+    min-height: 48px;
     max-height: 120px;
+    overflow-y: auto;
     background: white;
     transform: translateZ(0);
+    line-height: 1.4;
 }
 
 #messageInput:focus,
@@ -554,6 +562,7 @@ main {
     background: #6c757d;
     cursor: not-allowed;
     transform: none;
+    opacity: 0.6;
 }
 
 .send-button svg,
@@ -577,7 +586,7 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100%;
+    min-height: 200px;
     color: #6c757d;
     text-align: center;
     padding: 40px 20px;
@@ -705,7 +714,7 @@ main {
     }
     
     .message {
-        animation: messageSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: messageSlide 0.2s ease-out;
     }
 }
 
@@ -728,6 +737,12 @@ main {
         position: static;
         display: flex;
         width: calc(100% - 320px);
+        height: 100%;
+    }
+
+    .chat-window.active {
+        display: flex;
+        flex-direction: column;
     }
 
     .back-button {
@@ -779,7 +794,13 @@ main {
     .chat-window {
         position: static;
         display: flex;
+        flex-direction: column;
         width: calc(100% - 380px);
+        height: 100%;
+    }
+
+    .chat-window.active {
+        display: flex;
     }
 
     .back-button {
@@ -810,14 +831,29 @@ main {
 }
 
 /* ========================================
-   MOBILE ANSICHT (bis 767px) - KORRIGIERT
+   MOBILE ANSICHT (bis 767px) - OPTIMIERT
    ======================================== */
 
 @media (max-width: 767px) {
+    body {
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    main {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
     .chat-container {
+        flex: 1;
         margin: 0;
         border-radius: 0;
-        height: 100vh;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
     }
 
     .chat-list.hidden-mobile {
@@ -825,20 +861,67 @@ main {
     }
 
     .chat-window.active {
-        display: flex;
+        display: flex !important;
+        flex-direction: column;
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
+        width: 100%;
+        height: 100%;
         z-index: 10;
+        background: #f8f9fa;
+        overflow: hidden;
+    }
+
+    /* Header fixiert am Top */
+    .chat-window.active .chat-header {
+        flex-shrink: 0;
+        position: relative;
+        top: 0;
+        z-index: 20;
         background: white;
-        /* Sicherstellen, dass der Input-Bereich über dem Footer liegt */
-        padding-bottom: 60px; /* Gleicher Wert wie im main */
+        width: 100%;
+    }
+
+    /* Messages-Container nimmt restlichen Platz und scrollt */
+    .chat-window.active .chat-messages,
+    .chat-window.active .messages-container {
+        flex: 1;
+        overflow-y: auto !important;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+        padding: 16px;
+        width: 100%;
+        box-sizing: border-box;
+        background: #f8f9fa;
+    }
+
+    /* Input fixiert am Boden */
+    .chat-window.active .chat-input-wrapper,
+    .chat-window.active .input-area {
+        flex-shrink: 0;
+        position: relative;
+        bottom: 0;
+        z-index: 20;
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        padding: 12px 16px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .message {
-        max-width: 85%;
+        max-width: 80%;
+    }
+
+    /* Nachrichten Spacing auf Mobile */
+    .message-bubble,
+    .message-content {
+        padding: 10px 14px;
+        max-width: 100%;
     }
 
     .chat-item {
@@ -850,6 +933,8 @@ main {
     .avatar-placeholder {
         width: 44px;
         height: 44px;
+        min-width: 44px;
+        min-height: 44px;
         font-size: 1.125rem;
     }
 
@@ -868,27 +953,9 @@ main {
         font-size: 1rem;
     }
 
-    .chat-messages,
-    .messages-container {
-        padding: 16px 12px;
-        flex: 1;
-        overflow-y: auto;
-    }
-
-    .input-area,
-    .chat-input-wrapper {
-        padding: 12px 16px;
-        flex-shrink: 0;
-        background: white;
-        /* Input-Bereich über Footer positionieren */
-        position: sticky;
-        bottom: 0;
-        z-index: 20;
-    }
-
     #messageInput,
     .chat-input {
-        font-size: 16px;
+        font-size: 16px; /* Verhindert Zoom auf iOS */
         padding: 12px 16px;
     }
 
@@ -936,7 +1003,7 @@ main {
     }
 
     .chat-window.active {
-        padding-bottom: 50px; /* Weniger Padding für kleinere Footer */
+        height: 100vh;
     }
 
     .chat-list h3 {

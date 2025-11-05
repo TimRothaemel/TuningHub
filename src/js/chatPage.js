@@ -1,4 +1,4 @@
-console.log("chatPage.js geladen");
+console.log("chatPage.js wird geladen...");
 
 import { supabase } from "./supabaseClient.js";
 import {
@@ -7,21 +7,13 @@ import {
   sendMessage,
   subscribeToChat,
   unsubscribeFromChat,
-  getChatPartnerInfo
+  getChatPartnerInfo,
 } from "./chat.js";
 
 let currentChatId = null;
 let currentSubscription = null;
 let currentUser = null;
-let currentGroup = 'all'; // Neue Variable für aktuelle Gruppe
-
-// Chat-Gruppen-Konfiguration
-const CHAT_GROUPS = {
-  all: { name: 'Alle', icon: '💬' },
-  buy: { name: 'Ankauf', icon: '🛒' },
-  sell: { name: 'Verkauf', icon: '💰' },
-  support: { name: 'Fragen & Support', icon: '❓' }
-};
+let chatPartnerInfo = null;
 
 /**
  * Initialisiert die Chat-Seite
@@ -29,27 +21,38 @@ const CHAT_GROUPS = {
 async function initChatPage() {
   console.log("🚀 Initialisiere Chat-Seite...");
 
-  // User authentifizierung prüfen
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
-  if (authError || !user) {
-    alert("Bitte melde dich an, um den Chat zu nutzen");
-    window.location.href = "/src/pages/login.html";
-    return;
-  }
+  try {
+    // User authentifizieren
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  currentUser = user;
-  console.log("✅ User authentifiziert:", user.id);
+    if (authError || !user) {
+      console.error("❌ Nicht authentifiziert");
+      window.location.href = "/src/pages/login.html";
+      return;
+    }
 
-  // Lade alle Chats
-  await loadChats();
+    currentUser = user;
+    console.log("✅ User authentifiziert:", user.id);
 
-  // Prüfe ob eine Chat-ID in der URL ist
-  const urlParams = new URLSearchParams(window.location.search);
-  const chatId = urlParams.get('chat');
-  
-  if (chatId) {
-    await openChatWindow(chatId);
+    // URL-Parameter prüfen
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatId = urlParams.get("chat");
+
+    // Chats laden
+    await loadChats();
+
+    // Wenn chat-Parameter vorhanden, diesen Chat öffnen
+    if (chatId) {
+      await openChatById(chatId);
+    }
+
+    // Event Listeners
+    setupEventListeners();
+
+    console.log("✅ Chat-Seite initialisiert");
+  } catch (error) {
+    console.error("❌ Fehler beim Initialisieren:", error);
+    showError("Chat konnte nicht geladen werden");
   }
 }
 
@@ -57,134 +60,190 @@ async function initChatPage() {
  * Lädt alle Chats des Users
  */
 async function loadChats() {
-  console.log("📋 Lade Chats...");
-  
-  const chatsContainer = document.getElementById('chatsContainer');
-  
-  if (!chatsContainer) {
-    console.error("❌ chatsContainer nicht gefunden");
-    return;
-  }
-
-  chatsContainer.innerHTML = '<div class="loading">Lade Chats...</div>';
+  const chatsContainer = document.getElementById("chatsContainer");
 
   try {
+    // Loading-State
+    chatsContainer.innerHTML = `
+      <div class="loading">
+        <p>Lade Chats...</p>
+      </div>
+    `;
+
     const chats = await loadUserChats();
-    
-    console.log("📊 Geladene Chats:", chats);
-    
+
     if (!chats || chats.length === 0) {
-      chatsContainer.innerHTML = '<div class="no-chats">Noch keine Chats vorhanden</div>';
+      chatsContainer.innerHTML = `
+        <div class="no-chats">
+          <p>Noch keine Chats vorhanden</p>
+        </div>
+      `;
       return;
     }
 
-    chatsContainer.innerHTML = '';
+    // Chats mit User-Infos anreichern
+    const chatsWithInfo = await Promise.all(
+      chats.map(async (chat) => {
+        const partnerId =
+          chat.user1_id === currentUser.id ? chat.user2_id : chat.user1_id;
+        const partnerInfo = await getChatPartnerInfo(partnerId);
 
-    for (const chat of chats) {
-      const chatItem = await createChatItem(chat);
-      chatsContainer.appendChild(chatItem);
-    }
-    
-    console.log("✅ Chats erfolgreich geladen");
+        // Letzte Nachricht laden
+        const { data: lastMessage } = await supabase
+          .from("messages")
+          .select("message, created_at")
+          .eq("chat_id", chat.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
 
+        return {
+          ...chat,
+          partnerInfo,
+          lastMessage,
+        };
+      })
+    );
+
+    // Chats rendern
+    chatsContainer.innerHTML = chatsWithInfo
+      .map((chat) => createChatItemHTML(chat))
+      .join("");
+
+    // Event Listeners für Chat-Items
+    document.querySelectorAll(".chat-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const chatId = item.dataset.chatId;
+        openChatById(chatId);
+      });
+    });
   } catch (error) {
     console.error("❌ Fehler beim Laden der Chats:", error);
-    chatsContainer.innerHTML = '<div class="error">Fehler beim Laden der Chats</div>';
+    chatsContainer.innerHTML = `
+      <div class="error">
+        <p>Fehler beim Laden der Chats</p>
+      </div>
+    `;
   }
 }
 
 /**
- * Erstellt ein Chat-Listen-Element
+ * Erstellt HTML für ein Chat-Item
  */
-async function createChatItem(chat) {
-  console.log("🔨 Erstelle Chat-Item:", chat);
-  
-  const div = document.createElement('div');
-  div.className = 'chat-item';
-  div.dataset.chatId = chat.id;
+function createChatItemHTML(chat) {
+  const { partnerInfo, lastMessage } = chat;
+  const initial = partnerInfo.username.charAt(0).toUpperCase();
+  const timeStr = lastMessage
+    ? formatTime(new Date(lastMessage.created_at))
+    : "";
+  const preview = lastMessage
+    ? truncate(lastMessage.message, 50)
+    : "Noch keine Nachrichten";
 
-  // Partner-ID ermitteln
-  const partnerId = chat.user1_id === currentUser.id ? chat.user2_id : chat.user1_id;
-  
-  console.log("👤 Lade Partner-Info für:", partnerId);
-  
-  // Partner-Info laden
-  const partnerInfo = await getChatPartnerInfo(partnerId);
-  
-  console.log("✅ Partner-Info geladen:", partnerInfo);
-
-  // Zeitformatierung
-  const lastMessageDate = new Date(chat.last_message_at);
-  const timeAgo = formatTimeAgo(lastMessageDate);
-
-  div.innerHTML = `
-    <div class="chat-item-avatar">
-      <div class="avatar-placeholder">${partnerInfo.username.charAt(0).toUpperCase()}</div>
-    </div>
-    <div class="chat-item-content">
-      <div class="chat-item-header">
-        <span class="chat-item-name">${partnerInfo.username}</span>
-        <span class="chat-item-time">${timeAgo}</span>
+  return `
+    <div class="chat-item" data-chat-id="${chat.id}">
+      <div class="chat-item-avatar">${initial}</div>
+      <div class="chat-item-content">
+        <div class="chat-item-header">
+          <span class="chat-item-name">${partnerInfo.username}</span>
+          <span class="chat-item-time">${timeStr}</span>
+        </div>
+        <div class="chat-item-preview">${preview}</div>
       </div>
-      <div class="chat-item-preview">Letzte Nachricht...</div>
     </div>
   `;
-
-  div.addEventListener('click', () => {
-    console.log("🖱️ Chat angeklickt:", chat.id);
-    openChatWindow(chat.id);
-  });
-
-  return div;
 }
 
 /**
- * Öffnet ein Chat-Fenster
+ * Öffnet einen Chat
  */
-async function openChatWindow(chatId) {
-  console.log("📖 Öffne Chat:", chatId);
+async function openChatById(chatId) {
+  console.log("📂 Öffne Chat:", chatId);
 
-  // Alte Subscription beenden
-  if (currentSubscription) {
-    await unsubscribeFromChat(currentSubscription);
-    currentSubscription = null;
+  try {
+    // Alte Subscription beenden
+    if (currentSubscription) {
+      await unsubscribeFromChat(currentSubscription);
+      currentSubscription = null;
+    }
+
+    currentChatId = chatId;
+
+    // Chat-Daten laden
+    const { data: chat, error } = await supabase
+      .from("chats")
+      .select("*")
+      .eq("id", chatId)
+      .single();
+
+    if (error || !chat) {
+      throw new Error("Chat nicht gefunden");
+    }
+
+    // Partner-Info laden
+    const partnerId =
+      chat.user1_id === currentUser.id ? chat.user2_id : chat.user1_id;
+    chatPartnerInfo = await getChatPartnerInfo(partnerId);
+
+    // UI vorbereiten
+    showChatWindow();
+    renderChatHeader(chatPartnerInfo);
+
+    // Nachrichten laden
+    await loadChatMessages(chatId);
+
+    // Realtime-Updates abonnieren
+    currentSubscription = subscribeToChat(chatId, (newMessage) => {
+      console.log("📨 Neue Nachricht empfangen:", newMessage);
+      appendMessage(newMessage);
+      scrollToBottom();
+    });
+
+    // Scroll zum Ende
+    scrollToBottom();
+
+    // Active-State in Liste setzen
+    document.querySelectorAll(".chat-item").forEach((item) => {
+      item.classList.remove("active");
+      if (item.dataset.chatId === chatId) {
+        item.classList.add("active");
+      }
+    });
+
+    console.log("✅ Chat geöffnet");
+  } catch (error) {
+    console.error("❌ Fehler beim Öffnen des Chats:", error);
+    showError("Chat konnte nicht geöffnet werden");
   }
+}
 
-  currentChatId = chatId;
+/**
+ * Zeigt das Chat-Fenster an
+ */
+function showChatWindow() {
+  const chatWindow = document.getElementById("chatWindow");
+  const chatList = document.getElementById("chatList");
+  const noChat = document.getElementById("noChat");
 
-  // Chat-Details laden
-  const { data: chat, error } = await supabase
-    .from('chats')
-    .select('*')
-    .eq('id', chatId)
-    .single();
+  if (noChat) noChat.style.display = "none";
+  chatWindow.classList.add("active");
 
-  if (error || !chat) {
-    console.error("❌ Fehler beim Laden des Chats:", error);
-    alert("Chat konnte nicht geladen werden");
-    return;
-  }
-
-  // Partner-Info laden
-  const partnerId = chat.user1_id === currentUser.id ? chat.user2_id : chat.user1_id;
-  const partnerInfo = await getChatPartnerInfo(partnerId);
-
-  // Chat-Fenster aufbauen
-  const chatWindow = document.getElementById('chatWindow');
-  const chatList = document.querySelector('.chat-list');
-  const noChat = document.getElementById('noChat');
-  
-  if (noChat) noChat.style.display = 'none';
-  
-  // Mobile: Chat-Liste ausblenden, Chat-Fenster anzeigen
+  // Mobile: Nur Liste ausblenden
   if (window.innerWidth <= 767) {
-    if (chatList) chatList.classList.add('hidden-mobile');
-    if (chatWindow) chatWindow.classList.add('active');
+    chatList.classList.add("hidden-mobile");
   }
+}
 
-  chatWindow.innerHTML = `
+/**
+ * Rendert den Chat-Header
+ */
+function renderChatHeader(partnerInfo) {
+  const chatWindow = document.getElementById("chatWindow");
+  const existingHeader = chatWindow.querySelector(".chat-header");
+
+  const headerHTML = `
     <div class="chat-header">
-      <button class="back-button" aria-label="Zurück">
+      <button class="back-button" id="backButton" aria-label="Zurück">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 12H5M12 19l-7-7 7-7"/>
         </svg>
@@ -192,203 +251,366 @@ async function openChatWindow(chatId) {
       <div class="chat-header-info">
         <div class="avatar-placeholder">${partnerInfo.username.charAt(0).toUpperCase()}</div>
         <div>
-          <h4>${partnerInfo.username}</h4>
-          <span class="account-type">${partnerInfo.accountType === 'dealer' ? '🏢 Händler' : '👤 Privat'}</span>
+          <h3>${partnerInfo.username}</h3>
+          <span class="account-type">${
+            partnerInfo.accountType === "business" ? "Gewerblich" : "Privat"
+          }</span>
         </div>
       </div>
     </div>
-    
-    <div class="chat-messages" id="chatMessages"></div>
-    
+  `;
+
+  if (existingHeader) {
+    existingHeader.remove();
+  }
+
+  chatWindow.insertAdjacentHTML("afterbegin", headerHTML);
+
+  // Back-Button Event
+  document.getElementById("backButton")?.addEventListener("click", closeChat);
+}
+
+/**
+ * Lädt und zeigt Nachrichten an
+ */
+async function loadChatMessages(chatId) {
+  const chatWindow = document.getElementById("chatWindow");
+  let messagesContainer = chatWindow.querySelector(".chat-messages");
+
+  // Container erstellen falls nicht vorhanden
+  if (!messagesContainer) {
+    const existingContainer = chatWindow.querySelector(".chat-messages");
+    if (existingContainer) existingContainer.remove();
+
+    messagesContainer = document.createElement("div");
+    messagesContainer.className = "chat-messages";
+    messagesContainer.id = "messagesContainer";
+    chatWindow.appendChild(messagesContainer);
+  }
+
+  try {
+    messagesContainer.innerHTML = '<div class="loading-message">Lade Nachrichten...</div>';
+
+    const messages = await loadMessages(chatId);
+
+    if (!messages || messages.length === 0) {
+      messagesContainer.innerHTML = '<div class="no-messages">Noch keine Nachrichten</div>';
+      renderInputArea();
+      return;
+    }
+
+    messagesContainer.innerHTML = messages.map((msg) => createMessageHTML(msg)).join("");
+    renderInputArea();
+  } catch (error) {
+    console.error("❌ Fehler beim Laden der Nachrichten:", error);
+    messagesContainer.innerHTML = '<div class="error">Fehler beim Laden</div>';
+  }
+}
+
+/**
+ * Erstellt HTML für eine Nachricht
+ */
+function createMessageHTML(message) {
+  const isSent = message.sender_id === currentUser.id;
+  const timeStr = formatTime(new Date(message.created_at));
+
+  return `
+    <div class="message ${isSent ? "sent" : "received"}" data-message-id="${message.id}">
+      <div class="message-bubble">
+        <div class="message-text">${escapeHtml(message.message)}</div>
+        <div class="message-time">${timeStr}</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Fügt eine neue Nachricht hinzu (für Realtime)
+ */
+function appendMessage(message) {
+  const messagesContainer = document.getElementById("messagesContainer");
+  if (!messagesContainer) return;
+
+  // Prüfen ob Nachricht schon existiert
+  const exists = messagesContainer.querySelector(`[data-message-id="${message.id}"]`);
+  if (exists) return;
+
+  // "Keine Nachrichten" entfernen falls vorhanden
+  const noMessages = messagesContainer.querySelector(".no-messages");
+  if (noMessages) noMessages.remove();
+
+  messagesContainer.insertAdjacentHTML("beforeend", createMessageHTML(message));
+}
+
+/**
+ * Rendert den Input-Bereich
+ */
+function renderInputArea() {
+  const chatWindow = document.getElementById("chatWindow");
+  let inputArea = chatWindow.querySelector(".chat-input-wrapper");
+
+  if (inputArea) inputArea.remove();
+
+  const inputHTML = `
     <div class="chat-input-wrapper">
-      <input 
-        type="text" 
+      <textarea 
         id="messageInput" 
         class="chat-input" 
         placeholder="Nachricht schreiben..."
-        maxlength="1000"
-      >
-      <button id="sendMessageBtn" class="send-message-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="22" y1="2" x2="11" y2="13"></line>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        rows="1"
+      ></textarea>
+      <button class="send-button" id="sendButton" aria-label="Senden">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
         </svg>
       </button>
     </div>
   `;
 
-  // Event-Listener
-  const closeBtn = document.getElementById('closeChatBtn');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      // Mobile: Zurück zur Chat-Liste
-      if (window.innerWidth <= 767) {
-        chatWindow.classList.remove('active');
-        const chatList = document.querySelector('.chat-list');
-        if (chatList) chatList.classList.remove('hidden-mobile');
-      } else {
-        window.location.href = '/src/pages/chat.html';
-      }
-    });
-  }
+  chatWindow.insertAdjacentHTML("beforeend", inputHTML);
 
-  // Back-Button für Mobile
-  const backBtn = document.querySelector('.back-button');
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      chatWindow.classList.remove('active');
-      const chatList = document.querySelector('.chat-list');
-      if (chatList) chatList.classList.remove('hidden-mobile');
-    });
-  }
+  // Event Listeners
+  const input = document.getElementById("messageInput");
+  const sendBtn = document.getElementById("sendButton");
 
-  const messageInput = document.getElementById('messageInput');
-  const sendBtn = document.getElementById('sendMessageBtn');
+  // Auto-resize textarea
+  input.addEventListener("input", () => {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 120) + "px";
+  });
 
-  sendBtn?.addEventListener('click', handleSendMessage);
-  messageInput?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+  // Enter zum Senden (ohne Shift)
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   });
 
-  // Nachrichten laden
-  await loadChatMessages(chatId);
-
-  // Realtime-Updates abonnieren
-  currentSubscription = subscribeToChat(chatId, (newMessage) => {
-    appendMessage(newMessage);
-  });
-
-  // Aktiven Chat markieren
-  document.querySelectorAll('.chat-item').forEach(item => {
-    item.classList.remove('active');
-    if (item.dataset.chatId === chatId) {
-      item.classList.add('active');
-    }
-  });
+  sendBtn.addEventListener("click", handleSendMessage);
 }
 
 /**
- * Lädt Nachrichten eines Chats
- */
-async function loadChatMessages(chatId) {
-  const messagesContainer = document.getElementById('chatMessages');
-  
-  if (!messagesContainer) return;
-
-  messagesContainer.innerHTML = '<div class="loading">Lade Nachrichten...</div>';
-
-  try {
-    const messages = await loadMessages(chatId);
-    
-    messagesContainer.innerHTML = '';
-
-    if (!messages || messages.length === 0) {
-      messagesContainer.innerHTML = '<div class="no-messages">Noch keine Nachrichten. Schreibe die erste!</div>';
-      return;
-    }
-
-    messages.forEach(msg => appendMessage(msg, false));
-    
-    // Zum Ende scrollen
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-  } catch (error) {
-    console.error("❌ Fehler beim Laden der Nachrichten:", error);
-    messagesContainer.innerHTML = '<div class="error">Fehler beim Laden der Nachrichten</div>';
-  }
-}
-
-/**
- * Fügt eine Nachricht zum Chat hinzu
- */
-function appendMessage(message, scrollToBottom = true) {
-  const messagesContainer = document.getElementById('chatMessages');
-  
-  if (!messagesContainer) return;
-
-  // "Keine Nachrichten" Text entfernen falls vorhanden
-  const noMessages = messagesContainer.querySelector('.no-messages');
-  if (noMessages) noMessages.remove();
-
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${message.sender_id === currentUser.id ? 'sent' : 'received'}`;
-  
-  const time = new Date(message.created_at).toLocaleTimeString('de-DE', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  });
-
-  messageDiv.innerHTML = `
-    <div class="message-content">${escapeHtml(message.message)}</div>
-    <div class="message-time">${time}</div>
-  `;
-
-  messagesContainer.appendChild(messageDiv);
-
-  if (scrollToBottom) {
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }
-}
-
-/**
- * Sendet eine Nachricht
+ * Sendet eine Nachricht - OPTIMIERT
  */
 async function handleSendMessage() {
-  const messageInput = document.getElementById('messageInput');
-  
-  if (!messageInput || !currentChatId) return;
+  const input = document.getElementById("messageInput");
+  const sendBtn = document.getElementById("sendButton");
+  const message = input.value.trim();
 
-  const message = messageInput.value.trim();
-  
-  if (!message) return;
+  if (!message || !currentChatId) return;
 
-  const sendBtn = document.getElementById('sendMessageBtn');
-  if (sendBtn) sendBtn.disabled = true;
+  console.log("📤 Sende Nachricht...");
+
+  // ✅ SOFORT: Input leeren und Button deaktivieren
+  const messageText = message;
+  input.value = "";
+  input.style.height = "auto";
+  sendBtn.disabled = true;
+
+  // ✅ SOFORT: Optimistische UI-Update (Nachricht sofort anzeigen)
+  const tempMessage = {
+    id: `temp-${Date.now()}`,
+    chat_id: currentChatId,
+    sender_id: currentUser.id,
+    message: messageText,
+    created_at: new Date().toISOString(),
+  };
+
+  appendMessage(tempMessage);
+  scrollToBottom();
 
   try {
-    const success = await sendMessage(currentChatId, message);
-    
-    if (success) {
-      messageInput.value = '';
-    } else {
-      alert("Nachricht konnte nicht gesendet werden");
+    // Im Hintergrund senden
+    const success = await sendMessage(currentChatId, messageText);
+
+    if (!success) {
+      throw new Error("Senden fehlgeschlagen");
     }
+
+    console.log("✅ Nachricht gesendet");
   } catch (error) {
     console.error("❌ Fehler beim Senden:", error);
-    alert("Fehler beim Senden der Nachricht");
+    
+    // Bei Fehler: Temporäre Nachricht entfernen
+    const tempMsg = document.querySelector(`[data-message-id="${tempMessage.id}"]`);
+    if (tempMsg) tempMsg.remove();
+    
+    // Nachricht wieder in Input setzen
+    input.value = messageText;
+    
+    alert("Nachricht konnte nicht gesendet werden");
   } finally {
-    if (sendBtn) sendBtn.disabled = false;
-    messageInput.focus();
+    sendBtn.disabled = false;
+    input.focus();
   }
 }
 
 /**
- * Formatiert Zeitangaben (z.B. "vor 5 Min.")
+ * Scrollt zum Ende des Chats
  */
-function formatTimeAgo(date) {
-  const seconds = Math.floor((new Date() - date) / 1000);
-  
-  if (seconds < 60) return 'Gerade eben';
-  if (seconds < 3600) return `vor ${Math.floor(seconds / 60)} Min.`;
-  if (seconds < 86400) return `vor ${Math.floor(seconds / 3600)} Std.`;
-  if (seconds < 604800) return `vor ${Math.floor(seconds / 86400)} Tagen`;
-  
-  return date.toLocaleDateString('de-DE');
+function scrollToBottom() {
+  const messagesContainer = document.getElementById("messagesContainer");
+  if (messagesContainer) {
+    // Smooth scroll mit Fallback
+    requestAnimationFrame(() => {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
+  }
 }
 
 /**
- * Escaped HTML für sichere Anzeige
+ * Schließt den aktuellen Chat (Mobile)
  */
+function closeChat() {
+  const chatWindow = document.getElementById("chatWindow");
+  const chatList = document.getElementById("chatList");
+  const noChat = document.getElementById("noChat");
+
+  chatWindow.classList.remove("active");
+  chatList.classList.remove("hidden-mobile");
+
+  if (noChat) noChat.style.display = "flex";
+
+  // Mobile: Footer und Header wieder anzeigen
+  if (window.innerWidth <= 767) {
+    const footer = document.querySelector("footer");
+    if (footer) footer.style.display = "flex";
+    
+    const header = document.querySelector("header");
+    if (header) header.style.display = "block";
+    
+    // Body wieder freigeben
+    document.body.style.overflow = "";
+    document.body.style.position = "";
+    document.body.style.width = "";
+    document.body.style.height = "";
+  }
+
+  // Subscription beenden
+  if (currentSubscription) {
+    unsubscribeFromChat(currentSubscription);
+    currentSubscription = null;
+  }
+
+  currentChatId = null;
+
+  // URL bereinigen
+  window.history.pushState({}, "", "/src/pages/chat.html");
+}
+
+/**
+ * Setup Event Listeners
+ */
+function setupEventListeners() {
+  // Responsive: Bei Resize prüfen ob Mobile-View
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 767) {
+      document.getElementById("chatList").classList.remove("hidden-mobile");
+      
+      const footer = document.querySelector("footer");
+      if (footer) footer.style.display = "flex";
+      
+      const header = document.querySelector("header");
+      if (header) header.style.display = "block";
+      
+      // Body freigeben
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.height = "";
+    }
+  });
+
+  // Offline/Online Status
+  window.addEventListener("online", () => {
+    console.log("🌐 Online");
+    showNetworkStatus("online");
+  });
+
+  window.addEventListener("offline", () => {
+    console.log("📵 Offline");
+    showNetworkStatus("offline");
+  });
+}
+
+/**
+ * Zeigt Network Status
+ */
+function showNetworkStatus(status) {
+  let statusDiv = document.querySelector(".network-status");
+
+  if (!statusDiv) {
+    statusDiv = document.createElement("div");
+    statusDiv.className = "network-status";
+    document.body.appendChild(statusDiv);
+  }
+
+  statusDiv.className = `network-status ${status} show`;
+  statusDiv.textContent =
+    status === "online" ? "Wieder online" : "Keine Verbindung";
+
+  setTimeout(() => {
+    statusDiv.classList.remove("show");
+  }, 3000);
+}
+
+/**
+ * Zeigt Fehlermeldung
+ */
+function showError(message) {
+  alert(message); // Kann später durch bessere UI ersetzt werden
+}
+
+/**
+ * Hilfsfunktionen
+ */
+function formatTime(date) {
+  const now = new Date();
+  const diff = now - date;
+
+  // Heute
+  if (diff < 24 * 60 * 60 * 1000) {
+    return date.toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  // Diese Woche
+  if (diff < 7 * 24 * 60 * 60 * 1000) {
+    return date.toLocaleDateString("de-DE", { weekday: "short" });
+  }
+
+  // Älter
+  return date.toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+}
+
+function truncate(str, length) {
+  return str.length > length ? str.substring(0, length) + "..." : str;
+}
+
 function escapeHtml(text) {
-  const div = document.createElement('div');
+  const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
 }
 
-// Initialisierung beim Laden der Seite
-document.addEventListener('DOMContentLoaded', initChatPage);
+// Initialisierung
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initChatPage);
+} else {
+  initChatPage();
+}
 
-console.log("✅ chatPage.js Modul vollständig geladen");
+// Cleanup beim Verlassen
+window.addEventListener("beforeunload", () => {
+  if (currentSubscription) {
+    unsubscribeFromChat(currentSubscription);
+  }
+});
+
+console.log("✅ chatPage.js geladen");
