@@ -78,8 +78,8 @@ export function createCard(teil) {
     card.classList.add("external-link-card");
   }
 
-  const imageUrl = bild || "../../../TuningHub/public/img/search.png";
-  const fallbackUrl = "../../../TuningHub/public/img/search.png";
+  const imageUrl = bild || "../../../public/img/search.png";
+  const fallbackUrl = "../../../public/img/search.png";
 
   let preisText = preis;
   if (typeof preis === "number") {
@@ -955,19 +955,7 @@ export async function loadParts() {
     
     log("Daten erfolgreich geladen:", data);
     
-    // Custom Link Card hinzufügen
-    const linkCardEntry = {
-      id: "custom-link-card",
-      name: "AmbrossSachsen",
-      beschreibung: "AmbrossSachsen *Zylinder.- und Sonderbearbeitungen*",
-      image_url: "../../../TuningHub/public/img/zylinderbearbeitung_ambrosssachsen.jpg",
-      preis: "Konfigurieren",
-      created_at: "2025-08-29T00:00:00Z",
-      isCustomLink: true,
-      targetUrl: "https://ambrosssachsen.com/shop/AmbrossSachsen-*Zylinder-und-Sonderbearbeitungen*-p777421013",
-    };
-    
-    allPartsData = data ? [...data, linkCardEntry] : [linkCardEntry];
+    allPartsData = data || [];
     allPartsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     
     if (allPartsData.length === 0) { 
@@ -987,6 +975,7 @@ export async function loadParts() {
     showError(`Unerwarteter Fehler: ${error.message}`);
   }
 }
+
 function handleHashScroll() {
   const hash = window.location.hash;
   if (hash && hash.startsWith('#teil-')) {
