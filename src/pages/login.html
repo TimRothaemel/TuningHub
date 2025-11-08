@@ -60,8 +60,9 @@
       <div class="overlay" id="overlay"></div>
     </header>
     <main>
-      <h2 class="main-überschrift" id="form-title">Login</h2>
+     
       <div class="form-wrapper">
+         <h2 class="main-überschrift" id="form-title">Login</h2><br />
         <form id="login-form" class="login-form">
           <input
             class="inputfield"
@@ -85,10 +86,13 @@
 </div>
           <br />
           <button type="submit">Einloggen</button>
-          <a class="back-link" href="register.html">Registrieren</a>
-          <a href="#" class="back-link" id="show-reset-form"
-            >Passwort vergessen?</a
-          >
+          <a href="#" class="passwordVorgottenLink" id="show-reset-form"
+            >Passwort vergessen?</a>
+            <hr/>
+            <div class="register-wrapper">
+         <p>Du hast noch keinen Account?<a class="registerBtn" href="register.html">Registrieren</a></p> 
+</div>
+         
           <p id="login-message"></p>
         </form>
 

@@ -1,109 +1,165 @@
-/* login.css  */
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+      }
+      
+      main {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem 0;
+      }
 
-.main-überschrift {
-  text-align: center;
-  margin: 2rem 0;
-  color: #333;
-  font-size: 1.5rem;
-}
+      .main-überschrift {
+        text-align: center;
+        margin: 2rem 0;
+        color: var(--textcolor);
+        font-size: 1.5rem;
+      }
 
-.form-wrapper {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
+      .form-wrapper {
+        max-width: 400px;
+        width: 100%;
+        height: 100%;
+        padding: 0 1rem;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+      }
 
-form {
-  display: flex;
-  flex-direction: column;
-}
+      form {
+        display: flex;
+        flex-direction: column;
+      }
 
+      #email {
+        margin-bottom: 12px; 
+      }
 
+      #password {
+        margin-bottom: 0;
+      }
 
-#email {
-  margin-bottom: 20px; 
-}
+      button[type="submit"] {
+        width: 100%;
+        padding: 14px;
+        border-radius: 8px;
+        border: none;
+        background-color: var(--link-color);
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-top: 12px; 
+        margin-bottom: 0;
+      }
 
+      form > span, 
+      form > a {
+        display: inline-block;
+        margin-top: 20px; 
+      }
 
-#password {
-  margin-bottom: 0;
-}
+      .passwordVorgottenLink{
+        margin-top: 12px;
+        margin-bottom: 0;
+        text-align: center;
+        color: var(--textcolor);
+        text-decoration: none;
+        font-size: 14px;
+      }
 
+      .registerBtn {
+        display: block;
+        text-align: center;
+        margin-top: 12px;
+        color: var(--link-color);
+        text-decoration: none;
+        font-size: 14px;
+      }
 
-button[type="submit"] {
-  width: 100%;
-  padding: 14px;
-  border-radius: 8px;
-  border: none;
-  background-color: var(--link-color);
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin-top: 30px; 
-  margin-bottom: 0;
-}
+      .registerBtn:hover {
+        text-decoration: underline;
+      }
+      
+      .register-wrapper {
+        margin-top: 20px;
+        text-align: center;
+      }
+      
+      .forgot-password-link {
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+        color: var(--textcolor);
+        text-decoration: none;
+        font-size: 14px;
+      }
+      
+      .forgot-password-link:hover {
+        color: #333;
+        text-decoration: underline;
+      }
+      
+      .reset-form {
+        display: none;
+      }
+      
+      .form-toggle {
+        text-align: center;
+        margin-top: 15px;
+      }
+      
+      .form-toggle a {
+        color: var(--link-color);
+        text-decoration: none;
+        cursor: pointer;
+      }
+      
+      .form-toggle a:hover {
+        text-decoration: underline;
+      }
+      
+      .success-message {
+        color: green;
+        text-align: center;
+        margin-top: 10px;
+      }
+      
+      .error-message {
+        color: red;
+        text-align: center;
+        margin-top: 10px;
+      }
 
-form > span, 
-form > a {
-  display: inline-block;
-  margin-top: 20px; 
-}
-
-.back-link {
-  display: block;
-  text-align: center;
-  margin-top: 12px;
-  color: var(--link-color);
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-.forgot-password-link {
-            display: block;
-            text-align: center;
-            margin-top: 10px;
-            color: #666;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        
-        .forgot-password-link:hover {
-            color: #333;
-            text-decoration: underline;
-        }
-        
-        .reset-form {
-            display: none;
-        }
-        
-        .form-toggle {
-            text-align: center;
-            margin-top: 15px;
-        }
-        
-        .form-toggle a {
-            color: var(--link-color);
-            text-decoration: none;
-            cursor: pointer;
-        }
-        
-        .form-toggle a:hover {
-            text-decoration: underline;
-        }
-        
-        .success-message {
-            color: green;
-            text-align: center;
-            margin-top: 10px;
-        }
-        
-        .error-message {
-            color: red;
-            text-align: center;
-            margin-top: 10px;
-        }
+      hr {
+        border: none;
+        border-top: 1px solid #ddd;
+        margin: 12px 0;
+      }
+      
+      /* Password wrapper für das Toggle-Icon */
+      .password-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      
+      .toggleSvgBtn {
+        position: absolute;
+        right: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 2;
+      }
+      
+      .toggelSvg {
+        width: 20px;
+        height: 20px;
+      }
