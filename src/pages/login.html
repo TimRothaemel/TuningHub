@@ -9,9 +9,11 @@
     <link rel="stylesheet" href="/src/css/menu.css" />
     <link rel="stylesheet" href="/src/css/search.css" />
     <link rel="stylesheet" href="/src/css/input.css"/>
+    <link rel="stylesheet" href="/src/css/togglePasswordVisibility.css"/>
     <script type="module" src="/src/js/supabaseClient.js"></script>
     <script src="/src/js/menu.js"></script>
     <script src="/src/js/search.js"></script>
+    <script src="/src/js/togglePasswordVisbility.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
 
@@ -68,14 +70,19 @@
             placeholder="E-Mail"
             required
           />
-          <br />
-          <input
-            class="inputfield"
-            id="password"
-            type="password"
-            placeholder="Passwort"
-            required
-          />
+          <div class="password-wrapper">
+<button class="toggleSvgBtn" onclick="togglePasswordVisibility()">
+  <img id="toggleSvg" class="toggelSvg" src="../../public/svg/visibility_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg" alt="Passwort anzeigen/verbergen">
+</button>
+<br />
+<input
+  class="inputfield"
+  id="password"
+  type="password"
+  placeholder="Passwort"
+  required
+/>
+</div>
           <br />
           <button type="submit">Einloggen</button>
           <a class="back-link" href="register.html">Registrieren</a>
