@@ -1,4 +1,4 @@
-/* login.css - Optimierte Abstände */
+/* login.css  */
 
 .main-überschrift {
   text-align: center;
@@ -18,55 +18,44 @@ form {
   flex-direction: column;
 }
 
-/* Input-Felder mit spezifischen Abständen */
-.inputfield {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background: #fff;
-  font-size: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
 
-/* Abstand NUR zwischen den beiden Inputs */
+
 #email {
-  margin-bottom: 20px; /* Genau 20px Abstand zum Passwortfeld */
+  margin-bottom: 20px; 
 }
 
-/* Kein Abstand unter dem Passwortfeld */
+
 #password {
   margin-bottom: 0;
 }
 
-/* Button mit spezifischem Abstand nach oben */
+
 button[type="submit"] {
   width: 100%;
   padding: 14px;
   border-radius: 8px;
   border: none;
-  background-color: #007BFF;
+  background-color: var(--link-color);
   color: white;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s;
-  margin-top: 30px; /* 30px Abstand zum letzten Input */
+  margin-top: 30px; 
   margin-bottom: 0;
 }
 
-/* Registrierungs-Link mit genauem Abstand */
 form > span, 
 form > a {
   display: inline-block;
-  margin-top: 20px; /* 20px Abstand zum Button */
+  margin-top: 20px; 
 }
-/* Stil für den "Zurück"-Link */
+
 .back-link {
   display: block;
   text-align: center;
   margin-top: 12px;
-  color: #007BFF;
+  color: var(--link-color);
   text-decoration: none;
   font-size: 14px;
 }
@@ -98,7 +87,7 @@ form > a {
         }
         
         .form-toggle a {
-            color: #007bff;
+            color: var(--link-color);
             text-decoration: none;
             cursor: pointer;
         }
