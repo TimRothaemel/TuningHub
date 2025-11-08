@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="/src/css/register.css" />
     <link rel="stylesheet" href="/src/css/menu.css" />
     <link rel="stylesheet" href="/src/css/search.css" />
+    <link rel="stylesheet" href="/src/css/togglePasswordVisibility.css"/>
+    <script src="/src/js/togglePasswordVisbility.js"></script>
     <script type="module" src="/src/js/supabaseClient.js"></script>
     <script src="/src/js/menu.js"></script>
     <script src="/src/js/search.js"></script>
@@ -97,23 +99,33 @@
             <input type="url" id="social-media" placeholder="Social Media (optional)"/>
             
             <div class="password-container">
+ <div class="password-wrapper">
+<button class="toggleSvgBtn" onclick="togglePasswordVisibility()">
+  <img id="toggleSvg" class="toggelSvg" src="../../public/svg/visibility_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg" alt="Passwort anzeigen/verbergen">
+</button>
+<br />
               <input
                 type="password"
                 id="password"
                 placeholder="Passwort"
                 required
               />
-              <button type="button" class="password-toggle" onclick="togglePassword('password')" style="display: none;">👁️</button>
+              </div>
             </div>
             
             <div class="password-container">
+               <div class="password-wrapper">
+<button class="toggleSvgBtn" onclick="togglePasswordVisibility()">
+  <img id="toggleSvg" class="toggelSvg" src="../../public/svg/visibility_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg" alt="Passwort anzeigen/verbergen">
+</button>
+<br />
               <input
                 type="password"
                 id="password-confirm"
                 placeholder="Passwort bestätigen"
                 required
               />
-              <button type="button" class="password-toggle" onclick="togglePassword('password-confirm')" style="display: none;">👁️</button>
+              
             </div>
 
             <div class="checkbox-container">

@@ -53,37 +53,6 @@ body main input::placeholder {
   font-weight: 400;
 }
 
-/* Passwort-Container */
-.password-container {
-  position: relative;
-  margin: 10px 0;
-}
-
-.password-container input {
-  margin: 0;
-  padding-right: 55px;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #5f6368;
-  font-size: 16px;
-  padding: 8px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  z-index: 2;
-}
-
-.password-toggle:hover {
-  color: #1976d2;
-  background: rgba(25, 118, 210, 0.04);
-}
 
 /* Fortschrittsanzeige - kompakter und moderner */
 .progress-container {
