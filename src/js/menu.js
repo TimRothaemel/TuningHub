@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Menu configurations for different user types
   const menuConfigs = {
     guest: [
-      { href: "../index.html", text: "Startseite" },
+      { href: "../src/pages/index.html", text: "Startseite" },
       { href: "/src/pages/verkäufer.html", text: "Verkäufer" },
       { href: "/src/pages/login.html", text: "Anmelden" },
       { href: "/src/pages/register.html", text: "Registrieren" },
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       { href: "#", text: "Abmelden", action: "logout" },
     ],
     business: [
-      { href: "../index.html", text: "Startseite" },
+      { href: "../src/pages/index.html", text: "Startseite" },
       { href: "/src/pages/verkäufer.html", text: "Verkäufer" },
       { href: "/src/pages/account.html", text: "Einstellungen" },
       {
