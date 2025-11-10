@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       { href: "#", text: "Abmelden", action: "logout" },
     ],
     admin: [
-      { href: "../index.html", text: "Startseite" },
+      { href: "../src/pages/index.html", text: "Startseite" },
       {
         href: "/src/pages/admin/tuninghubAdminDashboard.html",
         text: "Admin Dashboard",
