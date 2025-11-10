@@ -2,44 +2,27 @@
     display: flex;
     justify-content: center;
     gap: 12px;
-    margin-bottom: 12px;
-    margin-top: 12px;
-    position: relative;
-    background-color: #f0f0f0;
-    padding: 4px;
-    border-radius: 8px;
+    margin-bottom: 20px;
+    margin-top: 20px;
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
 }
 
-.button-slider {
-    position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: 4px; /* Wichtig: Startposition */
-    width: 120px; /* Gleiche Breite wie die Buttons */
-    background-color: var(--link-color);
-    border-radius: 5px;
-    transition: all 0.3s ease;
-    z-index: 0;
-}
-
 button{
-    background-color: transparent;
+    background-color: #f0f0f0;
     height: 40px;
     width: 120px;
     border: none;
     color: var(--textcolor);
     font-size: 16px;
-    border-radius: 5px;
-    position: relative;
-    z-index: 1;
+    border-radius: 8px;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 button.active{
+    background-color: var(--link-color);
     color: white;
 }
 
@@ -49,4 +32,127 @@ section {
 
 section.active {
     display: block;
+}
+
+/* Guide Styling */
+.guide-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.guide-wrapper h1 {
+    color: var(--textcolor);
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.guide-wrapper h2 {
+    color: var(--textcolor);
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 2rem 0 1rem 0;
+}
+
+.guide-wrapper p {
+    margin: 1rem 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--textcolor);
+}
+
+.guide-wrapper a {
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.guide-wrapper a:hover {
+    text-decoration: underline;
+}
+
+.guide-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1rem 0;
+    display: block;
+}
+
+/* Mobile Ansicht */
+@media (max-width: 768px) {
+    .guide-wrapper {
+        padding: 0 15px;
+    }
+    
+    .guide-wrapper h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .guide-wrapper h2 {
+        font-size: 1.2rem;
+        margin: 1.5rem 0 0.8rem 0;
+    }
+    
+    .guide-wrapper p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin: 0.8rem 0;
+    }
+    
+    .button-wrapper {
+        width: 100%;
+        padding: 0 20px;
+    }
+    
+    button {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .guide-wrapper img {
+        margin: 0.8rem 0;
+        border-radius: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .guide-wrapper {
+        padding: 0 10px;
+    }
+    
+    .guide-wrapper h1 {
+        font-size: 1.3rem;
+    }
+    
+    .guide-wrapper h2 {
+        font-size: 1.1rem;
+    }
+    
+    .button-wrapper {
+        gap: 8px;
+        padding: 0 10px;
+    }
+    
+    button {
+        font-size: 14px;
+        height: 36px;
+    }
+}
+
+/* Einfache Fade-Animation */
+section {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
