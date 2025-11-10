@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Menu configurations for different user types
   const menuConfigs = {
     guest: [
-      { href: "../src/pages/index.html", text: "Startseite" },
+      { href: "../../index.html", text: "Startseite" },
       { href: "/src/pages/verkäufer.html", text: "Verkäufer" },
       { href: "/src/pages/login.html", text: "Anmelden" },
       { href: "/src/pages/register.html", text: "Registrieren" },
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       { href: "/src/pages/impressum.html", text: "Impressum" },
     ],
     normal: [
-      { href: "../src/pages/index.html", text: "Startseite" },
+      { href: "../../index.html", text: "Startseite" },
       { href: "/src/pages/teilesuchen.html", text: "Teile suchen" },
       { href: "/src/pages/teilehinzufügen.html", text: "Teile verkaufen" },
       { href: "/src/pages/meineteile.html", text: "Meine Anzeigen" },
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       { href: "#", text: "Abmelden", action: "logout" },
     ],
     business: [
-      { href: "../src/pages/index.html", text: "Startseite" },
+      { href: "../../index.html", text: "Startseite" },
       { href: "/src/pages/verkäufer.html", text: "Verkäufer" },
       { href: "/src/pages/account.html", text: "Einstellungen" },
       {
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       { href: "#", text: "Abmelden", action: "logout" },
     ],
     admin: [
-      { href: "../src/pages/index.html", text: "Startseite" },
+      { href: "../../../index.html", text: "Startseite" },
       {
         href: "/src/pages/admin/tuninghubAdminDashboard.html",
         text: "Admin Dashboard",
