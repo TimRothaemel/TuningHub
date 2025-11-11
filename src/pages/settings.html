@@ -8,38 +8,17 @@
     <link rel="stylesheet" href="/src/css/account.css" />
     <link rel="stylesheet" href="/src/css/menu.css" />
     <link rel="stylesheet" href="/src/css/search.css" />
+    <link rel="stylesheet" href="/src/css/management/settings.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/src/js/management/settings.js"></script>
     <script type="module" src="/src/js/supabaseClient.js"></script>
     <script src="/src/js/search.js" defer></script>
     <script src="/src/js/menu.js" defer></script>
-    <style>
-      .error {
-        color: #e63946;
-        padding: 12px;
-        background: #ffebee;
-        border-radius: 4px;
-        margin-bottom: 16px;
-      }
-      .loading {
-        color: #1d3557;
-        padding: 12px;
-      }
-      .button-link {
-        display: inline-block;
-        padding: 8px 16px;
-        background: #1d3557;
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-        margin-bottom: 16px;
-      }
-      .danger {
-        background: #e63946 !important;
-      }
-    </style>
   </head>
 
   <body>
-        <header class="header">
+   <header class="header">
       <div class="header-top">
         <div class="logo">
           <a href="../../index.html">
@@ -74,7 +53,7 @@
         <div class="sidebar-header">
             <div class="sidebar-title">Navigation</div>
         </div>
-        <div class="menu-items">
+                <div class="menu-items">
            
         </div>
     </nav>
@@ -82,473 +61,194 @@
     </header>
 
     <main>
-      <div id="userInfo">Lade Daten...</div>
+      <div class="settings-container">
+        <div class="settings-header">
+          <button class="close-button" onclick="window.history.back()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+          <div class="user-avatar" id="userAvatar">?</div>
+          <h1 class="settings-title">Einstellungen</h1>
+        </div>
 
-      <h2>Account verwalten</h2>
+        <div class="settings-body">
+          <div id="loadingState" class="loading-state">
+            Lade Daten...
+          </div>
 
-      <h3>Weitere Optionen</h3>
-      <a href="meineteile.html" class="button-link">
-        Meine Angebote bearbeiten
-      </a>
+          <div id="settingsContent" style="display: none;">
 
-      <h3>E-Mail ändern</h3>
-      <label for="newEmail">Neue E-Mail</label>
-      <input type="email" id="newEmail" placeholder="Neue E-Mail-Adresse" />
-      <button onclick="updateEmail()">E-Mail ändern</button>
+            <div class="settings-section">
+              <h2 class="section-title">Profil Informationen</h2>
 
-      <h3>Passwort ändern</h3>
-      <label for="newPassword">Neues Passwort</label>
-      <input type="password" id="newPassword" placeholder="Neues Passwort" />
-      <button onclick="updatePassword()">Passwort ändern</button>
-      <h3>Weitere Einstellungen</h3>
-      <label for="newUsername">Neuer Benutzername</label>
-      <input
-        type="text"
-        id="newUsername"
-        placeholder="Aktueller Benutzername wird geladen..."
-      />
-      <button onclick="updateUsername()">Benutzername ändern</button>
-      <label for="newPhone">Telefonnummer</label>
-      <input
-        type="text"
-        id="newPhone"
-        placeholder="Aktuelle Telefonnummer wird geladen..."
-      />
-      <button onclick="updatePhone()">Telefonnummer speichern</button>
-      <hr style="margin: 24px 0" />
-      <button onclick="logout()">Abmelden</button>
-      <button
-        class="danger"
-        onclick="deleteAccount()"
-        style="background: #e63946; color: white; margin-top: 12px"
-      >
-        Account löschen
-      </button>
+              <div class="setting-item" onclick="openEditModal('username')">
+                <div class="setting-icon">
+                  <span class="material-symbols-outlined">person</span>
+                </div>
+                <div class="setting-content">
+                  <div class="setting-label">Benutzername</div>
+                  <div class="setting-value" id="displayUsername">
+                    <span class="setting-placeholder">Nicht gesetzt</span>
+                  </div>
+                </div>
+                <div class="edit-icon">
+                  <span class="material-symbols-outlined">edit</span>
+                </div>
+              </div>
+
+              <div class="setting-item" onclick="openEditModal('phone')">
+                <div class="setting-icon">
+                  <span class="material-symbols-outlined">phone</span>
+                </div>
+                <div class="setting-content">
+                  <div class="setting-label">Telefonnummer</div>
+                  <div class="setting-value" id="displayPhone">
+                    <span class="setting-placeholder">Nicht gesetzt</span>
+                  </div>
+                </div>
+                <div class="edit-icon">
+                  <span class="material-symbols-outlined">edit</span>
+                </div>
+              </div>
+
+              <div class="setting-item" onclick="window.location.href='meineteile.html'">
+                <div class="setting-icon">
+                  <span class="material-symbols-outlined">inventory_2</span>
+                </div>
+                <div class="setting-content">
+                  <div class="setting-label">Meine Angebote</div>
+                  <div class="setting-value">Angebote verwalten</div>
+                </div>
+                <div class="edit-icon">
+                  <span class="material-symbols-outlined">chevron_right</span>
+                </div>
+              </div>
+            </div>
+<div class="settings-section">
+  <h2 class="section-title">Social Media & Kontakt</h2>
+
+  <div class="setting-item" onclick="openEditModal('social_media')">
+    <div class="setting-icon">
+      <span class="material-symbols-outlined">share</span>
+    </div>
+    <div class="setting-content">
+      <div class="setting-label">Social Media</div>
+      <div class="setting-value" id="displaySocialMedia">
+        <span class="setting-placeholder">Nicht verknüpft</span>
+      </div>
+    </div>
+    <div class="edit-icon">
+      <span class="material-symbols-outlined">edit</span>
+    </div>
+  </div>
+
+  <div class="setting-item" onclick="openEditModal('contact_methods')">
+    <div class="setting-icon">
+      <span class="material-symbols-outlined">contact_page</span>
+    </div>
+    <div class="setting-content">
+      <div class="setting-label">Kontaktmethoden</div>
+      <div class="setting-value" id="displayContactMethods">
+        <span class="setting-placeholder">Nicht festgelegt</span>
+      </div>
+    </div>
+    <div class="edit-icon">
+      <span class="material-symbols-outlined">edit</span>
+    </div>
+  </div>
+</div>
+            <div class="settings-section">
+              <h2 class="section-title">Sicherheit</h2>
+
+              <div class="setting-item" onclick="openEditModal('email')">
+                <div class="setting-icon">
+                  <span class="material-symbols-outlined">mail</span>
+                </div>
+                <div class="setting-content">
+                  <div class="setting-label">E-Mail-Adresse</div>
+                  <div class="setting-value">E-Mail ändern</div>
+                </div>
+                <div class="edit-icon">
+                  <span class="material-symbols-outlined">edit</span>
+                </div>
+              </div>
+
+              <div class="setting-item" onclick="openEditModal('password')">
+                <div class="setting-icon">
+                  <span class="material-symbols-outlined">lock</span>
+                </div>
+                <div class="setting-content">
+                  <div class="setting-label">Passwort</div>
+                  <div class="setting-value">••••••••</div>
+                </div>
+                <div class="edit-icon">
+                  <span class="material-symbols-outlined">edit</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-buttons">
+              <button class="btn btn-secondary" onclick="logout()">Abmelden</button>
+              <button class="btn btn-danger" onclick="confirmDelete()">
+                Account löschen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
-<footer>
-    <div class="informations"><a href="übertuninghub.html">TuningHub</a></div>
-    <div class="informations"><a href="impressum.html">Impressum</a></div>
-    <div class="informations"><a href="support.html">Support</a></div>
-    <div class="informations"><a href="socialmedia.html">Social Media</a></div>
-    <div class="informations"><a href="FAQ&Hilfe.html">FAQ & Hilfe</a></div>
-    <div class="informations"><a href="agb.html">AGB</a></div>
-    <div class="informations"><a href="haftungsbeschränkung.html">Haftungsbeschränkung</a></div>
-    <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
-  </footer>
+    <footer>
+      <div class="informations"><a href="übertuninghub.html">TuningHub</a></div>
+      <div class="informations"><a href="impressum.html">Impressum</a></div>
+      <div class="informations"><a href="support.html">Support</a></div>
+      <div class="informations"><a href="socialmedia.html">Social Media</a></div>
+      <div class="informations"><a href="FAQ&Hilfe.html">FAQ & Hilfe</a></div>
+      <div class="informations"><a href="agb.html">AGB</a></div>
+      <div class="informations">
+        <a href="haftungsbeschränkung.html">Haftungsbeschränkung</a>
+      </div>
+      <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+    </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-      let supabase = null;
-let trackingClient = null;
-let currentUser = null;
-let isInitialized = false;
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalTitle">Bearbeiten</h2>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" id="inputLabel">Wert</label>
+            <input type="text" class="form-input" id="modalInput" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="closeEditModal()">
+            Abbrechen
+          </button>
+          <button class="btn btn-primary" onclick="saveEdit()">Speichern</button>
+        </div>
+      </div>
+    </div>
 
-// Function to get Supabase clients from window object
-function getSupabaseClients() {
-  if (window.supabase && window.trackingSupabase) {
-    supabase = window.supabase;
-    trackingClient = window.trackingSupabase;
-    console.log("Using existing Supabase clients from window object");
-    return true;
-  }
-  return false;
-}
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+      <div class="success-content">
+        <div class="success-icon">
+          <span class="material-symbols-outlined">check</span>
+        </div>
+        <h2 style="margin: 0 0 12px 0; color: var(--text-primary);" id="successTitle">
+          Erfolgreich gespeichert!
+        </h2>
+        <p style="color: var(--text-secondary); margin: 0 0 24px 0;" id="successMessage">
+          Ihre Änderungen wurden gespeichert.
+        </p>
+        <button class="btn btn-primary" onclick="closeSuccessModal()">
+          Schließen
+        </button>
+      </div>
+    </div>
 
-// Wait for Supabase clients to be available
-function waitForSupabase() {
-  return new Promise((resolve) => {
-    if (getSupabaseClients()) {
-      resolve();
-      return;
-    }
-    
-    let attempts = 0;
-    const maxAttempts = 50; // 5 seconds maximum wait
-    const interval = setInterval(() => {
-      attempts++;
-      if (getSupabaseClients()) {
-        clearInterval(interval);
-        resolve();
-      } else if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        console.error("Supabase clients not available after 5 seconds");
-        showError("Fehler beim Laden der Anwendung. Bitte laden Sie die Seite neu.");
-        resolve(); // Resolve anyway to prevent hanging
-      }
-    }, 100);
-  });
-}
-
-async function trackEvent(eventType, metadata = {}) {
-  try {
-    if (!trackingClient) {
-      console.warn("Tracking client not available");
-      return;
-    }
-
-    const { data, error } = await trackingClient
-      .from("tracking_events")
-      .insert({
-        event_type: eventType,
-        metadata: metadata,
-        user_id: currentUser?.id || "unknown",
-      });
-
-    if (error) {
-      console.error("[Tracking] Supabase error:", error);
-    } else {
-      console.log("[Tracking] Event successfully tracked:", eventType);
-    }
-  } catch (err) {
-    console.error("[Tracking] Unexpected error:", err);
-  }
-}
-
-function showError(message) {
-  const userInfo = document.getElementById("userInfo");
-  if (userInfo) {
-    userInfo.innerHTML = `<div class="error">${message}</div>`;
-  }
-}
-
-function showLoading(message = "Lade Daten...") {
-  const userInfo = document.getElementById("userInfo");
-  if (userInfo) {
-    userInfo.innerHTML = `<div class="loading">${message}</div>`;
-  }
-}
-
-function showUserInfo(user) {
-  const userInfo = document.getElementById("userInfo");
-  if (!userInfo) return;
   
-  userInfo.innerHTML = `
-    <strong>Eingeloggt als:</strong> ${user.email}<br>
-    <small>Benutzername: ${
-      user.user_metadata?.username || "Nicht gesetzt"
-    }</small><br>
-    <small>Telefonnummer: ${
-      formatPhoneForDisplay(user.user_metadata?.phone) || "Nicht gesetzt"
-    }</small><br>
-    <small>Letzte Anmeldung: ${new Date(user.last_sign_in_at).toLocaleString(
-      "de-DE"
-    )}</small>
-  `;
-}
-
-function formatPhoneForDisplay(phone) {
-  if (!phone) return null;
-
-  if (phone.startsWith("+49")) {
-    return "0" + phone.substring(3);
-  }
-  return phone;
-}
-
-function formatPhoneForStorage(phone) {
-  if (!phone) return null;
-
-  phone = phone.replace(/\s+/g, "").replace(/[-\/]/g, "");
-
-  if (phone.startsWith("01")) {
-    phone = "+49" + phone.substring(1);
-  } else if (phone.startsWith("49")) {
-    phone = "+" + phone;
-  } else if (phone.startsWith("0049")) {
-    phone = "+" + phone.substring(2);
-  } else if (!phone.startsWith("+")) {
-    phone = "+49" + phone;
-  }
-
-  return phone;
-}
-
-async function initializeSupabase() {
-  try {
-    // Ensure Supabase clients are available
-    if (!supabase || !trackingClient) {
-      console.error("Supabase clients not available");
-      showError("Supabase-Clients nicht verfügbar. Bitte Seite neu laden.");
-      return false;
-    }
-
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-    
-    if (error) throw error;
-
-    if (!session) {
-      window.location.href = "login.html";
-      return false;
-    }
-
-    isInitialized = true;
-    return true;
-  } catch (error) {
-    console.error("Initialisierungsfehler:", error);
-    showError(`Systemfehler: ${error.message}`);
-    return false;
-  }
-}
-
-async function loadUser() {
-  if (!isInitialized) {
-    showError("System nicht bereit. Bitte neu laden.");
-    return;
-  }
-
-  try {
-    showLoading("Lade Benutzerdaten...");
-
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error) {
-      console.error("Fehler beim Laden:", error.message);
-      showError(`Fehler: ${error.message}`);
-      window.location.href = "login.html";
-      return;
-    }
-
-    if (!user) {
-      showError("Kein Benutzer gefunden.");
-      window.location.href = "login.html";
-      return;
-    }
-
-    currentUser = user;
-    showUserInfo(user);
-
-    const metadata = user.user_metadata || {};
-    const usernameInput = document.getElementById("newUsername");
-    const phoneInput = document.getElementById("newPhone");
-    
-    if (usernameInput) {
-      usernameInput.placeholder = metadata.username || "Kein Benutzername";
-    }
-    if (phoneInput) {
-      phoneInput.placeholder = formatPhoneForDisplay(metadata.phone) || "Keine Telefonnummer";
-    }
-  } catch (error) {
-    console.error("Unerwarteter Fehler:", error);
-    showError(`Fehler: ${error.message}`);
-  }
-}
-
-// Make functions globally accessible
-window.updateEmail = async function updateEmail() {
-  const emailInput = document.getElementById("newEmail");
-  if (!emailInput) return;
-  
-  const email = emailInput.value.trim();
-  if (!email.includes("@")) {
-    alert("Bitte gültige E-Mail eingeben");
-    return;
-  }
-
-  try {
-    const { error } = await supabase.auth.updateUser({ email });
-    if (error) throw error;
-
-    await trackEvent("email_update_attempt", {
-      new_email: email,
-    });
-
-    alert("Bestätigungsmail gesendet!");
-    emailInput.value = "";
-    await loadUser();
-  } catch (error) {
-    alert(`Fehler: ${error.message}`);
-  }
-}
-
-window.updatePassword = async function updatePassword() {
-  const passwordInput = document.getElementById("newPassword");
-  if (!passwordInput) return;
-  
-  const pw = passwordInput.value;
-  if (pw.length < 6) {
-    alert("Mindestens 6 Zeichen!");
-    return;
-  }
-
-  try {
-    const { error } = await supabase.auth.updateUser({ password: pw });
-    if (error) throw error;
-
-    await trackEvent("password_update");
-
-    alert("Passwort geändert!");
-    passwordInput.value = "";
-  } catch (error) {
-    alert(`Fehler: ${error.message}`);
-  }
-}
-
-window.updateUsername = async function updateUsername() {
-  const usernameInput = document.getElementById("newUsername");
-  if (!usernameInput) return;
-  
-  const username = usernameInput.value.trim();
-  if (!username) {
-    alert("Benutzername eingeben!");
-    return;
-  }
-
-  try {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError) throw userError;
-
-    const { error } = await supabase.auth.updateUser({
-      data: { ...(user.user_metadata || {}), username },
-    });
-    if (error) throw error;
-
-    await trackEvent("username_update", {
-      new_username: username,
-    });
-
-    alert("Benutzername aktualisiert!");
-    usernameInput.value = "";
-    await loadUser();
-  } catch (error) {
-    alert(`Fehler: ${error.message}`);
-  }
-}
-
-window.updatePhone = async function updatePhone() {
-  const phoneInput = document.getElementById("newPhone");
-  if (!phoneInput) return;
-  
-  let phone = phoneInput.value.trim();
-  if (!phone) {
-    alert("Telefonnummer eingeben!");
-    return;
-  }
-
-  try {
-    phone = formatPhoneForStorage(phone);
-
-    const phoneRegex = /^\+[0-9]{8,}$/;
-    if (!phoneRegex.test(phone)) {
-      alert(
-        "Bitte geben Sie eine gültige Telefonnummer ein (z.B. 01721234567 oder +491721234567)"
-      );
-      return;
-    }
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError) throw userError;
-
-    const { error } = await supabase.auth.updateUser({
-      data: { ...(user.user_metadata || {}), phone },
-    });
-    if (error) throw error;
-
-    await trackEvent("phone_update");
-
-    alert("Telefonnummer aktualisiert!");
-    phoneInput.value = "";
-    await loadUser();
-  } catch (error) {
-    alert(`Fehler: ${error.message}`);
-  }
-}
-
-window.logout = async function logout() {
-  try {
-    await trackEvent("logout_attempt");
-
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-
-    await trackEvent("logout_success");
-
-    window.location.href = "login.html";
-  } catch (error) {
-    await trackEvent("logout_error", {
-      error_message: error.message,
-    });
-
-    alert(`Abmeldefehler: ${error.message}`);
-  }
-}
-
-window.deleteAccount = async function deleteAccount() {
-  if (!confirm("ACCOUNT WIRKLICH LÖSCHEN? ALLE DATEN GEHEN VERLOREN!")) {
-    await trackEvent("account_deletion_cancelled");
-    return;
-  }
-
-  try {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError) throw userError;
-
-    await trackEvent("account_deletion_attempt", {
-      user_id: user.id,
-      email: user.email,
-    });
-
-    const { error } = await supabase.rpc("delete_user", {
-      user_id: user.id,
-    });
-    if (error) throw error;
-
-    await trackEvent("account_deletion_success", {
-      user_id: user.id,
-      email: user.email,
-    });
-
-    await supabase.auth.signOut();
-    alert("Account gelöscht!");
-    window.location.href = "../../index.html";
-  } catch (error) {
-    await trackEvent("account_deletion_error", {
-      error_message: error.message,
-      error_code: error.status || "unknown",
-    });
-
-    alert(`Löschfehler: ${error.message}`);
-  }
-}
-
-async function initializeApp() {
-  try {
-    console.log("Initializing app...");
-    
-    // Wait for Supabase clients to be available
-    await waitForSupabase();
-    
-    const success = await initializeSupabase();
-    if (!success) return;
-
-    await loadUser();
-  } catch (error) {
-    console.error("App initialization error:", error);
-    showError(`Startfehler: ${error.message}`);
-  }
-}
-
-// Initialize when DOM is ready
-if (document.readyState === "complete") {
-  initializeApp();
-} else {
-  document.addEventListener("DOMContentLoaded", initializeApp);
-}
-    </script>
   </body>
 </html>
