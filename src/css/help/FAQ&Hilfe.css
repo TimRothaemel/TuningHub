@@ -1,0 +1,41 @@
+h1{
+    justify-content: center;
+    text-align: center;
+    margin-top: 12px;   
+    margin-bottom: 12px;
+}
+
+.section-wrapper{
+  display: flex;
+  justify-content: center;
+  margin: 12px;
+}
+
+section{
+  justify-content: center;
+
+  border-radius: 6px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  min-height: 40px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+section:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+section a{
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--textcolor);
+  text-decoration: none;
+}
+section a:hover{
+  text-decoration: underline;
+}
