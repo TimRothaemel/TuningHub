@@ -720,7 +720,7 @@ async function deleteAccount() {
 
 async function initializeApp() {
   try {
-    await waitForSupabase();
+    await waitForSupabase()
     const success = await initializeSupabase();
     if (!success) return;
     await loadUser();
