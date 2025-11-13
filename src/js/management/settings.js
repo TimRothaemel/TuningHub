@@ -119,45 +119,46 @@ async function loadUser() {
 
     currentUser = user;
     
+    // Load complete profile data from profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Fehler beim Laden der Profildaten:', profileError);
+      showError('Profildaten konnten nicht geladen werden.');
+      return;
+    }
+
+    console.log('Loaded profile data:', profile);
+
     // Update UI
     document.getElementById("loadingState").style.display = "none";
     document.getElementById("settingsContent").style.display = "block";
 
-    const metadata = user.user_metadata || {};
-    
     // Update Avatar with Initials
-    const username = metadata.username || user.email;
+    const username = profile.username || user.email;
     const initials = getInitials(username);
     document.getElementById("userAvatar").textContent = initials;
 
-    // Update basic profile fields
+    // Update basic profile fields from profiles table
     const usernameEl = document.getElementById("displayUsername");
-    if (metadata.username) {
-      usernameEl.textContent = metadata.username;
+    if (profile.username) {
+      usernameEl.textContent = profile.username;
       usernameEl.classList.remove("setting-placeholder");
     }
 
     const phoneEl = document.getElementById("displayPhone");
-    if (metadata.phone) {
-      phoneEl.textContent = formatPhoneForDisplay(metadata.phone);
+    if (profile.phone) {
+      phoneEl.textContent = formatPhoneForDisplay(profile.phone);
       phoneEl.classList.remove("setting-placeholder");
     }
 
-    // Load extended profile data (social media and contact methods)
-    try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('social_media, contact_methods')
-        .eq('id', user.id)
-        .single();
-
-      if (!profileError && profile) {
-        updateSocialMediaDisplay(profile.social_media);
-        updateContactMethodsDisplay(profile.contact_methods);
-      }
-    } catch (error) {
-      console.error('Fehler beim Laden der Profildaten:', error);
-    }
+    // Update social media and contact methods
+    updateSocialMediaDisplay(profile.social_media);
+    updateContactMethodsDisplay(profile.contact_methods);
 
   } catch (error) {
     console.error("Unerwarteter Fehler:", error);
@@ -176,7 +177,14 @@ function getInitials(name) {
 
 // Social Media Display Functions
 function updateSocialMediaDisplay(socialMedia) {
+  console.log('updateSocialMediaDisplay called with:', socialMedia);
   const displayEl = document.getElementById("displaySocialMedia");
+  
+  if (!displayEl) {
+    console.error('displaySocialMedia element not found!');
+    return;
+  }
+  
   if (!socialMedia || Object.keys(socialMedia).length === 0) {
     displayEl.innerHTML = '<span class="setting-placeholder">Nicht verknüpft</span>';
     return;
@@ -193,7 +201,14 @@ function updateSocialMediaDisplay(socialMedia) {
 }
 
 function updateContactMethodsDisplay(contactMethods) {
+  console.log('updateContactMethodsDisplay called with:', contactMethods);
   const displayEl = document.getElementById("displayContactMethods");
+  
+  if (!displayEl) {
+    console.error('displayContactMethods element not found!');
+    return;
+  }
+  
   if (!contactMethods || !Array.isArray(contactMethods) || contactMethods.length === 0) {
     displayEl.innerHTML = '<span class="setting-placeholder">Nicht festgelegt</span>';
     return;
@@ -288,75 +303,43 @@ function openSocialMediaModal() {
   
   modalBody.innerHTML = `
     <div class="form-group">
-      <label class="form-label">Social Media Profile</label>
-      <div class="social-media-grid">
-        <div class="platform-item">
-          <label class="platform-label">
-            <input type="checkbox" id="instagram-check" class="platform-checkbox">
-            <span class="platform-name">Instagram</span>
-          </label>
-          <input type="text" id="instagram-input" class="platform-input" placeholder="Benutzername (ohne @)">
+      <label class="form-label">Social Media Links</label>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+        Geben Sie den vollständigen Link zu Ihrem Profil ein. Leer lassen wenn nicht vorhanden.
+      </p>
+      <div class="social-media-list">
+        <div class="platform-input-item">
+          <label class="platform-label">📸 Instagram</label>
+          <input type="url" id="instagram-input" class="form-input" placeholder="https://instagram.com/benutzername">
         </div>
-        <div class="platform-item">
-          <label class="platform-label">
-            <input type="checkbox" id="facebook-check" class="platform-checkbox">
-            <span class="platform-name">Facebook</span>
-          </label>
-          <input type="text" id="facebook-input" class="platform-input" placeholder="Profilname oder URL">
+        <div class="platform-input-item">
+          <label class="platform-label">👥 Facebook</label>
+          <input type="url" id="facebook-input" class="form-input" placeholder="https://facebook.com/benutzername">
         </div>
-        <div class="platform-item">
-          <label class="platform-label">
-            <input type="checkbox" id="twitter-check" class="platform-checkbox">
-            <span class="platform-name">Twitter/X</span>
-          </label>
-          <input type="text" id="twitter-input" class="platform-input" placeholder="Benutzername (ohne @)">
+        <div class="platform-input-item">
+          <label class="platform-label">🐦 Twitter/X</label>
+          <input type="url" id="twitter-input" class="form-input" placeholder="https://twitter.com/benutzername">
         </div>
-        <div class="platform-item">
-          <label class="platform-label">
-            <input type="checkbox" id="youtube-check" class="platform-checkbox">
-            <span class="platform-name">YouTube</span>
-          </label>
-          <input type="text" id="youtube-input" class="platform-input" placeholder="Kanalname oder URL">
+        <div class="platform-input-item">
+          <label class="platform-label">▶️ YouTube</label>
+          <input type="url" id="youtube-input" class="form-input" placeholder="https://youtube.com/@kanalname">
         </div>
-        <div class="platform-item">
-          <label class="platform-label">
-            <input type="checkbox" id="tiktok-check" class="platform-checkbox">
-            <span class="platform-name">TikTok</span>
-          </label>
-          <input type="text" id="tiktok-input" class="platform-input" placeholder="Benutzername (ohne @)">
+        <div class="platform-input-item">
+          <label class="platform-label">🎵 TikTok</label>
+          <input type="url" id="tiktok-input" class="form-input" placeholder="https://tiktok.com/@benutzername">
         </div>
-        <div class="platform-item">
-          <label class="platform-label">
-            <input type="checkbox" id="linkedin-check" class="platform-checkbox">
-            <span class="platform-name">LinkedIn</span>
-          </label>
-          <input type="text" id="linkedin-input" class="platform-input" placeholder="Profil-URL">
+        <div class="platform-input-item">
+          <label class="platform-label">💼 LinkedIn</label>
+          <input type="url" id="linkedin-input" class="form-input" placeholder="https://linkedin.com/in/profilname">
         </div>
       </div>
     </div>
-    <p style="font-size: 13px; color: var(--text-secondary); margin-top: 16px;">
-      Aktivieren Sie die Checkbox und geben Sie Ihren Benutzernamen oder Link ein.
-    </p>
   `;
 
-  // Add event listeners for checkboxes
   setTimeout(() => {
-    const checkboxes = document.querySelectorAll('.platform-checkbox');
-    checkboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        const platform = this.id.replace('-check', '');
-        const input = document.getElementById(`${platform}-input`);
-        if (input) {
-          input.style.display = this.checked ? 'block' : 'none';
-          if (!this.checked) {
-            input.value = '';
-          }
-        }
-      });
-    });
+    loadSocialMediaData();
   }, 100);
 
-  loadSocialMediaData();
   modal.classList.add("active");
 }
 
@@ -370,17 +353,15 @@ async function loadSocialMediaData() {
 
     if (!error && profile && profile.social_media) {
       const socialMedia = profile.social_media;
+      console.log('Loading social media data:', socialMedia);
       
-      // Set checkboxes and inputs for each platform
+      // Set inputs for each platform
       const platforms = ['instagram', 'facebook', 'twitter', 'youtube', 'tiktok', 'linkedin'];
       platforms.forEach(platform => {
-        const checkbox = document.getElementById(`${platform}-check`);
         const input = document.getElementById(`${platform}-input`);
         
-        if (checkbox && input && socialMedia[platform]) {
-          checkbox.checked = true;
+        if (input && socialMedia[platform]) {
           input.value = socialMedia[platform];
-          input.style.display = 'block';
         }
       });
     }
@@ -438,7 +419,10 @@ function openContactMethodsModal() {
     </p>
   `;
 
-  loadContactMethodsData();
+  setTimeout(() => {
+    loadContactMethodsData();
+  }, 100);
+  
   modal.classList.add("active");
 }
 
@@ -452,6 +436,7 @@ async function loadContactMethodsData() {
 
     if (!error && profile && profile.contact_methods) {
       const contactMethods = profile.contact_methods;
+      console.log('Loading contact methods:', contactMethods);
       
       // Set checkboxes for each method type
       const methodTypes = ['phone', 'email', 'whatsapp', 'messenger', 'instagram', 'sms'];
@@ -477,7 +462,7 @@ async function loadContactMethodsData() {
 
 async function saveEdit() {
   const input = document.getElementById("modalInput");
-  const value = input.value.trim();
+  const value = input ? input.value.trim() : "";
 
   if (currentEditType !== "social_media" && currentEditType !== "contact_methods" && !value) {
     alert("Bitte einen Wert eingeben!");
@@ -491,12 +476,16 @@ async function saveEdit() {
           alert("Benutzername muss mindestens 2 Zeichen lang sein!");
           return;
         }
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) throw userError;
 
-        const { error } = await supabase.auth.updateUser({
-          data: { ...(user.user_metadata || {}), username: value },
-        });
+        // Update in profiles table
+        const { error } = await supabase
+          .from('profiles')
+          .update({ 
+            username: value,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentUser.id);
+          
         if (error) throw error;
 
         await trackEvent("username_update", { new_username: value });
@@ -513,13 +502,21 @@ async function saveEdit() {
           return;
         }
 
-        const { data: { user: phoneUser }, error: phoneUserError } = await supabase.auth.getUser();
-        if (phoneUserError) throw phoneUserError;
+        console.log('Updating phone to:', formattedPhone);
 
-        const { error: phoneError } = await supabase.auth.updateUser({
-          data: { ...(phoneUser.user_metadata || {}), phone: formattedPhone },
-        });
-        if (phoneError) throw phoneError;
+        // Update in profiles table
+        const { error: phoneError } = await supabase
+          .from('profiles')
+          .update({ 
+            phone: formattedPhone,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentUser.id);
+          
+        if (phoneError) {
+          console.error('Phone update error:', phoneError);
+          throw phoneError;
+        }
 
         await trackEvent("phone_update");
         closeEditModal();
@@ -533,8 +530,20 @@ async function saveEdit() {
           return;
         }
 
+        // Update both in auth.users and profiles table
         const { error: emailError } = await supabase.auth.updateUser({ email: value });
         if (emailError) throw emailError;
+
+        // Also update in profiles table
+        const { error: profileEmailError } = await supabase
+          .from('profiles')
+          .update({ 
+            email: value,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentUser.id);
+          
+        if (profileEmailError) console.error('Profile email update error:', profileEmailError);
 
         await trackEvent("email_update_attempt", { new_email: value });
         closeEditModal();
@@ -567,6 +576,7 @@ async function saveEdit() {
         break;
     }
   } catch (error) {
+    console.error('Save error:', error);
     alert(`Fehler: ${error.message}`);
   }
 }
@@ -577,13 +587,14 @@ async function saveSocialMedia() {
     const platforms = ['instagram', 'facebook', 'twitter', 'youtube', 'tiktok', 'linkedin'];
     
     platforms.forEach(platform => {
-      const checkbox = document.getElementById(`${platform}-check`);
       const input = document.getElementById(`${platform}-input`);
       
-      if (checkbox && checkbox.checked && input && input.value.trim()) {
+      if (input && input.value.trim()) {
         socialMedia[platform] = input.value.trim();
       }
     });
+
+    console.log('Saving social media:', socialMedia);
 
     const { error } = await supabase
       .from('profiles')
@@ -600,10 +611,11 @@ async function saveSocialMedia() {
       platform_count: Object.keys(socialMedia).length 
     });
     closeEditModal();
-    showSuccess('Social Media aktualisiert', 'Ihre Social Media Profile wurden gespeichert.');
+    showSuccess('Social Media aktualisiert', 'Ihre Social Media Links wurden gespeichert.');
     await loadUser();
     
   } catch (error) {
+    console.error('Social media save error:', error);
     alert(`Fehler beim Speichern: ${error.message}`);
   }
 }
@@ -627,6 +639,8 @@ async function saveContactMethods() {
       contactMethods[0].response_time = responseSelect.value;
     }
 
+    console.log('Saving contact methods:', contactMethods);
+
     const { error } = await supabase
       .from('profiles')
       .update({ 
@@ -647,6 +661,7 @@ async function saveContactMethods() {
     await loadUser();
     
   } catch (error) {
+    console.error('Contact methods save error:', error);
     alert(`Fehler beim Speichern: ${error.message}`);
   }
 }
