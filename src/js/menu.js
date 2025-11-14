@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       { href: "/src/pages/teilehinzufügen.html", text: "Teil hinzufügen" },
       { href: "/src/pages/meineProdukte.html", text: "Meine Produkte" },
       { href: "/src/pages/verkäufer.html", text: "Alle Verkäufer" },
-      { href: "/src/pages/settings.html", text: "Einstellung" },
+      { href: "/src/pages/settings.html", text: "Einstellungen" },
       { href: "/src/pages/chat.html", text: "Chat" },
       { href: "/src/pages/notifications.html", text: "Benachrichtigungen" },
       { href: "/src/pages/datenschutz.html", text: "Datenschutz" },

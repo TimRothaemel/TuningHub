@@ -469,6 +469,8 @@ function validateStep2() {
     contactLink: contactLink || "", // Leerer String wenn nicht ausgefüllt
     privacyConsent,
     agbConsent,
+    privacyConsentDate: new Date().toISOString(),
+    agbConsentDate: new Date().toISOString(),
   };
   
   console.log("Step 2 validation successful", businessData);
@@ -508,7 +510,7 @@ function togglePassword(fieldId) {
   }
 }
 
-// Business Registration - NUR USER METADATA (keine profiles Tabelle)
+// Business Registration - User Metadata UND profiles Tabelle
 async function performBusinessRegistration() {
   if (isProcessing) {
     console.log("Registration already in progress...");
@@ -535,8 +537,42 @@ async function performBusinessRegistration() {
 
     let logoUrl = null;
     
-    // Upload logo if provided
-    if (logoFile) {
+    // Upload logo if provided - NACH der Benutzerregistrierung
+    // Zuerst Benutzer erstellen, dann Logo hochladen
+    console.log("Registering user first...");
+
+    // Register user - ZUERST ohne Logo
+    const { data: signupData, error: signupError } = await client.auth.signUp({
+      email: businessData.email,
+      password: businessData.password,
+      options: {
+        data: {
+          full_name: businessData.fullName,
+          phone: businessData.phone,
+          email: businessData.email,
+          company_name: businessData.companyName,
+          description: businessData.companyDescription,
+          contact_link: businessData.contactLink || "",
+          logo_url: "", // Zuerst ohne Logo
+          account_type: "business",
+          privacy_consent: businessData.privacyConsent,
+          privacy_consent_date: businessData.privacyConsentDate,
+          agb_consent: businessData.agbConsent,
+          agb_consent_date: businessData.agbConsentDate,
+        },
+        emailRedirectTo: window.location.origin + '/src/pages/confirmemail.html',
+      },
+    });
+
+    if (signupError) {
+      console.error("Supabase signup error:", signupError);
+      throw signupError;
+    }
+
+    console.log("User registration successful:", signupData);
+
+    // JETZT Logo hochladen, wenn vorhanden - mit dem authentifizierten Benutzer
+    if (logoFile && signupData.user) {
       console.log("Compressing and uploading logo...");
       
       try {
@@ -551,7 +587,7 @@ async function performBusinessRegistration() {
         const randomString = Math.random().toString(36).substring(2, 8);
         const fileName = `business_logo_${timestamp}_${randomString}.jpg`;
 
-        // Upload logo
+        // Upload logo mit dem authentifizierten Benutzer
         const { data: uploadData, error: uploadError } = await client.storage
           .from("business-logos")
           .upload(`public/${fileName}`, compressedLogo, {
@@ -562,58 +598,94 @@ async function performBusinessRegistration() {
 
         if (uploadError) {
           console.error("Logo upload error:", uploadError);
-          throw new Error(`Logo Upload Fehler: ${uploadError.message}`);
+          // Kein Fehler werfen, da Benutzer bereits erstellt wurde
+          console.warn("Logo upload failed, but user was created successfully");
+        } else {
+          logoUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/business-logos/${uploadData.path}`;
+          console.log("Logo uploaded successfully:", logoUrl);
         }
-
-        logoUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/business-logos/${uploadData.path}`;
-        console.log("Logo uploaded successfully:", logoUrl);
         
       } catch (logoError) {
         console.error("Logo processing error:", logoError);
-        throw new Error(`Logo-Verarbeitung fehlgeschlagen: ${logoError.message}`);
+        // Kein Fehler werfen, da Benutzer bereits erstellt wurde
+        console.warn("Logo processing failed, but user was created successfully");
       }
     }
 
-    // Register user - ALLE Daten in user_metadata
-    const { data: signupData, error: signupError } = await client.auth.signUp({
-      email: businessData.email,
-      password: businessData.password,
-      options: {
-        data: {
-          full_name: businessData.fullName,
-          phone: businessData.phone,
-          email: businessData.email,
-          company_name: businessData.companyName,
-          description: businessData.companyDescription,
-          contact_link: businessData.contactLink || "",
-          logo_url: logoUrl || "",
-          account_type: "business",
-          privacy_consent: businessData.privacyConsent,
-          privacy_consent_date: new Date().toISOString(),
-          agb_consent: businessData.agbConsent,
-          agb_consent_date: new Date().toISOString(),
-        },
-        emailRedirectTo: window.location.origin + '/src/pages/confirmemail.html',
-      },
-    });
-
-    if (signupError) {
-      console.error("Supabase signup error:", signupError);
+    // WICHTIG: Jetzt die profiles Tabelle aktualisieren mit account_type = 'business'
+    // Wir verwenden UPSERT um sicherzustellen, dass das Profil korrekt erstellt wird
+    if (signupData.user) {
+      console.log("Creating/updating profiles table with account_type: business");
       
-      // Cleanup uploaded logo if signup failed
+      const profileData = {
+        id: signupData.user.id, // WICHTIG: ID muss gesetzt werden
+        account_type: 'business',
+        username: businessData.companyName,
+        full_name: businessData.fullName,
+        phone: businessData.phone,
+        email: businessData.email,
+        company_name: businessData.companyName,
+        description: businessData.companyDescription,
+        contact_link: businessData.contactLink || "",
+        privacy_consent: businessData.privacyConsent,
+        privacy_consent_date: businessData.privacyConsentDate,
+        agb_consent: businessData.agbConsent,
+        agb_consent_date: businessData.agbConsentDate,
+        updated_at: new Date().toISOString()
+      };
+
+      // Logo-URL nur hinzufügen, wenn Upload erfolgreich war
+      if (logoUrl) {
+        profileData.logo_url = logoUrl;
+      }
+
+      // Verwende UPSERT um sicherzustellen, dass das Profil erstellt/aktualisiert wird
+      const { error: profileError } = await client
+        .from('profiles')
+        .upsert(profileData, {
+          onConflict: 'id', // Konfliktlösung basierend auf ID
+          ignoreDuplicates: false // Überschreibe vorhandene Einträge
+        });
+
+      if (profileError) {
+        console.error("Error upserting profiles table:", profileError);
+        
+        // Fallback: Versuche INSERT falls UPSERT fehlschlägt
+        const { error: insertError } = await client
+          .from('profiles')
+          .insert(profileData);
+          
+        if (insertError) {
+          console.error("Error inserting profiles table:", insertError);
+          await trackEvent("business_registration_profile_update_failed", {
+            user_id: signupData.user.id,
+            error: insertError.message
+          });
+        } else {
+          console.log("Profiles table inserted successfully with account_type: business");
+        }
+      } else {
+        console.log("Profiles table upserted successfully with account_type: business");
+      }
+
+      // Zusätzlich: Update user_metadata mit Logo-URL falls vorhanden
       if (logoUrl) {
         try {
-          const fileName = logoUrl.split('/').pop();
-          await client.storage.from("business-logos").remove([`public/${fileName}`]);
-        } catch (cleanupError) {
-          console.error("Logo cleanup error:", cleanupError);
+          const { error: updateError } = await client.auth.updateUser({
+            data: {
+              logo_url: logoUrl
+            }
+          });
+          if (updateError) {
+            console.error("Error updating user metadata with logo:", updateError);
+          } else {
+            console.log("User metadata updated with logo URL");
+          }
+        } catch (updateError) {
+          console.error("Error updating user metadata:", updateError);
         }
       }
-      
-      throw signupError;
     }
-
-    console.log("Registration successful:", signupData);
 
     await trackEvent("business_registration_success", {
       email: businessData.email,
@@ -623,6 +695,7 @@ async function performBusinessRegistration() {
       has_logo: !!logoUrl,
       logo_url: logoUrl,
       agb_consent: businessData.agbConsent,
+      account_type: "business"
     });
 
     const confirmationEmail = document.getElementById("confirmation-email");
