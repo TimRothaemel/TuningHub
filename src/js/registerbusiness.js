@@ -510,7 +510,7 @@ function togglePassword(fieldId) {
   }
 }
 
-// Verbesserte Business Registration Funktion
+// Simplified and fixed business registration function
 async function performBusinessRegistration() {
   if (isProcessing) {
     console.log("Registration already in progress...");
@@ -525,7 +525,7 @@ async function performBusinessRegistration() {
   try {
     isProcessing = true;
     showLoading(true);
-    showErrorMessage("Business Registrierung läuft...");
+    hideErrorMessage();
     
     console.log("Starting business registration...", businessData);
     
@@ -534,21 +534,26 @@ async function performBusinessRegistration() {
       companyName: businessData.companyName,
     });
 
-    // WICHTIG: account_type MUSS in den user_metadata sein, BEVOR der User erstellt wird
-    // Der Trigger liest es dann von dort aus
+    // Sign up with ALL data in user_metadata - the trigger will handle profile creation
     const { data: signupData, error: signupError } = await client.auth.signUp({
       email: businessData.email,
       password: businessData.password,
       options: {
         data: {
-          // ALLE Business-Daten hier in user_metadata
+          // Personal info
           full_name: businessData.fullName,
           phone: businessData.phone,
           email: businessData.email,
+          
+          // Business info
           company_name: businessData.companyName,
           description: businessData.companyDescription,
           contact_link: businessData.contactLink || "",
-          account_type: "business",  // ← KRITISCH: Muss hier gesetzt sein!
+          
+          // CRITICAL: Account type for the trigger
+          account_type: "business",
+          
+          // Consent data
           privacy_consent: businessData.privacyConsent,
           privacy_consent_date: businessData.privacyConsentDate,
           agb_consent: businessData.agbConsent,
@@ -563,22 +568,47 @@ async function performBusinessRegistration() {
       throw signupError;
     }
 
-    console.log("User registration successful:", signupData);
+    if (!signupData.user) {
+      throw new Error("User creation failed - no user data returned");
+    }
 
-    // Warte kurz, damit der Trigger abgeschlossen ist
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log("User registration successful:", signupData.user.id);
 
-    // Logo Upload (falls vorhanden)
+    // Wait for trigger to complete
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Verify profile was created correctly
+    const { data: profile, error: profileError } = await client
+      .from('profiles')
+      .select('id, account_type, company_name')
+      .eq('id', signupData.user.id)
+      .single();
+
+    if (profileError) {
+      console.error("Profile verification failed:", profileError);
+      throw new Error("Profil konnte nicht verifiziert werden");
+    }
+
+    console.log("Profile verified:", profile);
+
+    if (profile.account_type !== 'business') {
+      console.warn("Account type mismatch, forcing update...");
+      await client.rpc('force_set_account_type', {
+        user_id: signupData.user.id,
+        new_type: 'business'
+      });
+    }
+
+    // Handle logo upload if present
     let logoUrl = null;
-    if (logoFile && signupData.user) {
-      console.log("Compressing and uploading logo...");
+    if (logoFile) {
+      console.log("Processing logo upload...");
       
       try {
         const compressedLogo = await compressImage(logoFile);
         console.log("Logo compressed:", {
-          originalSize: logoFile.size,
-          compressedSize: compressedLogo.size,
-          reduction: `${Math.round((1 - compressedLogo.size / logoFile.size) * 100)}%`,
+          originalSize: (logoFile.size / 1024).toFixed(1) + " KB",
+          compressedSize: (compressedLogo.size / 1024).toFixed(1) + " KB",
         });
 
         const timestamp = Date.now();
@@ -595,127 +625,49 @@ async function performBusinessRegistration() {
 
         if (uploadError) {
           console.error("Logo upload error:", uploadError);
+          throw uploadError;
+        }
+
+        logoUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/business-logos/${uploadData.path}`;
+        console.log("Logo uploaded successfully:", logoUrl);
+
+        // Update profile with logo URL
+        const { error: updateLogoError } = await client
+          .from('profiles')
+          .update({ 
+            logo_url: logoUrl,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', signupData.user.id);
+
+        if (updateLogoError) {
+          console.error("Error updating logo URL:", updateLogoError);
         } else {
-          logoUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/business-logos/${uploadData.path}`;
-          console.log("Logo uploaded successfully:", logoUrl);
+          console.log("Logo URL updated in profile");
         }
         
       } catch (logoError) {
         console.error("Logo processing error:", logoError);
+        // Don't fail registration if logo upload fails
       }
     }
 
-    // UPDATE des Profils mit account_type = 'business' - ERZWINGEN
-    if (signupData.user) {
-      console.log("Force updating profile with account_type: business");
-      
-      const profileUpdateData = {
-        account_type: 'business',  // ← EXPLIZIT auf business setzen
-        company_name: businessData.companyName,
-        description: businessData.companyDescription,
-        contact_link: businessData.contactLink || "",
-        updated_at: new Date().toISOString()
-      };
-
-      if (logoUrl) {
-        profileUpdateData.logo_url = logoUrl;
-      }
-
-      // Verwende UPDATE statt UPSERT um sicherzustellen, dass account_type überschrieben wird
-      const { error: updateError } = await client
-        .from('profiles')
-        .update(profileUpdateData)
-        .eq('id', signupData.user.id);
-
-      if (updateError) {
-        console.error("Error updating profile:", updateError);
-        
-        // Fallback: Versuche DELETE + INSERT
-        console.log("Trying DELETE + INSERT as fallback...");
-        
-        await client.from('profiles').delete().eq('id', signupData.user.id);
-        
-        const { error: insertError } = await client
-          .from('profiles')
-          .insert({
-            id: signupData.user.id,
-            account_type: 'business',
-            username: businessData.companyName,
-            full_name: businessData.fullName,
-            phone: businessData.phone,
-            email: businessData.email,
-            company_name: businessData.companyName,
-            description: businessData.companyDescription,
-            contact_link: businessData.contactLink || "",
-            logo_url: logoUrl || null,
-            privacy_consent: businessData.privacyConsent,
-            privacy_consent_date: businessData.privacyConsentDate,
-            agb_consent: businessData.agbConsent,
-            agb_consent_date: businessData.agbConsentDate,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-          
-        if (insertError) {
-          console.error("Error inserting profile:", insertError);
-          throw new Error("Konnte Profil nicht als Business-Account erstellen");
-        } else {
-          console.log("Profile created successfully with account_type: business");
-        }
-      } else {
-        console.log("Profile updated successfully with account_type: business");
-      }
-
-      // User metadata auch updaten
-      if (logoUrl) {
-        try {
-          await client.auth.updateUser({
-            data: { logo_url: logoUrl }
-          });
-        } catch (updateError) {
-          console.error("Error updating user metadata:", updateError);
-        }
-      }
-
-      // FINAL VERIFICATION: Überprüfe ob account_type wirklich 'business' ist
-      const { data: verifyProfile, error: verifyError } = await client
-        .from('profiles')
-        .select('account_type')
-        .eq('id', signupData.user.id)
-        .single();
-
-      if (verifyProfile) {
-        console.log("FINAL VERIFICATION - account_type:", verifyProfile.account_type);
-        if (verifyProfile.account_type !== 'business') {
-          console.error("WARNING: account_type is not 'business'!", verifyProfile);
-          // Letzter Versuch: Direktes RPC Update
-          try {
-            await client.rpc('force_set_account_type', {
-              user_id: signupData.user.id,
-              new_type: 'business'
-            });
-          } catch (rpcError) {
-            console.error("RPC force update failed:", rpcError);
-          }
-        }
-      }
-    }
-
+    // Track successful registration
     await trackEvent("business_registration_success", {
       email: businessData.email,
       companyName: businessData.companyName,
-      user_id: signupData.user?.id,
+      user_id: signupData.user.id,
       has_logo: !!logoUrl,
       account_type: "business"
     });
 
+    // Update confirmation email display
     const confirmationEmail = document.getElementById("confirmation-email");
     if (confirmationEmail) {
       confirmationEmail.textContent = businessData.email;
     }
     
     vibrateDevice();
-    hideErrorMessage();
     currentStep = 3;
     showStep(currentStep);
     
@@ -725,13 +677,24 @@ async function performBusinessRegistration() {
     await trackEvent("business_registration_error", {
       email: businessData.email,
       error_message: error.message,
+      error_code: error.code || 'unknown',
     });
 
-    if (error.message.includes("already registered")) {
-      showErrorMessage("Diese E-Mail-Adresse ist bereits registriert.");
-    } else {
-      showErrorMessage("Registrierung fehlgeschlagen: " + error.message);
+    // User-friendly error messages
+    let errorMessage = "Registrierung fehlgeschlagen: " + error.message;
+    
+    if (error.message.includes("already registered") || error.message.includes("User already registered")) {
+      errorMessage = "Diese E-Mail-Adresse ist bereits registriert.";
+    } else if (error.message.includes("Invalid email")) {
+      errorMessage = "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
+    } else if (error.message.includes("Password")) {
+      errorMessage = "Das Passwort erfüllt nicht die Anforderungen.";
+    } else if (error.message.includes("Database error")) {
+      errorMessage = "Ein Datenbankfehler ist aufgetreten. Bitte versuchen Sie es erneut.";
     }
+    
+    showErrorMessage(errorMessage);
+    
   } finally {
     isProcessing = false;
     showLoading(false);
