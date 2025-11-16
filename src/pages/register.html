@@ -15,7 +15,7 @@
     <script type="module" src="/src/js/supabaseClient.js"></script>
     <script src="/src/js/menu.js"></script>
     <script src="/src/js/search.js"></script>
-    <script src="/src/js/register.js" defer></script>
+    <script src="/src/js/register/register.js" defer></script>
   </head>
 
   <body>
@@ -152,37 +152,37 @@
             </div>
           </div>
 
-          <!-- Schritt 2: Kontakt Präferenzen -->
-          <div class="step-content" id="step-2">
-            <h3 style="text-align: center; margin-bottom: 20px; color: #333;">Wie möchten Sie kontaktiert werden?</h3>
-            <p style="text-align: center; color: #666; margin-bottom: 30px;">Wählen Sie mindestens eine Kontaktmöglichkeit aus:</p>
-            
-            <div class="contact-options">
-              <div class="contact-option" onclick="selectContactOption('phone-contact')">
-                <input type="checkbox" id="phone-contact" name="contact-method" value="phone">
-                <div class="contact-option-content">
-                  <div class="contact-option-title">Telefonnummer</div>
-                  <div class="contact-option-desc">Direkter Kontakt per Anruf oder SMS</div>
-                </div>
-              </div>
-              
-              <div class="contact-option" onclick="selectContactOption('social-contact')">
-                <input type="checkbox" id="social-contact" name="contact-method" value="social">
-                <div class="contact-option-content">
-                  <div class="contact-option-title">Social Media</div>
-                  <div class="contact-option-desc">Kontakt über Ihre Social Media Kanäle</div>
-                </div>
-              </div>
-              
-              <div class="contact-option" onclick="selectContactOption('chat-contact')">
-                <input type="checkbox" id="chat-contact" name="contact-method" value="chat">
-                <div class="contact-option-content">
-                  <div class="contact-option-title">Integrierte Chat-Funktion</div>
-                  <div class="contact-option-desc">Sicherer Chat direkt über TuningHub</div>
-                </div>
-              </div>
-            </div>
-          </div>
+         <!-- Schritt 2: Kontakt Präferenzen -->
+<div class="step-content" id="step-2">
+  <h3 style="text-align: center; margin-bottom: 20px; color: #333;">Wie möchten Sie kontaktiert werden?</h3>
+  <p style="text-align: center; color: #666; margin-bottom: 30px;">Wählen Sie mindestens eine Kontaktmöglichkeit aus:</p>
+  
+  <div class="contact-options">
+    <div class="contact-option">
+      <input type="checkbox" id="phone-contact" name="contact-method" value="phone">
+      <div class="contact-option-content">
+        <div class="contact-option-title">Telefonnummer</div>
+        <div class="contact-option-desc">Direkter Kontakt per Anruf oder SMS</div>
+      </div>
+    </div>
+    
+    <div class="contact-option">
+      <input type="checkbox" id="social-contact" name="contact-method" value="social">
+      <div class="contact-option-content">
+        <div class="contact-option-title">Social Media</div>
+        <div class="contact-option-desc">Kontakt über Ihre Social Media Kanäle</div>
+      </div>
+    </div>
+    
+    <div class="contact-option">
+      <input type="checkbox" id="chat-contact" name="contact-method" value="chat">
+      <div class="contact-option-content">
+        <div class="contact-option-title">Integrierte Chat-Funktion</div>
+        <div class="contact-option-desc">Sicherer Chat direkt über TuningHub</div>
+      </div>
+    </div>
+  </div>
+</div>
 
           <!-- Schritt 3: Bestätigung -->
           <div class="step-content" id="step-3">

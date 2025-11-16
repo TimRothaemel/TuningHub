@@ -29,7 +29,7 @@ function waitForSupabase() {
     }
     
     let attempts = 0;
-    const maxAttempts = 50; // 5 seconds maximum wait
+    const maxAttempts = 50;
     const interval = setInterval(() => {
       attempts++;
       if (getSupabaseClients()) {
@@ -42,7 +42,7 @@ function waitForSupabase() {
         if (errorText) {
           errorText.textContent = "Fehler beim Laden der Anwendung. Bitte laden Sie die Seite neu.";
         }
-        resolve(); // Resolve anyway to prevent hanging
+        resolve();
       }
     }, 100);
   });
@@ -77,7 +77,7 @@ function sanitizeUrl(url) {
 // 📱 Handy-Vibration
 function vibrateDevice() {
   if ("vibrate" in navigator) {
-    navigator.vibrate([200, 100, 400]); // kurz-lang-kurz
+    navigator.vibrate([200, 100, 400]);
   }
 }
 
@@ -127,6 +127,8 @@ function updateProgressBar() {
 
 // 🔀 Schritt wechseln
 function showStep(step) {
+  console.log("Showing step:", step);
+  
   for (let i = 1; i <= maxSteps; i++) {
     const stepElement = document.getElementById(`step-${i}`);
     if (stepElement) {
@@ -137,6 +139,14 @@ function showStep(step) {
   const currentStepElement = document.getElementById(`step-${step}`);
   if (currentStepElement) {
     currentStepElement.classList.add("active");
+    console.log("Step element activated:", `step-${step}`);
+  } else {
+    console.error("Step element not found:", `step-${step}`);
+  }
+
+  // Initialize contact options when showing step 2
+  if (step === 2) {
+    initializeContactOptions();
   }
 
   const prevButton = document.getElementById("prev-button");
@@ -166,11 +176,54 @@ function showStep(step) {
   updateProgressBar();
 }
 
+// 🎯 Kontaktoptionen initialisieren
+function initializeContactOptions() {
+  console.log("Initializing contact options");
+  
+  const contactOptions = document.querySelectorAll('.contact-option');
+  
+  contactOptions.forEach(option => {
+    const checkbox = option.querySelector('input[type="checkbox"]');
+    
+    if (checkbox) {
+      // Sync visual state with checkbox state
+      if (checkbox.checked) {
+        option.classList.add('selected');
+      } else {
+        option.classList.remove('selected');
+      }
+      
+      // Remove old onclick handlers and add new event listener
+      option.onclick = null;
+      
+      option.addEventListener('click', function(e) {
+        // Prevent double-triggering if clicking directly on checkbox
+        if (e.target === checkbox) return;
+        
+        checkbox.checked = !checkbox.checked;
+        option.classList.toggle('selected', checkbox.checked);
+        
+        console.log("Contact option toggled:", checkbox.id, checkbox.checked);
+      });
+      
+      // Also handle direct checkbox clicks
+      checkbox.addEventListener('change', function() {
+        option.classList.toggle('selected', checkbox.checked);
+        console.log("Checkbox changed:", checkbox.id, checkbox.checked);
+      });
+    }
+  });
+  
+  console.log("Contact options initialized");
+}
+
 // Navigation Functions - Make them globally accessible
 window.nextStep = function nextStep() {
+  console.log("Next step clicked, current step:", currentStep);
+  
   if (validateCurrentStep()) {
     if (currentStep === 2) {
-      performRegistration(); // Registrierung starten
+      performRegistration();
     } else if (currentStep < maxSteps) {
       currentStep++;
       showStep(currentStep);
@@ -179,6 +232,8 @@ window.nextStep = function nextStep() {
 }
 
 window.previousStep = function previousStep() {
+  console.log("Previous step clicked, current step:", currentStep);
+  
   if (currentStep > 1) {
     currentStep--;
     showStep(currentStep);
@@ -259,6 +314,8 @@ function validateStep1() {
     privacyConsent,
     agbConsent,
   };
+  
+  console.log("Step 1 validated successfully");
   return true;
 }
 
@@ -266,6 +323,9 @@ function validateStep2() {
   const contactMethods = document.querySelectorAll(
     'input[name="contact-method"]:checked'
   );
+  
+  console.log("Validating step 2, checked methods:", contactMethods.length);
+  
   if (contactMethods.length === 0) {
     const errorText = document.getElementById("error");
     if (errorText) {
@@ -273,12 +333,15 @@ function validateStep2() {
     }
     return false;
   }
+  
   userData.contactMethods = Array.from(contactMethods).map((cb) => cb.value);
+  console.log("Step 2 validated, contact methods:", userData.contactMethods);
   return true;
 }
 
-// 📞 Kontaktoption wählen - Make globally accessible
+// 📞 Kontaktoption wählen - Keep for backwards compatibility but not used anymore
 window.selectContactOption = function selectContactOption(optionId) {
+  console.log("Legacy selectContactOption called for:", optionId);
   const option = document.getElementById(optionId);
   if (!option) return;
   
@@ -291,7 +354,6 @@ window.selectContactOption = function selectContactOption(optionId) {
 
 // 📝 Registrierung bei Supabase
 async function performRegistration() {
-  // Ensure Supabase clients are available
   if (!client || !trackingClient) {
     const errorText = document.getElementById("error");
     if (errorText) {
@@ -330,7 +392,7 @@ async function performRegistration() {
 
     if (signupError) throw signupError;
 
-await trackEvent("registration_success", {
+    await trackEvent("registration_success", {
       email: userData.email,
       username: userData.username,
       phone: userData.phone,
@@ -365,7 +427,7 @@ await trackEvent("registration_success", {
   }
 }
 
-// 🔑 Passwort anzeigen/verstecken - Make globally accessible
+// 🔑 Passwort anzeigen/verstecken
 window.togglePassword = function togglePassword(fieldId) {
   const field = document.getElementById(fieldId);
   if (!field) return;
@@ -389,7 +451,6 @@ function isValidPhoneNumber(phoneNumber, countryCode = "DE") {
       const parsed = libphonenumber.parsePhoneNumberFromString(phoneNumber, countryCode);
       return parsed && parsed.isValid();
     } else {
-      // Fallback validation
       const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
       return phoneRegex.test(phoneNumber.replace(/\s/g, ''));
     }
@@ -440,7 +501,6 @@ async function trackEvent(eventType, metadata = {}) {
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("DOM Content Loaded - Initializing registration");
   
-  // Wait for Supabase clients to be available
   await waitForSupabase();
   
   const phoneInput = document.getElementById("phone");
@@ -463,7 +523,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // Form submit prevention
   const form = document.querySelector("form");
   if (form) {
     form.addEventListener("submit", (e) => {
@@ -472,7 +531,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Add enter key support
   document.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       const activeElement = document.activeElement;
