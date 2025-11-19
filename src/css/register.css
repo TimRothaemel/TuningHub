@@ -53,6 +53,37 @@ body main input::placeholder {
   font-weight: 400;
 }
 
+/* Passwort-Container */
+.password-container {
+  position: relative;
+  margin: 10px 0;
+}
+
+.password-container input {
+  margin: 0;
+  padding-right: 55px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #5f6368;
+  font-size: 16px;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.password-toggle:hover {
+  color: #1976d2;
+  background: rgba(25, 118, 210, 0.04);
+}
 
 /* Fortschrittsanzeige - kompakter und moderner */
 .progress-container {
@@ -170,23 +201,14 @@ body main input::placeholder {
   font-weight: 600;
 }
 
-/* Schritte-Animation - WICHTIG: Verbesserte Sichtbarkeit */
+/* Schritte-Animation */
 .step-content {
-  display: none !important; /* Force hide inactive steps */
-  opacity: 0;
-  visibility: hidden;
-  height: 0;
-  overflow: hidden;
-  transition: none; /* Disable transition when hiding */
+  display: none;
+  animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .step-content.active {
-  display: block !important; /* Force show active step */
-  opacity: 1 !important;
-  visibility: visible !important;
-  height: auto !important;
-  overflow: visible !important;
-  animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
 }
 
 @keyframes slideInUp {
@@ -200,24 +222,12 @@ body main input::placeholder {
   }
 }
 
-/* Step 2 spezifische Styles - für zusätzliche Sicherheit */
-#step-2 {
-  min-height: 400px; /* Verhindert Layout-Shift */
-}
-
-#step-2.active {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
 /* Kontaktoptionen - sauberes einheitliches Design */
 .contact-options {
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin: 30px 0;
-  width: 100%;
 }
 
 .contact-option {
@@ -232,7 +242,6 @@ body main input::placeholder {
   align-items: center;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  user-select: none;
 }
 
 .contact-option:hover {
@@ -256,11 +265,9 @@ body main input::placeholder {
   width: 0;
   height: 0;
   pointer-events: none;
-  margin: 0;
-  padding: 0;
 }
 
-/* Custom Checkbox - Visuelles Feedback */
+/* Custom Checkbox */
 .contact-option::before {
   content: '';
   width: 24px;
@@ -272,7 +279,6 @@ body main input::placeholder {
   background: #fff;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  flex-shrink: 0;
 }
 
 .contact-option:hover::before {
@@ -294,14 +300,12 @@ body main input::placeholder {
   font-size: 14px;
   font-weight: 700;
   transform: translateX(-50%);
-  pointer-events: none;
 }
 
 .contact-option-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  pointer-events: none; /* Klicks gehen durch zum Parent */
 }
 
 .contact-option-title {
@@ -317,37 +321,6 @@ body main input::placeholder {
   font-size: 15px;
   line-height: 1.4;
   margin: 0;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  #step-2 {
-    min-height: 350px;
-  }
-  
-  .contact-option {
-    padding: 16px;
-  }
-  
-  .contact-option::before {
-    width: 20px;
-    height: 20px;
-    min-width: 20px;
-    margin-right: 16px;
-  }
-  
-  .contact-option.selected::after {
-    left: 26px;
-    font-size: 12px;
-  }
-  
-  .contact-option-title {
-    font-size: 16px;
-  }
-  
-  .contact-option-desc {
-    font-size: 14px;
-  }
 }
 
 .contact-option-icon {
