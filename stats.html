@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>TuningHub – Tracking Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: #fff;
+            margin: 0;
+            padding: 25px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.4);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .value {
+            font-size: 42px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Tracking Dashboard</h1>
+
+<div class="grid">
+    <div class="card">
+        <h2>Seitenaufrufe – Woche</h2>
+        <div class="value" id="weeklyViews">0</div>
+    </div>
+
+    <div class="card">
+        <h2>Seitenaufrufe – Monat</h2>
+        <div class="value" id="monthlyViews">0</div>
+    </div>
+
+    <div class="card">
+        <h2>Logins – Woche</h2>
+        <div class="value" id="weeklyLogins">0</div>
+    </div>
+
+    <div class="card">
+        <h2>Logins – Monat</h2>
+        <div class="value" id="monthlyLogins">0</div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    // -----------------------------------------------------
+    // 1. Supabase einrichten (→ DEINE KEYS EINFÜGEN)
+    // -----------------------------------------------------
+    const supabase = Supabase.createClient(
+        "https://lhxcnrogjjskgaclqxtm.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww"
+    );
+
+    // -----------------------------------------------------
+    // 2. Funktion: Werte abrufen
+    // -----------------------------------------------------
+    async function getEventCount(eventType, range) {
+        const now = new Date();
+
+        let start;
+
+        if (range === "week") {
+            start = new Date(now.setDate(now.getDate() - now.getDay())); // Wochenanfang
+        } else if (range === "month") {
+            start = new Date(now.getFullYear(), now.getMonth(), 1); // Monatsanfang
+        }
+
+        const { data, error } = await supabase
+            .from("tracking_events")
+            .select("*", { count: "exact", head: true })
+            .eq("event_type", eventType)
+            .gte("timestamp", start.toISOString());
+
+        if (error) {
+            console.error("Fehler beim Abrufen:", error);
+            return 0;
+        }
+
+        return data.count;
+    }
+
+    // -----------------------------------------------------
+    // 3. Dashboard aktualisieren
+    // -----------------------------------------------------
+    async function updateDashboard() {
+        // Seitenaufrufe
+        document.getElementById("weeklyViews").innerText =
+            await getEventCount("page_view", "week");
+
+        document.getElementById("monthlyViews").innerText =
+            await getEventCount("page_view", "month");
+
+        // Logins
+        document.getElementById("weeklyLogins").innerText =
+            await getEventCount("login", "week");
+
+        document.getElementById("monthlyLogins").innerText =
+            await getEventCount("login", "month");
+    }
+
+    updateDashboard();
+</script>
+
+</body>
+</html>
