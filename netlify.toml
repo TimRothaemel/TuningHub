@@ -1,6 +1,3 @@
-[build]
-  publish = "TUNINGHUB"
-
 [[redirects]]
   from = "/share/:id"
   to = "/.netlify/functions/share?id=:id"
