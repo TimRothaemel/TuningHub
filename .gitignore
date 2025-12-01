@@ -1,9 +1,8 @@
-.DS_Store
-
-.google5c5ea6b16353baa5.html
-
 node_modules/
 dist/
 build/
 .env    
 
+/DS_Store
+
+/google5c5ea6b16353baa5.html
