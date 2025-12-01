@@ -3,10 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 export async function handler(event, context) {
     const id = event.queryStringParameters.id;
 
-    const supabase = createClient(
-        process.env.SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_ROLE
-    );
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+)
 
     const { data: part, error } = await supabase
         .from('parts')
