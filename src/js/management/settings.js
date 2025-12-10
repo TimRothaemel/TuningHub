@@ -1,35 +1,82 @@
+// settings.js - Arbeitet mit supabaseClient.js
+console.log('[Settings] App lädt...');
+
 let supabase = null;
 let trackingClient = null;
 let currentUser = null;
 let isInitialized = false;
 let currentEditType = null;
 
+// Funktion um die Clients von window zu holen
 function getSupabaseClients() {
+  console.log('[Settings] Suche Supabase-Clients...');
+  console.log('[Settings] window.supabase:', typeof window.supabase, window.supabase);
+  console.log('[Settings] window.trackingSupabase:', typeof window.trackingSupabase, window.trackingSupabase);
+  
+  // Prüfe zuerst window.supabase (wird von supabaseClient.js gesetzt)
   if (window.supabase && window.trackingSupabase) {
+    console.log('[Settings] ✅ Clients in window gefunden');
     supabase = window.supabase;
     trackingClient = window.trackingSupabase;
     return true;
   }
+  
+  // Alternative: Falls die supabaseExports existieren (für ES6 Module)
+  if (window.supabaseExports) {
+    console.log('[Settings] ✅ Clients in supabaseExports gefunden');
+    supabase = window.supabaseExports.supabase;
+    trackingClient = window.supabaseExports.trackingSupabase;
+    return true;
+  }
+  
   return false;
 }
 
+// Warte auf die Supabase-Clients - vereinfachte Version
 function waitForSupabase() {
   return new Promise((resolve) => {
+    console.log('[Settings] Warte auf Supabase-Initialisierung...');
+    
+    // Direkter Versuch
     if (getSupabaseClients()) {
+      console.log('[Settings] ✅ Clients sofort verfügbar');
       resolve();
       return;
     }
 
+    // Höre auf das supabaseReady Event
+    const onSupabaseReady = () => {
+      console.log('[Settings] supabaseReady Event empfangen');
+      if (getSupabaseClients()) {
+        console.log('[Settings] ✅ Clients nach Event verfügbar');
+        window.removeEventListener('supabaseReady', onSupabaseReady);
+        resolve();
+      } else {
+        console.error('[Settings] ❌ Event erhalten, aber Clients nicht gefunden');
+        showError("Supabase konnte nicht geladen werden. Bitte Seite neu laden.");
+        resolve();
+      }
+    };
+
+    // Event Listener registrieren
+    window.addEventListener('supabaseReady', onSupabaseReady);
+    
+    // Fallback: Polling (für den Fall, dass das Event bereits gesendet wurde)
     let attempts = 0;
-    const maxAttempts = 50;
+    const maxAttempts = 50; // 5 Sekunden
     const interval = setInterval(() => {
       attempts++;
+      
       if (getSupabaseClients()) {
+        console.log(`[Settings] ✅ Clients nach ${attempts} Versuchen gefunden`);
         clearInterval(interval);
+        window.removeEventListener('supabaseReady', onSupabaseReady);
         resolve();
       } else if (attempts >= maxAttempts) {
+        console.error('[Settings] ❌ Timeout: Clients nicht gefunden');
         clearInterval(interval);
-        showError("Fehler beim Laden der Anwendung. Bitte laden Sie die Seite neu.");
+        window.removeEventListener('supabaseReady', onSupabaseReady);
+        showError("Supabase konnte nicht geladen werden. Bitte Seite neu laden.");
         resolve();
       }
     }, 100);
@@ -43,6 +90,7 @@ async function trackEvent(eventType, metadata = {}) {
       event_type: eventType,
       metadata: metadata,
       user_id: currentUser?.id || "unknown",
+      created_at: new Date().toISOString()
     });
   } catch (err) {
     console.error("[Tracking] Error:", err);
@@ -141,8 +189,6 @@ async function loadUser() {
 
     console.log('✅ Profile loaded successfully');
     console.log('📊 Complete profile data:', JSON.stringify(profile, null, 2));
-    console.log('📊 social_media type:', typeof profile.social_media, 'value:', profile.social_media);
-    console.log('📊 contact_methods type:', typeof profile.contact_methods, 'value:', profile.contact_methods);
 
     // Update UI
     console.log('🎨 Updating UI elements...');
@@ -174,7 +220,7 @@ async function loadUser() {
       console.log('⚠️ No phone in profile');
     }
 
-    // Update social media and contact methods with explicit data
+    // Update social media and contact methods
     console.log('🔄 Calling updateSocialMediaDisplay...');
     console.log('   Input:', profile.social_media || {});
     updateSocialMediaDisplay(profile.social_media || {});
@@ -205,25 +251,14 @@ function updateSocialMediaDisplay(socialMedia) {
   console.log('');
   console.log('=== updateSocialMediaDisplay() START ===');
   console.log('📥 Input received:', socialMedia);
-  console.log('📊 Type:', typeof socialMedia);
-  console.log('📊 Is null?', socialMedia === null);
-  console.log('📊 Is undefined?', socialMedia === undefined);
-  console.log('📊 Is object?', typeof socialMedia === 'object');
   
   const displayEl = document.getElementById("displaySocialMedia");
   console.log('🔍 Display element found?', !!displayEl);
   
   if (!displayEl) {
     console.error('❌ displaySocialMedia element NOT FOUND in DOM!');
-    console.log('Available elements with id:', 
-      Array.from(document.querySelectorAll('[id]')).map(el => el.id)
-    );
     return;
   }
-  
-  console.log('✅ Display element found:', displayEl);
-  console.log('📄 Current innerHTML:', displayEl.innerHTML);
-  console.log('📄 Current classes:', displayEl.className);
   
   // Handle null, undefined, or empty object
   if (!socialMedia || typeof socialMedia !== 'object') {
@@ -254,9 +289,8 @@ function updateSocialMediaDisplay(socialMedia) {
   console.log('🔍 Filtering platforms with valid values...');
   const platforms = keys.filter(platform => {
     const value = socialMedia[platform];
-    console.log(`  - ${platform}:`, value, 'type:', typeof value);
     const hasValue = value && value.trim && value.trim().length > 0;
-    console.log(`    hasValue: ${hasValue}`);
+    console.log(`  - ${platform}:`, value, 'hasValue:', hasValue);
     return hasValue;
   });
   
@@ -280,7 +314,6 @@ function updateSocialMediaDisplay(socialMedia) {
   displayEl.textContent = text;
   displayEl.classList.remove("setting-placeholder");
   console.log('✅ Text set. New textContent:', displayEl.textContent);
-  console.log('✅ Classes:', displayEl.className);
   console.log('=== updateSocialMediaDisplay() END (SUCCESS) ===');
 }
 
@@ -288,25 +321,14 @@ function updateContactMethodsDisplay(contactMethods) {
   console.log('');
   console.log('=== updateContactMethodsDisplay() START ===');
   console.log('📥 Input received:', contactMethods);
-  console.log('📊 Type:', typeof contactMethods);
-  console.log('📊 Is null?', contactMethods === null);
-  console.log('📊 Is undefined?', contactMethods === undefined);
-  console.log('📊 Is array?', Array.isArray(contactMethods));
   
   const displayEl = document.getElementById("displayContactMethods");
   console.log('🔍 Display element found?', !!displayEl);
   
   if (!displayEl) {
     console.error('❌ displayContactMethods element NOT FOUND in DOM!');
-    console.log('Available elements with id:', 
-      Array.from(document.querySelectorAll('[id]')).map(el => el.id)
-    );
     return;
   }
-  
-  console.log('✅ Display element found:', displayEl);
-  console.log('📄 Current innerHTML:', displayEl.innerHTML);
-  console.log('📄 Current classes:', displayEl.className);
   
   // Handle null, undefined, or non-array
   if (!contactMethods || !Array.isArray(contactMethods)) {
@@ -348,14 +370,10 @@ function updateContactMethodsDisplay(contactMethods) {
     // New format: [{type: "phone", active: true}, ...]
     console.log('🔍 Filtering active methods (object format)...');
     activeMethods = contactMethods.filter((method, index) => {
-      console.log(`  [${index}]:`, method);
       if (!method || typeof method !== 'object') {
-        console.log(`    ❌ Invalid: not an object`);
         return false;
       }
-      console.log(`    type: ${method.type}, active: ${method.active}`);
       const isActive = method.active === true;
-      console.log(`    isActive: ${isActive}`);
       return isActive;
     });
     console.log('✅ Active methods (objects):', activeMethods);
@@ -378,7 +396,6 @@ function updateContactMethodsDisplay(contactMethods) {
   displayEl.textContent = text;
   displayEl.classList.remove("setting-placeholder");
   console.log('✅ Text set. New textContent:', displayEl.textContent);
-  console.log('✅ Classes:', displayEl.className);
   console.log('=== updateContactMethodsDisplay() END (SUCCESS) ===');
 }
 
@@ -391,8 +408,6 @@ function openEditModal(type) {
   const modalBody = document.querySelector(".modal-body");
 
   console.log('openEditModal called with type:', type);
-  console.log('modalInput element:', modalInput);
-  console.log('modalBody element:', modalBody);
 
   // For social_media and contact_methods, we'll rebuild the modal body
   if (type === "social_media" || type === "contact_methods") {
@@ -1045,19 +1060,38 @@ async function deleteAccount() {
 
 async function initializeApp() {
   try {
-    await waitForSupabase()
+    console.log('[Settings] Initialisierung gestartet...');
+    await waitForSupabase();
+    console.log('[Settings] ✅ Supabase-Clients geladen');
+    
     const success = await initializeSupabase();
-    if (!success) return;
+    if (!success) {
+      console.error('[Settings] ❌ Supabase-Initialisierung fehlgeschlagen');
+      return;
+    }
+    
+    console.log('[Settings] ✅ Supabase authentifiziert');
     await loadUser();
+    console.log('[Settings] ✅ App erfolgreich initialisiert');
   } catch (error) {
-    console.error("App initialization error:", error);
+    console.error("[Settings] ❌ App initialization error:", error);
     showError(`Startfehler: ${error.message}`);
   }
 }
 
 // Initialize when DOM is ready
 if (document.readyState === "complete") {
+  console.log('[Settings] DOM bereits geladen, starte Initialisierung...');
   initializeApp();
 } else {
+  console.log('[Settings] Warte auf DOMContentLoaded...');
   document.addEventListener("DOMContentLoaded", initializeApp);
 }
+
+// Mache Funktionen global verfügbar für Event-Handler im HTML
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
+window.saveEdit = saveEdit;
+window.logout = logout;
+window.confirmDelete = confirmDelete;
+window.closeSuccessModal = closeSuccessModal;
