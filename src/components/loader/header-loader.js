@@ -1,6 +1,6 @@
 // Import necessary functions
-import { throwNewError } from '../output/error/error.js'
-import { printLog } from '../output/log/log.js'
+import { throwNewError } from '../../scripts/output/error/error.js'
+import { printLog } from '../../scripts/output/log/log.js'
 
 printLog('header-loader.js initialized')
 
