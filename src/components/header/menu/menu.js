@@ -1,6 +1,6 @@
 let isMenuOpen = false;
 
-import { menuConfigs } from "./menu-configs"
+import { menuConfigs } from "./menu-configs.js"
 
 function setMenuState(open) {
     const sidebar = document.getElementById('sidebar')
