@@ -1,0 +1,133 @@
+/* Footer Styles - Spaltenlayout */
+footer {
+    background-color: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.footer {
+    display: flex;
+    justify-content: center;
+    gap: 3rem 4rem;
+    padding: 2.5rem 2rem;
+    /* Use full available width up to the max, center with margin */
+    width: 100%;
+    max-width: 1200px; /* Gleiche maximale Breite wie der Header */
+    margin: 0 auto;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+}
+
+.colum {
+    flex: 1;
+    min-width: 180px;
+    max-width: 200px;
+}
+
+.colum h3 {
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+.colum ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.colum ul li {
+    margin-bottom: 0.6rem;
+}
+
+.colum ul li:last-child {
+    margin-bottom: 0;
+}
+
+.colum ul li a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.colum ul li a:hover {
+    color: var(--link-color);
+    text-decoration: underline;
+    transform: translateX(3px);
+}
+
+/* Footer am Ende der Seite fixieren */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .footer {
+        gap: 2rem;
+        padding: 2rem 1.5rem;
+        justify-content: space-between;
+    }
+    
+    .colum {
+        min-width: 140px;
+        max-width: 160px;
+    }
+    
+    .colum h3 {
+        font-size: 0.95rem;
+    }
+    
+    .colum ul li a {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .footer {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .colum {
+        max-width: 100%;
+        min-width: 100%;
+    }
+    
+    .colum h3,
+    .colum ul {
+        text-align: center;
+    }
+    
+    .colum ul li {
+        margin-bottom: 0.4rem;
+    }
+}
+
+/* Optimierung für sehr große Bildschirme */
+@media (min-width: 1400px) {
+    .footer {
+        max-width: 1400px;
+        gap: 4rem 5rem;
+    }
+}

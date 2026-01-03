@@ -1,4 +1,4 @@
-let log = false
+let log = true
 
 export function printLog(message){
     if (log){

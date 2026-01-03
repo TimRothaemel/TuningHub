@@ -2,29 +2,30 @@
 import { throwNewError } from "../../scripts/output/error/error.js";
 import { printLog } from "../../scripts/output/log/log.js";
 
-printLog("[Header] header-loader.js initialized");
+printLog("[Footer] footer-loader.js initialized");
 
 document.addEventListener("DOMContentLoaded", function () {
-  let header = document.querySelector(".header");
+  let footer = document.querySelector(".footer");
 
-  if (!header) {
-    throwNewError("[Header] Header element not found");
+  if (!footer) {
+    throwNewError("[Footer] Footer element not found");
     return;
   }
 
-  fetch("/src/components/header/header.html")
+  fetch("/src/components/footer/footer.html")
     .then((response) => {
       if (!response.ok) {
         throwNewError(`HTTP error! status: ${response.status}`);
+        return;
       }
       return response.text();
     })
     .then((data) => {
-      header.innerHTML = data;
-      document.dispatchEvent(new CustomEvent("headerLoaded"));
-      printLog("[Header] Header geladen und Event ausgelöst");
+      footer.innerHTML = data;
+      document.dispatchEvent(new CustomEvent("footerLoaded"));
+      printLog("[Footer] Footer geladen und Event ausgelöst");
     })
     .catch((error) => {
-      throwNewError("Error loading header:", error);
+      throwNewError("Error loading footer:", error);
     });
 });

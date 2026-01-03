@@ -16,3 +16,12 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
 }
+
+/* Make box-sizing predictable so padding is included in width calculations
+   This ensures header and footer max-width behave identically */
+html {
+    box-sizing: border-box;
+}
+*, *::before, *::after {
+    box-sizing: inherit;
+}

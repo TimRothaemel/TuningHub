@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TuningHub</title>
 
-    <link rel="stylesheet" href="/src/styles/main.css">
-    <link rel="stylesheet" href="/src/components/header/header.css">
-    <link rel="stylesheet" href="/src/components/header/searchbar/search.css">
+    <link rel="stylesheet" href="/src/styles/main.css" />
+    <link rel="stylesheet" href="/src/components/header/header.css" />
+    <link rel="stylesheet" href="/src/components/footer/footer.css" />
+    <link rel="stylesheet" href="/src/components/header/searchbar/search.css" />
 
-    <script type="module" src="/src/components/header/header-loader.js"></script>
-
-
-</head>
-<body>
+    <script
+      type="module"
+      src="/src/components/header/header-loader.js"
+    ></script>
+    <script
+      type="module"
+      src="/src/components/footer/footer-loader.js"
+    ></script>
+  </head>
+  <body>
     <header class="header"></header>
     <main>
-        <!-- Main content goes here -->
-    </main> 
-    
-</body>
+      <element class="categories"></element>
+    </main>
+    <footer class="footer"></footer>
+  </body>
 </html>
