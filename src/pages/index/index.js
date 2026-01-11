@@ -3,7 +3,7 @@ import { supabase } from '../../services/supabase.js';
 async function loadMainCategories() {
   const { data, error } = await supabase
     .from('categories')
-    .select('id, name, slug, icon')
+    .select('id, name, slug, icon_url')
     .is('parent_id', null)
     .order('name');
 
@@ -30,7 +30,7 @@ function renderCategories(categories) {
 
     card.addEventListener('click', () => {
       // später Routing
-      window.location.href = `/category.html?slug=${cat.slug}`;
+      window.location.href = `/src/pages/categories/category.html?slug=${cat.slug}`;
     });
 
     grid.appendChild(card);

@@ -1,4 +1,3 @@
-import { printLog } from "../scripts/output/log.js";
 import { supabase } from "../services/supabase.js";
 import { printLog } from "../scripts/output/log/log.js";
 
