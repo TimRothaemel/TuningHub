@@ -1,119 +1,119 @@
 /* Search Component - Light Mode Variant */
 .searchbar-wrapper {
-    position: relative;
-    flex: 1;
-    max-width: 600px;
-    margin: 0 auto;
-    min-width: 200px;
+  position: relative;
+  flex: 1;
+  max-width: 600px;
+  margin: 0 auto;
+  min-width: 200px;
 }
 
 .searchbar {
-    width: 100%;
-    padding: 0.875rem 1.25rem 0.875rem 3.25rem;
-    border: 2px solid var(--border-color);
-    border-radius: 28px;
-    font-size: 1rem;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition: all 0.3s ease;
-    font-family: inherit;
-    box-sizing: border-box;
+  width: 100%;
+  padding: 0.875rem 1.25rem 0.875rem 3.25rem;
+  border: 2px solid var(--border-color);
+  border-radius: 28px;
+  font-size: 1rem;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: all 0.3s ease;
+  font-family: inherit;
+  box-sizing: border-box;
 }
 
 .searchbar:focus {
-    outline: none;
-    border-color: var(--border-color);
-    background-color: var(--bg-color);
-    box-shadow: 0 0 0 4px var(--boxshadow-color);
-    transform: translateY(-1px);
+  outline: none;
+  border-color: var(--border-color);
+  background-color: var(--bg-color);
+  box-shadow: 0 0 0 4px var(--boxshadow-color);
+  transform: translateY(-1px);
 }
 
 .searchbar:hover {
-    border-color: var(--border-color);
-    background-color: var(--bg-color);
+  border-color: var(--border-color);
+  background-color: var(--bg-color);
 }
 
 .searchbar-wrapper img {
-    position: absolute;
-    left: 1.25rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
-    pointer-events: none;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
 }
 
 .searchbar:focus + img {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 
 .searchbar::placeholder {
-    color: var(--border-color);
-    font-weight: 400;
+  color: var(--border-color);
+  font-weight: 400;
 }
 
 /* Responsive Search */
 @media (max-width: 768px) {
-    .searchbar-wrapper {
-        max-width: 500px;
-        min-width: 180px;
-    }
-    
-    .searchbar {
-        padding: 0.75rem 1rem 0.75rem 2.75rem;
-        font-size: 0.95rem;
-        border-radius: 24px;
-    }
-    
-    .searchbar-wrapper img {
-        left: 1rem;
-        width: 18px;
-        height: 18px;
-    }
+  .searchbar-wrapper {
+    max-width: 500px;
+    min-width: 180px;
+  }
+
+  .searchbar {
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    font-size: 0.95rem;
+    border-radius: 24px;
+  }
+
+  .searchbar-wrapper img {
+    left: 1rem;
+    width: 18px;
+    height: 18px;
+  }
 }
 
 @media (max-width: 480px) {
-    .searchbar-wrapper {
-        max-width: 100%;
-        min-width: 150px;
-    }
-    
-    .searchbar {
-        padding: 0.65rem 0.875rem 0.65rem 2.5rem;
-        font-size: 0.9rem;
-        border-radius: 20px;
-        border-width: 1.5px;
-    }
-    
-    .searchbar-wrapper img {
-        left: 0.875rem;
-        width: 16px;
-        height: 16px;
-    }
+  .searchbar-wrapper {
+    max-width: 100%;
+    min-width: 150px;
+  }
+
+  .searchbar {
+    padding: 0.65rem 0.875rem 0.65rem 2.5rem;
+    font-size: 0.9rem;
+    border-radius: 20px;
+    border-width: 1.5px;
+  }
+
+  .searchbar-wrapper img {
+    left: 0.875rem;
+    width: 16px;
+    height: 16px;
+  }
 }
 
 /* Tablet Landscape Optimierung */
 @media (min-width: 769px) and (max-width: 1024px) {
-    .searchbar-wrapper {
-        max-width: 450px;
-    }
+  .searchbar-wrapper {
+    max-width: 450px;
+  }
 }
 
 /* Desktop Large Screens */
 @media (min-width: 1200px) {
-    .searchbar-wrapper {
-        max-width: 700px;
-    }
-    
-    .searchbar {
-        padding: 1rem 1.5rem 1rem 3.5rem;
-        font-size: 1.05rem;
-    }
-    
-    .searchbar-wrapper img {
-        width: 22px;
-        height: 22px;
-    }
+  .searchbar-wrapper {
+    max-width: 700px;
+  }
+
+  .searchbar {
+    padding: 1rem 1.5rem 1rem 3.5rem;
+    font-size: 1.05rem;
+  }
+
+  .searchbar-wrapper img {
+    width: 22px;
+    height: 22px;
+  }
 }

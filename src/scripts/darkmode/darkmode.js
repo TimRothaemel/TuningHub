@@ -5,18 +5,16 @@ printLog("[Darkmode] Initializing Darkmode Module");
 
 let theme = "light"; // Possible values: 'dark' or 'light'
 
-if (theme !=="dark" && theme !=="light"){
-    throwNewError("[Darkmode] Invalid theme value. Allowed values are 'dark' or 'light'.");
-    
+if (theme !== "dark" && theme !== "light") {
+  throwNewError(
+    "[Darkmode] Invalid theme value. Allowed values are 'dark' or 'light'."
+  );
 }
 
-export function applyTheme(){
-    if(theme === 'dark'){
-        document.body.classList.add('darkmode');
-    } else {
-        document.body.classList.remove('darkmode');
-    }   
+export function applyTheme() {
+  if (theme === "dark") {
+    document.body.classList.add("darkmode");
+  } else {
+    document.body.classList.remove("darkmode");
+  }
 }
-
-
-
