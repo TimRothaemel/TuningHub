@@ -1,5 +1,9 @@
 import { supabase } from '../../services/supabase.js';
+import { applyTheme } from '../../scripts/darkmode/darkmode.js';
 
+document.addEventListener("DOMContentLoaded", () => {
+  applyTheme();
+});
 async function loadMainCategories() {
   const { data, error } = await supabase
     .from('categories')

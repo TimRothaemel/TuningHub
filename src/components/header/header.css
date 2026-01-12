@@ -131,3 +131,15 @@
         max-width: 1400px;
     }
 }
+
+.header-content .dark-icon {
+  display: none;
+}
+
+body.darkmode .header-content .light-icon {
+  display: none;
+}
+
+body.darkmode .header-content .dark-icon {
+  display: block;
+}
