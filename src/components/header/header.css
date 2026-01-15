@@ -22,28 +22,7 @@
   height: 60px; /* Feste Höhe für bessere Berechnung */
 }
 
-/* Wrapper für main und footer, der scrollt */
-.content-wrapper {
-  margin-top: 60px; /* Abstand für fixierten Header */
-  height: calc(100vh - 60px); /* Viewport-Höhe minus Header-Höhe */
-  overflow-y: auto; /* Scrollbarkeit */
-  display: flex;
-  flex-direction: column;
-}
 
-/* Main-Bereich nimmt verfügbaren Platz ein */
-main {
-  flex: 1 0 auto; /* Nimmt verfügbaren Platz ein */
-  padding: 1.5rem; /* Optional: Abstand für Inhalt */
-}
-
-/* Footer bleibt am Ende des Content-Wrappers */
-footer {
-  background-color: var(--bg-color);
-  border-top: 1px solid var(--border-color);
-  width: 100%;
-  flex-shrink: 0; /* Footer bleibt unten */
-}
 
 /* Menu Button */
 .menu-button {

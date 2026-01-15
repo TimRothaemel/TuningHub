@@ -18,7 +18,10 @@ footer {
     margin: 0 auto;
     box-sizing: border-box;
     flex-wrap: wrap;
+    flex-shrink: 0;
 }
+
+
 
 .colum {
     flex: 1;
