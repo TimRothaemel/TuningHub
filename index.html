@@ -5,21 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TuningHub</title>
 
-
     <link rel="stylesheet" href="/src/styles/main.css" />
     <link rel="stylesheet" href="/src/components/header/header.css" />
     <link rel="stylesheet" href="/src/components/footer/footer.css" />
     <link rel="stylesheet" href="/src/components/header/searchbar/search.css" />
+    <link rel="stylesheet" href="/src/pages/categories/category.css" />
 
     <script
       type="module"
       src="/src/components/header/header-loader.js"
     ></script>
-      
-  <script
-      type="module"
-      src="/src/pages/index/index.js"
-    ></script>
+
+    <script type="module" src="/src/pages/index/index.js"></script>
     <script
       type="module"
       src="/src/components/footer/footer-loader.js"
@@ -27,12 +24,13 @@
   </head>
   <body>
     <header class="header"></header>
-    <main>
-<section class="categories">
-  <h2>Kategorien</h2>
-  <div id="category-grid"></div>
-</section>
-    </main>
-    <footer class="footer"></footer>
-  </body> 
+    <div class="content-wrapper">
+      <main>
+        <section class="categories">
+          <div id="category-grid"></div>
+        </section>
+      </main>
+      <footer class="footer"></footer>
+    </div>
+  </body>
 </html>

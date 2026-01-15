@@ -1,9 +1,13 @@
-/* Header Container */
+/* Header Container - Fixiert am oberen Rand */
 .header {
   width: 100%;
   background-color: var(--bg-color);
   border-bottom: 1px solid var(--border-color);
   box-shadow: 0 2px 8px var(--boxshadow-color);
+  position: fixed; /* Fixierung am oberen Rand */
+  top: 0;
+  left: 0;
+  z-index: 1000; /* Sicherstellen, dass Header über allem liegt */
 }
 
 /* Header Styles - Light Mode Variant */
@@ -15,6 +19,30 @@
   max-width: 1200px;
   margin: 0 auto;
   gap: 1.5rem;
+  height: 60px; /* Feste Höhe für bessere Berechnung */
+}
+
+/* Wrapper für main und footer, der scrollt */
+.content-wrapper {
+  margin-top: 60px; /* Abstand für fixierten Header */
+  height: calc(100vh - 60px); /* Viewport-Höhe minus Header-Höhe */
+  overflow-y: auto; /* Scrollbarkeit */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main-Bereich nimmt verfügbaren Platz ein */
+main {
+  flex: 1 0 auto; /* Nimmt verfügbaren Platz ein */
+  padding: 1.5rem; /* Optional: Abstand für Inhalt */
+}
+
+/* Footer bleibt am Ende des Content-Wrappers */
+footer {
+  background-color: var(--bg-color);
+  border-top: 1px solid var(--border-color);
+  width: 100%;
+  flex-shrink: 0; /* Footer bleibt unten */
 }
 
 /* Menu Button */
@@ -92,6 +120,12 @@
   .header-content {
     padding: 0.75rem 1rem;
     gap: 1rem;
+    height: 52px; /* Kleinere Höhe für mobile Geräte */
+  }
+  
+  .content-wrapper {
+    margin-top: 52px;
+    height: calc(100vh - 52px);
   }
 
   .menu-button img {
@@ -103,12 +137,22 @@
     width: 32px;
     height: 32px;
   }
+  
+  main {
+    padding: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
   .header-content {
     padding: 0.5rem;
     gap: 0.75rem;
+    height: 48px;
+  }
+  
+  .content-wrapper {
+    margin-top: 48px;
+    height: calc(100vh - 48px);
   }
 
   .menu-button img {
@@ -123,6 +167,10 @@
   .profile-btn img {
     width: 28px;
     height: 28px;
+  }
+  
+  main {
+    padding: 0.75rem;
   }
 }
 
@@ -142,4 +190,113 @@ body.darkmode .header-content .light-icon {
 
 body.darkmode .header-content .dark-icon {
   display: block;
+}
+
+/* Footer Styles - Spaltenlayout */
+.footer {
+  display: flex;
+  justify-content: center;
+  gap: 3rem 4rem;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+
+.colum {
+  flex: 1;
+  min-width: 180px;
+  max-width: 200px;
+}
+
+.colum h3 {
+  color: var(--text-color);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.colum ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.colum ul li {
+  margin-bottom: 0.6rem;
+}
+
+.colum ul li:last-child {
+  margin-bottom: 0;
+}
+
+.colum ul li a {
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.colum ul li a:hover {
+  color: var(--link-color);
+  text-decoration: underline;
+  transform: translateX(3px);
+}
+
+/* Responsive Footer */
+@media (max-width: 768px) {
+  .footer {
+    gap: 2rem;
+    padding: 2rem 1.5rem;
+    justify-content: space-between;
+  }
+  
+  .colum {
+    min-width: 140px;
+    max-width: 160px;
+  }
+  
+  .colum h3 {
+    font-size: 0.95rem;
+  }
+  
+  .colum ul li a {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .colum {
+    max-width: 100%;
+    min-width: 100%;
+  }
+  
+  .colum h3,
+  .colum ul {
+    text-align: center;
+  }
+  
+  .colum ul li {
+    margin-bottom: 0.4rem;
+  }
+}
+
+/* Optimierung für sehr große Bildschirme */
+@media (min-width: 1400px) {
+  .footer {
+    max-width: 1400px;
+    gap: 4rem 5rem;
+  }
 }

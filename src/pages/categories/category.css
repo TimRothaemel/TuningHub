@@ -1,0 +1,226 @@
+/* categories.css - Styling für die Kategorien-Ansicht */
+
+/* Grid-Layout für Kategorienkarten */
+#category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Kategorien-Karten */
+.category-card {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px var(--boxshadow-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: var(--link-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px var(--boxshadow-color);
+    border-color: var(--link-color);
+}
+
+.category-card:hover::before {
+    transform: scaleX(1);
+}
+
+.category-card:focus {
+    outline: 2px solid var(--focuscolor);
+    outline-offset: 2px;
+}
+
+/* Kategorie-Icon */
+.category-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+}
+
+.category-card:hover .category-icon {
+    transform: scale(1.1);
+}
+
+/* Kategorie-Name */
+.category-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    line-height: 1.3;
+    transition: color 0.3s ease;
+}
+
+.category-card:hover .category-name {
+    color: var(--link-color);
+}
+
+/* Seiten-Header */
+.categories-header {
+    text-align: center;
+    padding: 2rem 1.5rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.categories-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.categories-header p {
+    font-size: 1.1rem;
+    color: var(--text-color);
+    opacity: 0.8;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Leerer Zustand */
+.empty-categories {
+    text-align: center;
+    padding: 3rem;
+    grid-column: 1 / -1;
+}
+
+.empty-categories p {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    #category-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1.2rem;
+        padding: 1.2rem;
+    }
+    
+    .category-card {
+        min-height: 130px;
+        padding: 1.2rem 0.8rem;
+    }
+    
+    .category-icon {
+        font-size: 2.2rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .category-name {
+        font-size: 1rem;
+    }
+    
+    .categories-header {
+        padding: 1.5rem 1.2rem 0.8rem;
+    }
+    
+    .categories-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .categories-header p {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #category-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .category-card {
+        min-height: 120px;
+        padding: 1rem 0.5rem;
+        border-radius: 10px;
+    }
+    
+    .category-icon {
+        font-size: 2rem;
+        margin-bottom: 0.6rem;
+    }
+    
+    .category-name {
+        font-size: 0.95rem;
+    }
+    
+    .categories-header {
+        padding: 1.2rem 1rem 0.5rem;
+    }
+    
+    .categories-header h1 {
+        font-size: 1.6rem;
+    }
+}
+
+/* Dark Mode spezifische Anpassungen */
+.darkmode .category-card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.darkmode .category-card:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Ladeanimation für Karten (optional) */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.category-card {
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+}
+
+/* Verzögerte Animation für jede Karte */
+.category-card:nth-child(1) { animation-delay: 0.05s; }
+.category-card:nth-child(2) { animation-delay: 0.1s; }
+.category-card:nth-child(3) { animation-delay: 0.15s; }
+.category-card:nth-child(4) { animation-delay: 0.2s; }
+.category-card:nth-child(5) { animation-delay: 0.25s; }
+.category-card:nth-child(6) { animation-delay: 0.3s; }
+.category-card:nth-child(7) { animation-delay: 0.35s; }
+.category-card:nth-child(8) { animation-delay: 0.4s; }
+.category-card:nth-child(9) { animation-delay: 0.45s; }
+.category-card:nth-child(10) { animation-delay: 0.5s; }
+.category-card:nth-child(11) { animation-delay: 0.55s; }
+.category-card:nth-child(12) { animation-delay: 0.6s; }
