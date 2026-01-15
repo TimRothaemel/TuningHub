@@ -1,13 +1,9 @@
 import { printLog } from "../../scripts/output/log/log.js";
 import { supabase } from "../../services/supabase.js";
-import { applyTheme } from "../../scripts/darkmode/darkmode.js";
 import { renderCategories } from "../categories/render-categories.js";
 
 printLog("[Index Page] Initializing Index Page");
 
-document.addEventListener("DOMContentLoaded", () => {
-  applyTheme();
-});
 async function loadMainCategories() {
   const { data, error } = await supabase
     .from("categories")

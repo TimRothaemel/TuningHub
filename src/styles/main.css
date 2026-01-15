@@ -51,3 +51,13 @@ main {
   flex: 1 0 auto; /* Nimmt verfügbaren Platz ein */
   padding: 1.5rem; /* Optional: Abstand für Inhalt */
 }
+.dark-icon {
+  display: none;
+}
+.light-icon {
+  display: none;
+}
+
+.dark-icon {
+  display: block;
+}

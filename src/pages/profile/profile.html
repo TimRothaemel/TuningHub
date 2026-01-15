@@ -1,33 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profile</title>
     <link rel="stylesheet" href="/src/styles/main.css" />
     <link rel="stylesheet" href="/src/components/header/header.css" />
     <link rel="stylesheet" href="/src/components/footer/footer.css" />
     <link rel="stylesheet" href="/src/components/header/searchbar/search.css" />
+    <link rel="stylesheet" href="/src/components/back-btn/back-btn.css" />
+
+    <script type="module" src="../../../main.js" ></script>
 
     <script
       type="module"
       src="/src/components/header/header-loader.js"
-    ></script>  
+    ></script>
     <script
       type="module"
       src="/src/components/footer/footer-loader.js"
     ></script>
 
-
-</head>
-<body>
+    <script
+      type="module"
+      src="/src/components/back-btn/back-btn-loader.js"
+    ></script>
+  </head>
+  <body>
     <header class="header"></header>
     <div class="content-wrapper">
-        <main>
-            <h1>Benutzerprofil</h1>
-            <p>Willkommen zu deinem Profil!</p>
-        </main>
-        <footer class="footer"></footer>
+      <main>
+        <div class="back-btn"></div>
+        <h1>Benutzerprofil</h1>
+        <p>Willkommen zu deinem Profil!</p>
+      </main>
+      <footer class="footer"></footer>
     </div>
-</body>
+  </body>
 </html>

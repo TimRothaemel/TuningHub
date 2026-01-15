@@ -3,7 +3,7 @@ import { throwNewError } from "../output/error/error.js";
 
 printLog("[Darkmode] Initializing Darkmode Module");
 
-let theme = "light"; // Possible values: 'dark' or 'light'
+let theme = "dark"; // Possible values: 'dark' or 'light'
 
 if (theme !== "dark" && theme !== "light") {
   throwNewError(
