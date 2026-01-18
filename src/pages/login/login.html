@@ -1,11 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
-</head>
-<body>
-    Login Page
-</body>
+    <link rel="stylesheet" href="/src/styles/main.css" />
+    <link rel="stylesheet" href="/src/components/back-btn/back-btn.css" />
+
+    <script type="module" src="../../../main.js"></script>
+    <script
+      type="module"
+      src="/src/components/back-btn/back-btn-loader.js"
+    ></script>
+  </head>
+  <body>
+    <main>
+        <nav><a class="back-btn" href="/index.html"></a></nav>
+      <div class="input-wrapper">
+        <h1>Login</h1>
+        <form id="login-form">
+          <label for="email">E-Mail:</label>
+          <input type="email" id="email" name="email" required />
+
+          <label for="password">Passwort:</label>
+          <input type="password" id="password" name="password" required />
+
+          <button type="submit">Einloggen</button>
+        </form>
+        <a href="/register.html">Noch keinen Account? Jetzt registrieren.</a>
+      </div>
+    </main>
+  </body>
 </html>
