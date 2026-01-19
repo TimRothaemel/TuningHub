@@ -27,6 +27,7 @@ export async function loginUser(email, password) {
     
   }
   
-  printLog("[Sign In] User logged in successfully:", data.user);
-  return data.session; 
+  printLog("[Sign In] User logged in successfully:", data.uswer);
+  window.location.href = "/src/pages/profile/profile.html";
+  return data.session;
 }

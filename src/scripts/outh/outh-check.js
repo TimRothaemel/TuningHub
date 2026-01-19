@@ -19,6 +19,7 @@ export async function checkUserLoggesIn() {
     return true;
   } else {
     printLog("[Outh Check] No user logged in");
+    window.location.href = "/src/pages/login/login.html";
     return false;
   }
 }

@@ -11,11 +11,9 @@ export async function logoutUser() {
     throwNewError("[Sign Out] Error logging out user:", error);
     return false;
   }
-  if (success) {
-    window.location.href = "../login/login.html";
-  }
 
   printLog("[Sign Out] User logged out successfully");
+  window.location.href = "/src/pages/login/login.html";
   return true;
 }
 
