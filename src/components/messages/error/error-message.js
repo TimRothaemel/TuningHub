@@ -1,4 +1,4 @@
-import { printLog } from "../../scripts/output/log/log.js";
+import { printLog } from "../../../scripts/output/log/log.js";
 import { getOrCreateMessageContainer } from "../message-container.js";
 
 printLog("[Error Message] Initializing Error Message Component");

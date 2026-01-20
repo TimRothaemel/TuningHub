@@ -1,6 +1,7 @@
 import { printLog } from "../output/log/log.js";
 import { throwNewError } from "../output/error/error.js";
-import { showErrorMessage, showSuccessMessage } from "../../components/messages/success/success-message.js";
+import { showSuccessMessage } from "../../components/messages/success/success-message.js";
+import { showErrorMessage } from "../../components/messages/error/error-message.js";
 import { supabase } from "../../services/supabase.js";
 
 printLog("[Sign In] Initializing Sign In Page");
