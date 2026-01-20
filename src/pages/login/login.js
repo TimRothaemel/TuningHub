@@ -1,5 +1,6 @@
 import { printLog } from "../../scripts/output/log/log.js";
 import { loginUser } from "../../scripts/outh/sign-in.js";
+import { showSuccessMessage } from "../../components/messages/success/success-message.js";
 
 printLog("[Log In] Initializing Log In Page");
 
@@ -11,6 +12,10 @@ loginForm.addEventListener("submit", async (event) => {
   let password = passwordInput.value;
   let email = emailInput.value;
   event.preventDefault();
-  loginUser(email, password);
+  let userLogedIn = await loginUser(email, password);
   console.log("Login attempt with", email, password);
+  if (userLogedIn !== null) {
+    showSuccessMessage("Erfolgreich eingeloggt!");
+    window.location.href = "/src/pages/profile/profile.html";
+  }
 });

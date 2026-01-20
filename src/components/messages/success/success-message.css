@@ -1,0 +1,55 @@
+/* Success Message Styles */
+#message-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #4caf50;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  font-size: 16px;
+  font-weight: 500;
+  max-width: 400px;
+  word-wrap: break-word;
+  animation: slideIn 0.3s ease-in-out;
+}
+
+#message-container.success {
+  background-color: #4caf50;
+}
+
+#message-container.error {
+  background-color: #f44336;
+}
+
+#message-container.warning {
+  background-color: #ff9800;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+#message-container.hide {
+  animation: slideOut 0.3s ease-in-out;
+}
