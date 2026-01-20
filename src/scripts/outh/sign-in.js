@@ -1,7 +1,6 @@
 import { printLog } from "../output/log/log.js";
 import { throwNewError } from "../output/error/error.js";
 import { showSuccessMessage } from "../../components/messages/success/success-message.js";
-import { showErrorMessage } from "../../components/messages/error/error-message.js";
 import { supabase } from "../../services/supabase.js";
 
 printLog("[Sign In] Initializing Sign In Page");
@@ -13,7 +12,6 @@ export async function loginUser(email, password) {
   // Validate inputs
   if (!email || !password) {
     throwNewError("[Sign In] Email and password are required");
-    showErrorMessage("E-Mail und Passwort sind erforderlich!");
     return null;
   }
   
@@ -25,7 +23,6 @@ export async function loginUser(email, password) {
   if (error) {    
     // Log more detailed error information
     throwNewError("[Sign In] Error logging in user:", error.message || error);
-    showErrorMessage("Login fehlgeschlagen. Bitte überprüfe deine Anmeldedaten.");
     console.error("Full error object:", error);
     return null;
     

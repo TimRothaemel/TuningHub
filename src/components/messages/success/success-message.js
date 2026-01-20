@@ -6,8 +6,7 @@ printLog("[Success Message] Initializing Success Message Component");
 
 
 export function showSuccessMessage(message, duration = 3000) {
-  const container = getOrCreateMessageContainer();
-  
+
 
   container.classList.remove("hide");
   container.classList.remove("error", "warning");
@@ -27,8 +26,7 @@ export function showSuccessMessage(message, duration = 3000) {
     }, 300); 
   }, duration);
   
-  
-  container.dataset.timeoutId = timeoutId;
+
 }
 
 

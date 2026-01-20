@@ -1,7 +1,6 @@
 import { printLog } from "../output/log/log.js";
 import { throwNewError } from "../output/error/error.js";
 import { showSuccessMessage } from "../../components/messages/success/success-message.js";
-import { showErrorMessage } from "../../components/messages/error/error-message.js";
 import { supabase } from "../../services/supabase.js";
 
 printLog("[Sign Out] Initializing Sign Out Page");
@@ -11,7 +10,6 @@ export async function logoutUser() {
 
   if (error) {
     throwNewError("[Sign Out] Error logging out user:", error);
-    showErrorMessage("Abmeldung fehlgeschlagen. Bitte versuche es erneut.");
     return false;
   }
 
