@@ -1,12 +1,16 @@
 import { printLog } from "../../../scripts/output/log/log.js";
-import { getOrCreateMessageContainer } from "../message-container.js";
 
 printLog("[Success Message] Initializing Success Message Component");
 
 
 
 export function showSuccessMessage(message, duration = 3000) {
-
+  const container = document.getElementById("message-container");
+  
+  if (!container) {
+    console.error("[Success Message] message-container not found");
+    return;
+  }
 
   container.classList.remove("hide");
   container.classList.remove("error", "warning");
@@ -25,8 +29,7 @@ export function showSuccessMessage(message, duration = 3000) {
       container.classList.remove("hide");
     }, 300); 
   }, duration);
-  
-
+    return timeoutId, message;
 }
 
 
