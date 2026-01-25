@@ -1,27 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Unser Team</title>
-    <link rel="stylesheet" href="/src/styles/main.css">
-    <link rel="stylesheet" href="/src/components/header/header.css">
-    <link rel="stylesheet" href="/src/components/footer/footer.css">
-    <link rel="stylesheet" href="/src/components/header/searchbar/search.css">
-    <link rel="stylesheet" href="/src/pages/%C3%BCber-uns/unser-team/unser-team.css">
-    <link rel="stylesheet" href="/src/components/back-btn/back-btn.css">
+    <link rel="stylesheet" href="/src/styles/main.css" />
+    <link rel="stylesheet" href="/src/components/header/header.css" />
+    <link rel="stylesheet" href="/src/components/footer/footer.css" />
+    <link rel="stylesheet" href="/src/components/header/searchbar/search.css" />
+    <link rel="stylesheet" href="/src/components/back-btn/back-btn.css" />
+    <link rel="stylesheet" href="/src/pages/über-uns/unser-team/unser-team.css" />
 
-    <script type="module" src="/main.js"></script>
-    <script type="module" src="/src/components/header/header-loader.js"></script>
-    <script type="module" src="/src/components/footer/footer-loader.js"></script>
-    <script type="module" src="/src/components/back-btn/back-btn-loader.js"></script>
-</head>
-<body>
-    <header class="header"></header>        <div class="content-wrapper"></div>
-    <main>
-        <nav class="back-btn"></nav>
 
-            <h1>Unser Team</h1>
+    <script type="module" src="../../../../main.js"></script>
+    <script
+      type="module"
+      src="/src/components/header/header-loader.js"
+    ></script>
+    <script
+      type="module"
+      src="/src/components/footer/footer-loader.js"
+    ></script>
+
+    <script
+      type="module"
+      src="/src/components/back-btn/back-btn-loader.js"
+    ></script>
+  </head>
+  <body>
+        <div id="message-container" style="display: none;"></div>
+    <header class="header"></header>
+    <div class="content-wrapper">
+      <main>
+        <nav><a class="back-btn" href="/index.html"></a></nav>
+
+                <h1>Unser Team</h1>
             <div class="profile-card-wrapper">
                 <div class="profile-card">
                     <img class="profile-card-image" src="/public/assets/images/profiles/bsp.png" alt="Profilbild von Leon Rothämel">
@@ -41,8 +54,10 @@
                     <p>Telefon: 1234567890</p>
                     <p>Email: maxmusterman@gmail.com</p>
             </div>
+        
 
-    </main>
-    <footer class="footer"></footer>        </div>
-</body>
+      </main>
+      <footer class="footer"></footer>
+    </div>
+  </body>
 </html>
