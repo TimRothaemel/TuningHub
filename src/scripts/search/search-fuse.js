@@ -1,7 +1,7 @@
 import Fuse from 'fuse.js';
-import { printLog } from "../scripts/output/log/log.js";
+import { printLog } from "../output/log/log.js";
 import { throwNewError } from "../output/error/error.js";
-import { getPartCatalog } from "../api/get-part-catalog-api.js";
+import { getPartCatalog } from "../../api/get-part-catalog-api.js";
 
 printLog("[Search Fuse] Initializing Fuse.js Search");
 

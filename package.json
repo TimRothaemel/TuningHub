@@ -2,7 +2,7 @@
   "name": "tuninghub",
   "version": "1.0.0",
   "type": "module",
-  "description": "TuningHub - Car Tuning Platform",
+  "description": "TuningHub",
   "main": "main.js",
   "scripts": {
     "dev": "vite",
