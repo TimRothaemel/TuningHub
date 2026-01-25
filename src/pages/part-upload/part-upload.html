@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teil inserieren</title>
+    <link rel="stylesheet" href="/src/styles/main.css" />
+    <link rel="stylesheet" href="/src/components/header/header.css" />
+    <link rel="stylesheet" href="/src/components/footer/footer.css" />
+    <link rel="stylesheet" href="/src/components/header/searchbar/search.css" />
+    <link rel="stylesheet" href="/src/components/back-btn/back-btn.css" />
+    <link rel="stylesheet" href="/src/pages/part-upload/part-upload.css" />
+    <link rel="stylesheet" href="/src/components/input-fields/input-field.css" />
+
+    <script type="module" src="../../../main.js"></script>
+    <script
+      type="module"
+      src="/src/components/header/header-loader.js"
+    ></script>
+    <script
+      type="module"
+      src="/src/components/footer/footer-loader.js"
+    ></script>  
+    <script
+      type="module"
+      src="/src/components/back-btn/back-btn-loader.js"
+    ></script>
+</head>
+<body>
+    
+    <div id="message-container" style="display: none;"></div>
+    <header class="header"></header>
+    <div class="content-wrapper">
+      <main>
+        <nav><a class="back-btn" href="/index.html"></a></nav>
+
+        <h1>Teil inserieren</h1>
+        <form id="part-upload-form">
+            <div class="input-field-wrapper">
+            <input class="input-field" placeholder="Name" alt="Teilname" type="text" id="part-name" name="part-name" required>
+
+
+            <textarea class="input-area" placeholder="Beschreibung" id="part-description" name="part-description" required></textarea>
+
+
+            <input class="input-field" placeholder="Preis (€)" alt="Preis" type="number" id="part-price" name="part-price" required>
+
+
+            <input class="input-field" placeholder="Bilder" alt="Bilder" type="file" id="part-image" name="part-image" accept="image/*" required>
+</div>
+            <button type="submit">Teil inserieren</button>
+        </form>
+      </main>
+      <footer class="footer"></footer>
+    </div>
+
+</body>
+</html>

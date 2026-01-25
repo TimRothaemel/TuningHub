@@ -1,0 +1,140 @@
+/* Styling für Input-Felder */
+
+.input-field-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.input-field,
+.input-area {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px var(--boxshadow-color);
+}
+
+.input-field:focus,
+.input-area:focus {
+    outline: none;
+    border-color: var(--focuscolor);
+    box-shadow: 0 0 0 3px var(--boxshadow-color);
+}
+
+.input-field::placeholder,
+.input-area::placeholder {
+    color: var(--border-color);
+    opacity: 0.8;
+}
+
+.input-area {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.input-field[type="file"] {
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.input-field[type="file"]::file-selector-button {
+    padding: 0.5rem 1rem;
+    margin-right: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.input-field[type="file"]::file-selector-button:hover {
+    background-color: var(--border-color);
+}
+
+
+
+.input-field[type="number"]::-webkit-inner-spin-button,
+.input-field[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Button Styling (für den Submit-Button im Formular) */
+button[type="submit"] {
+    width: 100%;
+    max-width: 500px;
+    padding: 0.875rem 1.5rem;
+    margin: 1rem auto;
+    display: block;
+    background-color: var(--link-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: 8px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px var(--boxshadow-color);
+}
+
+button[type="submit"]:hover {
+    background-color: var(--focuscolor);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px var(--boxshadow-color);
+}
+
+button[type="submit"]:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px var(--boxshadow-color);
+}
+
+button[type="submit"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--boxshadow-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .input-field-wrapper {
+        padding: 1rem;
+        gap: 1.25rem;
+    }
+    
+    .input-field,
+    .input-area {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.95rem;
+    }
+    
+    button[type="submit"] {
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .input-field-wrapper {
+        padding: 0.75rem;
+        gap: 1rem;
+    }
+    
+    .input-field,
+    .input-area {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .input-area {
+        min-height: 100px;
+    }
+}
