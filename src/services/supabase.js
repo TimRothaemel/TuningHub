@@ -1,4 +1,4 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { printLog } from "../scripts/output/log/log.js";
 
 printLog("[Supabase] Initializing Supabase Client");
