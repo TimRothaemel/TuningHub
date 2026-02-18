@@ -9,3 +9,11 @@ button.back-btn{
     border-radius: 8px;
     transition: all 0.2s ease;  
 }
+h1{
+    color: var(--text-color);
+    position: relative;
+    justify-content: right;
+    font-size: 1.5rem;
+    font-weight: 600;
+
+}
