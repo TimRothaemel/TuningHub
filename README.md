@@ -1,6 +1,6 @@
 # TuningHub
 
-TuningHub war eine spezialisierte Plattform für Moped- und Tuning-Enthusiasten, auf der Nutzer Teile mit Bild und Telefonnummer inserieren und direkt verkaufen konnten.  
+TuningHub war eine spezialisierte Plattform für Moped- und Tuning-Enthusiasten mit über 500 Nutzern, auf der Nutzer Teile mit Bild und Telefonnummer inserieren und direkt verkaufen konnten.  
 Die Plattform richtete sich vor allem an Fahrer von Simson, 50ccm-Mopeds und Tuning-Fans im deutschsprachigen Raum.  
 Hinweis: Die Plattform ist mittlerweile offline und wird sehr wahrscheinlich nicht wieder online gehen.
 
