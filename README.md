@@ -1,99 +1,115 @@
-# TuningHub
+# TuningHub (Open Source)
 
-TuningHub war eine spezialisierte Plattform für Moped- und Tuning-Enthusiasten mit über 500 Nutzern, auf der Nutzer Teile mit Bild und Telefonnummer inserieren und direkt verkaufen konnten.  
-Die Plattform richtete sich vor allem an Fahrer von Simson, 50ccm-Mopeds und Tuning-Fans im deutschsprachigen Raum.  
-Hinweis: Die Plattform ist mittlerweile offline und wird sehr wahrscheinlich nicht wieder online gehen.
+TuningHub was a specialized platform for moped and tuning enthusiasts with over 500 users.
 
----
+Users were able to list parts with images and phone numbers and sell them directly without intermediaries.  
+The platform mainly targeted Simson riders, 50cc enthusiasts, and tuning fans in the German-speaking region.
 
-## Vision
-
-TuningHub hatte das Ziel, eine zentrale Plattform für den privaten An- und Verkauf von Moped-Teilen zu sein, einfach, direkt und ohne unnötige Komplexität.
+Note: The platform is currently offline and will most likely not return.
 
 ---
 
-## Tech Stack (historisch)
+# Open Source
 
-### Frontend
+This project is now open source.
+
+It is intended as:
+- A learning resource for developers
+- A real-world fullstack project example
+- A base for similar marketplace platforms
+
+You are free to explore, modify, and build upon this project.
+
+---
+
+# Vision
+
+TuningHub aimed to create a simple, fast, and direct platform for buying and selling moped parts without unnecessary complexity.
+
+---
+
+# Tech Stack
+
+## Frontend
 - HTML
 - CSS
 - JavaScript
 - Responsive Design
-- Darkmode-Unterstützung
+- Dark Mode
 
-### Backend
+## Backend
 - Supabase
-  - Authentifizierung
-  - PostgreSQL Datenbank
-  - Storage (Bild-Upload)
-  - Tracking und Analytics
+  - Authentication
+  - PostgreSQL Database
+  - Storage (image uploads)
+  - Tracking & Analytics
 
-### Hosting
-- Netlify (Website)
-- Eigene Supabase-Instanz für:
-  - TuningHub
-  - TuningHubDashboard (Admin-Analyse)
+## Hosting
+- Netlify (Frontend)
+- Dedicated Supabase instances for:
+  - Main App
+  - Admin Dashboard
 
 ---
 
-## Features (historisch)
+# Features
 
-### Benutzer
-- Registrierung und Login
-- Speicherung der Telefonnummer im `user_metadata`
-- Account löschen und verwalten
-- Eigene Inserate verwalten
+## User System
+- Registration and login
+- Phone number stored in `user_metadata`
+- Account management and deletion
+- Manage own listings
 
-### Teile inserieren
-- Titel
-- Beschreibung
-- Preis
-- Zustand
-- Telefonnummer (Dropdown oder neue hinzufügen)
-- Bild-Upload (mehrere möglich)
-  - Bild wird automatisch in der Auflösung verringert (-> weniger Serverauslastung,kürzere Ladezeiten)
-- Automatische Zuordnung zum Nutzer
+## Marketplace
+- Create listings with:
+  - Title
+  - Description
+  - Price
+  - Condition
+  - Phone number (select or add new)
+  - Multiple image uploads
+- Automatic user assignment
+- Image compression for better performance
 
-### Suche und Filter
-- Fuzzy Search
-- Suchfunktion für Teile
-- Preis-Anzeige
-- Bild-Vorschau
-- Direkter Kontakt per Telefonnummer
+## Search & Discovery
+- Fuzzy search
+- Listing previews with images and price
+- Direct contact via phone
 
-### Admin-Dashboard (TuningHubDashboard)
-- Login-geschützt
-- Eigene Supabase-Instanz
-- Tracking von:
+## Admin Dashboard (TuningHubDashboard)
+- Protected admin login
+- Separate backend
+- Tracks:
   - Logins
-  - Neue Accounts
-  - Neue Inserate
-  - Verkäufe
-  - Klicks auf Teile
-  - Gelöschte Accounts
-- Filter nach:
-  - Diese Stunde
-  - Letzte 24 Stunden
-  - Letzte 7 Tage
-  - Letzter Monat
-  - Letztes Jahr
-  - Gesamt
+  - New users
+  - Listings
+  - Sales
+  - Clicks
+  - Deleted accounts
+
+## Analytics Filters
+- This hour
+- Last 24 hours
+- Last 7 days
+- Last month
+- Last year
+- All time
 
 ---
 
-## Sicherheit (historisch)
+# Security
 
-- Supabase Auth mit JWT
+- Supabase Auth (JWT)
 - Row Level Security (RLS)
-- Nutzer sahen nur ihre eigenen Daten
-- Admin-Zugriff strikt getrennt
-- Separate Supabase-Instanz für Dashboard
+- Users can only access their own data
+- Strict separation of admin access
+- Separate Supabase instance for analytics
 
 ---
 
-## Datenstruktur (historisch)
+# Database Structure
 
-### Tabelle: parts
+## Table: parts
 - id
 - user_id
 - title
@@ -104,7 +120,7 @@ TuningHub hatte das Ziel, eine zentrale Plattform für den privaten An- und Verk
 - image_url
 - created_at
 
-### Tracking-Tabelle: events
+## Table: events
 - id
 - type (login, part_created, click, purchase, delete_account, etc.)
 - user_id
@@ -113,26 +129,43 @@ TuningHub hatte das Ziel, eine zentrale Plattform für den privaten An- und Verk
 
 ---
 
-## Roadmap (historisch)
+# Project Status
 
-- MVP (Testphase)
-- Webseite mit grundlegenden Funktionen
-- verbessertes Suchsystem (mit Rankingsystem)
-- Mobile App Version (PWA)
-- Push-Benachrichtigungen
-- Direkte Chat-Funktion
-- Performance-Optimierung
-- Skalierung der Datenbank
+TuningHub is no longer actively maintained and is offline.
+
+This repository exists to document the project and provide insight into its architecture and implementation.
 
 ---
 
-## Projektstatus
+# What You Can Learn From This Project
 
-TuningHub ist offline und wird sehr wahrscheinlich nicht wieder online gehen.  
-Alle hier beschriebenen Features und Strukturen dienen der Dokumentation des bisherigen Projekts.
+- Building a marketplace with Supabase
+- Authentication & user data handling
+- File uploads and optimization
+- Tracking & analytics systems
+- Structuring a real-world SaaS-style project
 
 ---
 
-## Lizenz
+# Contributing
 
-Dieses Projekt ist proprietär und darf ohne ausdrückliche Genehmigung nicht kopiert oder weiterverwendet werden.
+Contributions are welcome.
+
+You can:
+- Improve the code
+- Refactor parts of the system
+- Use it as a base for your own marketplace
+
+---
+
+# License
+
+This project is licensed under the MIT License.
+
+You are free to use, modify, and distribute this project.
+
+---
+
+# Contact
+
+- GitHub: https://github.com/TimRothaemel
